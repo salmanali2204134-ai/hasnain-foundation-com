@@ -1,0 +1,8 @@
+{
+  "name": "Hasnain Foundation",
+  "description": "The official bilingual (English & Urdu) website for Hasnain Foundation, a registered non-profit welfare organization based in Karachi, Pakistan, serving humanity with food distribution, financial aid, educational support, religious programs, and community welfare.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,19 @@
+# Netlify configuration for Hasnain Foundation React SPA
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[functions]
+  directory = "netlify/functions"
+
+# Route API calls to Netlify Serverless Functions first
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+# Handle SPA routing so routes like /admin, /volunteer don't 404 on refresh
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
