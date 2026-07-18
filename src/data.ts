@@ -5,21 +5,21 @@
 
 import { Service, Project, Event, GalleryItem, TransparencyReport, NewsArticle, SuccessStory, SocialPost } from './types';
 
-// Let's import our generated image paths to reference them
+// Publicly hosted high-resolution, responsive, and reliable CDN image URLs
 export const IMAGES = {
-  heroBg: "/src/assets/images/hero_charity_mosque_1784223601396.jpg",
-  masjidProject: "/src/assets/images/masjid_abdul_qadir_jilani_1784223622458.jpg",
-  foodProject: "/src/assets/images/food_distribution_1784228414416.jpg",
-  educationProject: "/src/assets/images/educational_support_1784228429812.jpg",
-  communityProject: "/src/assets/images/community_welfare_1784228447787.jpg",
-  futureProject: "/src/assets/images/charity_clinic_1784228563831.jpg",
-  aboutVolunteers: "/src/assets/images/about_volunteers_1784228540277.jpg",
+  heroBg: "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fm=webp&fit=crop&q=95&w=3840",
+  masjidProject: "https://images.unsplash.com/photo-1597935258735-e254c1839512?auto=format&fm=webp&fit=crop&q=95&w=2560",
+  foodProject: "https://images.unsplash.com/photo-1599059813005-11265ba4b4ce?auto=format&fm=webp&fit=crop&q=95&w=2560",
+  educationProject: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fm=webp&fit=crop&q=95&w=2560",
+  communityProject: "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fm=webp&fit=crop&q=95&w=2560",
+  futureProject: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fm=webp&fit=crop&q=95&w=2560",
+  aboutVolunteers: "https://images.unsplash.com/photo-1559027615-cd9995a0c950?auto=format&fm=webp&fit=crop&q=95&w=2560",
   
   // Events
-  karbalaEvent: "/src/assets/images/karbala_conference_1784228487695.jpg",
-  gatheringEvent: "/src/assets/images/mosque_gathering_1784228503408.jpg",
-  naatEvent: "/src/assets/images/naat_gathering_1784228521736.jpg",
-  welfareEvent: "/src/assets/images/emergency_relief_1784228465999.jpg"
+  karbalaEvent: "https://images.unsplash.com/photo-1590075865003-e48277faa558?auto=format&fm=webp&fit=crop&q=95&w=2560",
+  gatheringEvent: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fm=webp&fit=crop&q=95&w=2560",
+  naatEvent: "https://images.unsplash.com/photo-1585129638847-3bb076dc2ec6?auto=format&fm=webp&fit=crop&q=95&w=2560",
+  welfareEvent: "https://images.unsplash.com/photo-1584515901407-d8f4e35557aa?auto=format&fm=webp&fit=crop&q=95&w=2560"
 };
 
 export const DICTIONARY = {
@@ -27,6 +27,8 @@ export const DICTIONARY = {
     home: { en: "Home", ur: "صفحہ اول" },
     about: { en: "About Us", ur: "ہمارے بارے میں" },
     services: { en: "Services", ur: "خدمات" },
+    appointment: { en: "Book Session", ur: "رجسٹریشن معائنہ" },
+    library: { en: "Islamic Library", ur: "روحانی لائبریری" },
     projects: { en: "Projects", ur: "منصوبے" },
     events: { en: "Events", ur: "تقاریب" },
     gallery: { en: "Gallery", ur: "گیلری" },
@@ -53,12 +55,12 @@ export const DICTIONARY = {
   },
   hero: {
     title: {
-      en: "Serving Humanity Through Compassion and Faith",
-      ur: "انسانیت کی خدمت، ایمان اور ہمدردی کے ساتھ"
+      en: "Authentic Spiritual Healing in the Light of Quran & Sunnah",
+      ur: "قرآن و سنت کی روشنی میں مستند روحانی علاج"
     },
     subtitle: {
-      en: "Hasnain Foundation is committed to serving humanity through charity, welfare, education, religious activities and community development.",
-      ur: "حسنین فاؤنڈیشن صدقات، فلاحی کاموں، تعلیم، مذہبی سرگرمیوں اور معاشرتی بہبود کے ذریعے انسانیت کی بے لوث خدمت کے لیے پرعزم ہے۔"
+      en: "Complete treatment of Black Magic, Jinn possession, obstacles, Evil Eye, and other spiritual & physical ailments according to Shariah methods.",
+      ur: "جادو، جنات، بندش، نظر بد، آسیب اور دیگر روحانی و جسمانی امراض کا شرعی طریقہ کار کے مطابق مکمل علاج"
     }
   },
   stats: {
@@ -743,7 +745,7 @@ export const SOCIAL_POSTS: SocialPost[] = [
     likes: 245,
     shares: 42,
     comments: 18,
-    mediaUrl: "/src/assets/images/food_distribution_1784228414416.jpg"
+    mediaUrl: IMAGES.foodProject
   },
   {
     id: "post-2",
@@ -771,6 +773,6 @@ export const SOCIAL_POSTS: SocialPost[] = [
     likes: 389,
     shares: 15,
     comments: 23,
-    mediaUrl: "/src/assets/images/educational_support_1784228429812.jpg"
+    mediaUrl: IMAGES.educationProject
   }
 ];

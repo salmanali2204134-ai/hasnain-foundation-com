@@ -34,6 +34,8 @@ export default function Header({ lang, setLang, activeSection, setActiveSection 
     { id: 'home', label: DICTIONARY.nav.home[lang] },
     { id: 'about', label: DICTIONARY.nav.about[lang] },
     { id: 'services', label: DICTIONARY.nav.services[lang] },
+    { id: 'appointment', label: DICTIONARY.nav.appointment[lang] },
+    { id: 'library', label: DICTIONARY.nav.library[lang] },
     { id: 'projects', label: DICTIONARY.nav.projects[lang] },
     { id: 'events', label: DICTIONARY.nav.events[lang] },
     { id: 'gallery', label: DICTIONARY.nav.gallery[lang] },

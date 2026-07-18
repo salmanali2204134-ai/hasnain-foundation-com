@@ -10,6 +10,8 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import About from './components/About';
 import Services from './components/Services';
+import AppointmentSystem from './components/AppointmentSystem';
+import KnowledgeLibrary from './components/KnowledgeLibrary';
 import Projects from './components/Projects';
 import Events from './components/Events';
 import Gallery from './components/Gallery';
@@ -23,6 +25,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import DonationTracker from './components/DonationTracker';
 import AdminPanel from './components/AdminPanel';
+import useMetaTags from './hooks/useMetaTags';
 import { Phone, Heart, ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -34,6 +37,9 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   const isUrdu = lang === 'ur';
+
+  // Dynamic SEO, Open Graph and Twitter Card tags synchronization hook
+  useMetaTags({ lang, activeSection });
 
   // Synchronize document attributes like direction (RTL/LTR) based on language choice
   useEffect(() => {
@@ -161,6 +167,12 @@ export default function App() {
 
               {/* 3. Services Section */}
               <Services lang={lang} />
+
+              {/* 3.1 Patient Registration / Appointment Booking System */}
+              <AppointmentSystem lang={lang} />
+
+              {/* 3.2 Authentic Spiritual Healing Knowledge Library */}
+              <KnowledgeLibrary lang={lang} />
 
               {/* 3.5 Dynamic Donation Goal Tracker */}
               <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 -mb-6">
