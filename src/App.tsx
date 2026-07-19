@@ -10,8 +10,7 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import About from './components/About';
 import Services from './components/Services';
-import AppointmentSystem from './components/AppointmentSystem';
-import KnowledgeLibrary from './components/KnowledgeLibrary';
+import SpiritualPortalModal from './components/SpiritualPortalModal';
 import Projects from './components/Projects';
 import Events from './components/Events';
 import Gallery from './components/Gallery';
@@ -25,8 +24,14 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import DonationTracker from './components/DonationTracker';
 import AdminPanel from './components/AdminPanel';
+import ComplaintModal from './components/ComplaintModal';
+import SupaPayDashboard from './components/SupaPayDashboard';
+import PatientPortal from './components/PatientPortal';
+import SocialFollowers from './components/SocialFollowers';
+import FacebookReels from './components/FacebookReels';
 import useMetaTags from './hooks/useMetaTags';
-import { Phone, Heart, ArrowUp } from 'lucide-react';
+import RightSidebar from './components/RightSidebar';
+import { Phone, Heart, ArrowUp, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -35,6 +40,9 @@ export default function App() {
   const [targetProjectId, setTargetProjectId] = useState<string | undefined>(undefined);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isComplaintOpen, setIsComplaintOpen] = useState(false);
+  const [isSpiritualOpen, setIsSpiritualOpen] = useState(false);
+  const [spiritualTab, setSpiritualTab] = useState<'appointment' | 'library'>('appointment');
 
   const isUrdu = lang === 'ur';
 
@@ -66,6 +74,20 @@ export default function App() {
   useEffect(() => {
     if (activeSection === 'donate' || activeSection === 'transparency' || activeSection === 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (activeSection === 'appointment') {
+      setSpiritualTab('appointment');
+      setIsSpiritualOpen(true);
+      setActiveSection('home');
+      return;
+    }
+
+    if (activeSection === 'library') {
+      setSpiritualTab('library');
+      setIsSpiritualOpen(true);
+      setActiveSection('home');
       return;
     }
 
@@ -102,27 +124,26 @@ export default function App() {
     setActiveSection('donate');
   };
 
-  const handleWhatsAppChat = () => {
-    const greeting = encodeURIComponent(
-      isUrdu 
-        ? "السلام علیکم حسنین فاؤنڈیشن! میں انسانیت کی خدمت کے کاموں میں حصہ لینا چاہتا ہوں۔" 
-        : "Assalam-o-Alaikum Hasnain Foundation! I would like to enquire about volunteering and supporting your welfare activities."
-    );
-    window.open(`https://wa.me/923180202424?text=${greeting}`, '_blank');
-  };
-
   const handleScrollTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setActiveSection('home');
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-slate-50 selection:bg-emerald-600 selection:text-white">
+    <div className="min-h-screen flex flex-col justify-between bg-slate-50 selection:bg-emerald-600 selection:text-white lg:pr-72">
       
       {/* Sticky Header */}
       <Header
         lang={lang}
         setLang={setLang}
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+        onOpenAdmin={() => setIsAdminOpen(true)}
+      />
+
+      {/* Right-Side Fixed Navigation Sidebar for Desktop */}
+      <RightSidebar
+        lang={lang}
         activeSection={activeSection}
         setActiveSection={setActiveSection}
       />
@@ -150,6 +171,32 @@ export default function App() {
             >
               <Transparency lang={lang} />
             </motion.div>
+          ) : activeSection === 'supapay' ? (
+            <motion.div
+              key="supapay-page"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+            >
+              <SupaPayDashboard lang={lang} />
+            </motion.div>
+          ) : activeSection === 'patient-portal' ? (
+            <motion.div
+              key="patient-portal-page"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+            >
+              <PatientPortal 
+                lang={lang} 
+                onNavigateToBooking={() => {
+                  setSpiritualTab('appointment');
+                  setIsSpiritualOpen(true);
+                }} 
+              />
+            </motion.div>
           ) : (
             // The stacked, highly interactive multi-section Single Page Layout
             <motion.div
@@ -167,12 +214,6 @@ export default function App() {
 
               {/* 3. Services Section */}
               <Services lang={lang} />
-
-              {/* 3.1 Patient Registration / Appointment Booking System */}
-              <AppointmentSystem lang={lang} />
-
-              {/* 3.2 Authentic Spiritual Healing Knowledge Library */}
-              <KnowledgeLibrary lang={lang} />
 
               {/* 3.5 Dynamic Donation Goal Tracker */}
               <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 -mb-6">
@@ -194,14 +235,20 @@ export default function App() {
               {/* 7.2 Success Stories Section (Gemini AI integration) */}
               <SuccessStories lang={lang} />
 
+              {/* 7.25 Live Followers & Website Subscription Statistics Center */}
+              <SocialFollowers lang={lang} />
+
               {/* 7.3 Real-time Social Media Feed Section */}
               <SocialFeed lang={lang} />
+
+              {/* 7.4 Facebook Reels & Video Highlights (Direct account link) */}
+              <FacebookReels lang={lang} />
 
               {/* 7.5 Volunteer Section */}
               <Volunteer lang={lang} />
 
               {/* 8. Contact Section */}
-              <Contact lang={lang} />
+              <Contact lang={lang} onOpenComplaint={() => setIsComplaintOpen(true)} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -212,6 +259,7 @@ export default function App() {
         lang={lang} 
         setActiveSection={setActiveSection} 
         onOpenAdmin={() => setIsAdminOpen(true)} 
+        onOpenComplaint={() => setIsComplaintOpen(true)}
       />
 
       {/* Admin Panel Modal */}
@@ -219,6 +267,21 @@ export default function App() {
         lang={lang} 
         isOpen={isAdminOpen} 
         onClose={() => setIsAdminOpen(false)} 
+      />
+
+      {/* Complaint Modal */}
+      <ComplaintModal
+        lang={lang}
+        isOpen={isComplaintOpen}
+        onClose={() => setIsComplaintOpen(false)}
+      />
+
+      {/* Spiritual Healing Center & Guidance Portal */}
+      <SpiritualPortalModal
+        lang={lang}
+        isOpen={isSpiritualOpen}
+        onClose={() => setIsSpiritualOpen(false)}
+        initialTab={spiritualTab}
       />
 
       {/* FLOATING ACTION TRAYS AT BOTTOM RIGHT/LEFT */}
@@ -244,22 +307,47 @@ export default function App() {
           </motion.button>
         )}
 
-        {/* Floating WhatsApp Chat Help Button */}
+        {/* Floating Spiritual Care / Healing Portal Button */}
         <motion.button
+          id="floating-spiritual-btn"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            setSpiritualTab('appointment');
+            setIsSpiritualOpen(true);
+          }}
+          className="flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-slate-950/20 cursor-pointer border border-slate-700/60"
+        >
+          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse fill-amber-400/20" />
+          <span className={isUrdu ? 'font-urdu' : ''}>
+            {isUrdu ? 'روحانی شفا خانہ' : 'Spiritual Clinic'}
+          </span>
+        </motion.button>
+
+        {/* Floating WhatsApp Chat Help Button */}
+        <motion.a
           id="floating-whatsapp-btn"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          onClick={handleWhatsAppChat}
-          className="p-4 rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 cursor-pointer border border-emerald-400/20"
+          href={`https://wa.me/923180202424?text=${encodeURIComponent(
+            isUrdu 
+              ? "السلام علیکم حسنین فاؤنڈیشن! میں انسانیت کی خدمت کے کاموں میں حصہ لینا چاہتا ہوں۔" 
+              : "Assalam-o-Alaikum Hasnain Foundation! I would like to enquire about volunteering and supporting your welfare activities."
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-4 rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 cursor-pointer border border-emerald-400/20 flex items-center justify-center"
           title={isUrdu ? 'واٹس ایپ پر مدد' : 'WhatsApp Support'}
         >
           {/* Custom chat indicator icon */}
           <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
             <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.504-5.714-1.463L0 24zm6.59-4.846c1.6.95 3.198 1.45 4.793 1.451 5.48-.001 9.938-4.462 9.941-9.945.002-2.656-1.03-5.153-2.903-7.029C16.55 1.758 14.053.724 11.4.724c-5.485 0-9.94 4.46-9.944 9.947-.001 1.772.484 3.5 1.403 5.01L1.817 21.7l6.096-1.597c1.554.846 3.102 1.272 4.734 1.275zm11.455-7.613c-.307-.154-1.817-.897-2.098-.999-.282-.102-.487-.154-.69.154-.204.307-.791.999-.971 1.203-.18.204-.36.229-.667.077-.307-.154-1.3-.48-2.476-1.529-.915-.816-1.533-1.824-1.713-2.131-.18-.307-.019-.473.135-.626.139-.138.307-.359.461-.538.154-.18.205-.307.307-.513.102-.204.051-.384-.026-.538-.077-.154-.69-1.666-.946-2.28-.248-.598-.501-.518-.69-.527-.18-.009-.385-.01-.591-.01s-.538.077-.82.384c-.282.307-1.077 1.051-1.077 2.563 0 1.512 1.097 2.972 1.25 3.177.154.204 2.154 3.29 5.218 4.616.729.316 1.298.505 1.741.646.732.233 1.398.2 1.925.122.587-.088 1.816-.743 2.073-1.461.256-.718.256-1.333.18-1.461-.077-.128-.282-.204-.59-.359z"/>
           </svg>
-        </motion.button>
+        </motion.a>
 
         {/* Scroll To Top Action */}
         <AnimatePresence>

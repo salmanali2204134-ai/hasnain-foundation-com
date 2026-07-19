@@ -53,11 +53,6 @@ export default function Hero({ lang, onDonateClick }: HeroProps) {
     }
   ];
 
-  const handleWhatsAppContact = () => {
-    const text = encodeURIComponent(DICTIONARY.general.whatsappDonationAlert[lang]);
-    window.open(`https://wa.me/923180202424?text=${text}`, '_blank');
-  };
-
   return (
     <div className="relative">
       {/* Immersive Hero Section Container */}
@@ -145,16 +140,18 @@ export default function Hero({ lang, onDonateClick }: HeroProps) {
             </button>
 
             {/* Secondary WhatsApp Button */}
-            <button
+            <a
               id="hero-whatsapp-btn"
-              onClick={handleWhatsAppContact}
+              href={`https://wa.me/923180202424?text=${encodeURIComponent(DICTIONARY.general.whatsappDonationAlert[lang])}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className={`w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-extrabold text-base border border-white/20 transition-colors cursor-pointer backdrop-blur-sm ${
                 isUrdu ? 'font-urdu' : 'font-sans'
               }`}
             >
               <Send className="w-4 h-4 text-emerald-400 rotate-45 sm:rotate-0" />
               <span>{DICTIONARY.general.whatsappContact[lang]}</span>
-            </button>
+            </a>
           </motion.div>
         </div>
 

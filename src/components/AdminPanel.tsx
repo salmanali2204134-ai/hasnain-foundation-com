@@ -25,15 +25,17 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
   // Auth States
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState('');
+  const [showPasscode, setShowPasscode] = useState(false);
   const [authError, setAuthError] = useState(false);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'appointments' | 'donations' | 'subscriptions' | 'settings'>('appointments');
+  const [activeTab, setActiveTab] = useState<'appointments' | 'donations' | 'subscriptions' | 'settings' | 'complaints'>('appointments');
 
   // Backend Data States
   const [appointments, setAppointments] = useState<any[]>([]);
   const [donations, setDonations] = useState<any[]>([]);
   const [subscribers, setSubscribers] = useState<any[]>([]);
+  const [complaints, setComplaints] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -48,6 +50,14 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
   const [editStatus, setEditStatus] = useState('pending');
   const [updateLoading, setUpdateLoading] = useState(false);
 
+  // Complaint States
+  const [selectedComplaint, setSelectedComplaint] = useState<any | null>(null);
+  const [complaintSearch, setComplaintSearch] = useState('');
+  const [complaintFilterStatus, setComplaintFilterStatus] = useState<string>('all');
+  const [editComplaintResolution, setEditComplaintResolution] = useState('');
+  const [editComplaintStatus, setEditComplaintStatus] = useState('pending');
+  const [complaintUpdateLoading, setComplaintUpdateLoading] = useState(false);
+
   // Broadcast States
   const [broadcastType, setBroadcastType] = useState('Email Newsletter');
   const [broadcastTitle, setBroadcastTitle] = useState('');
@@ -60,15 +70,20 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const [aptRes, donRes, subRes] = await Promise.all([
-        fetch('/api/appointments').then(r => r.json()),
-        fetch('/api/donations').then(r => r.json()),
-        fetch('/api/subscriptions').then(r => r.json())
+      const headers = { 
+        'x-admin-passcode': passcode.trim() 
+      };
+      const [aptRes, donRes, subRes, compRes] = await Promise.all([
+        fetch('/api/appointments', { headers }).then(r => r.json()),
+        fetch('/api/donations', { headers }).then(r => r.json()),
+        fetch('/api/subscriptions', { headers }).then(r => r.json()),
+        fetch('/api/complaints', { headers }).then(r => r.json()).catch(() => ({ success: false, complaints: [] }))
       ]);
 
       if (aptRes.success) setAppointments(aptRes.appointments);
       if (donRes.success) setDonations(donRes.donations);
       if (subRes.success) setSubscribers(subRes.subscribers);
+      if (compRes.success) setComplaints(compRes.complaints);
     } catch (err: any) {
       console.error(err);
       setErrorMessage(isUrdu ? "ڈیٹا لوڈ کرنے میں ناکامی" : "Failed to load CRM database from server.");
@@ -86,7 +101,8 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
   // Auth Handling
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.toLowerCase() === 'admin' || passcode === '1234' || passcode === '0315') {
+    const cleanPasscode = passcode.trim();
+    if (cleanPasscode === '786786') {
       setIsAuthenticated(true);
       setAuthError(false);
     } else {
@@ -102,7 +118,10 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
     try {
       const res = await fetch(`/api/appointments/${selectedPatient.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-passcode': passcode.trim()
+        },
         body: JSON.stringify({
           status: editStatus,
           treatmentNotes: editNotes,
@@ -131,7 +150,10 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
     try {
       const res = await fetch(`/api/donations/${id}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-passcode': passcode.trim()
+        },
         body: JSON.stringify({ status })
       });
       const resJson = await res.json();
@@ -158,7 +180,10 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
     try {
       const res = await fetch('/api/subscriptions/broadcast', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-passcode': passcode.trim()
+        },
         body: JSON.stringify({
           type: broadcastType,
           title: broadcastTitle,
@@ -175,6 +200,36 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
       alert("Broadcast failed: " + err.message);
     } finally {
       setBroadcastLoading(false);
+    }
+  };
+
+  // Update complaint status & resolution notes
+  const handleUpdateComplaint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedComplaint) return;
+    setComplaintUpdateLoading(true);
+    try {
+      const res = await fetch(`/api/complaints/${selectedComplaint.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-passcode': passcode.trim()
+        },
+        body: JSON.stringify({
+          status: editComplaintStatus,
+          resolutionNotes: editComplaintResolution
+        })
+      });
+      const resJson = await res.json();
+      if (resJson.success) {
+        setComplaints(prev => prev.map(c => c.id === selectedComplaint.id ? resJson.complaint : c));
+        setSelectedComplaint(resJson.complaint);
+        alert(isUrdu ? "شکایت کا ریکارڈ کامیابی سے اپ ڈیٹ ہو گیا!" : "Complaint record updated successfully!");
+      }
+    } catch (err: any) {
+      alert("Error updating complaint: " + err.message);
+    } finally {
+      setComplaintUpdateLoading(false);
     }
   };
 
@@ -339,33 +394,47 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                   </h3>
                   <p className="text-xs text-slate-500 leading-relaxed mt-1">
                     {isUrdu 
-                      ? 'مریضوں کے خفیہ کوائف اور علاج معالجہ مانیٹر کرنے کے لیے پاس کوڈ درج کریں۔ (پاس کوڈ: admin)' 
+                      ? 'مریضوں کے خفیہ کوائف اور علاج معالجہ مانیٹر کرنے کے لیے پاس کوڈ درج کریں۔' 
                       : 'Please input the administrator passcode to access clinical patient records, verify uploads, and dispatch newsletters.'}
                   </p>
                 </div>
 
                 <form onSubmit={handleAuthSubmit} className="w-full space-y-4">
-                  <input
-                    type="password"
-                    required
-                    value={passcode}
-                    onChange={(e) => setPasscode(e.target.value)}
-                    placeholder="Enter Passcode (e.g. admin)"
-                    className="w-full text-center py-3 px-4 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 font-mono text-sm tracking-widest bg-slate-50 focus:bg-white transition-all"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPasscode ? "text" : "password"}
+                      required
+                      value={passcode}
+                      onChange={(e) => setPasscode(e.target.value)}
+                      placeholder={isUrdu ? "پاس کوڈ درج کریں" : "Enter Passcode"}
+                      className="w-full text-center py-3 pl-12 pr-12 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 font-sans text-sm bg-slate-50 focus:bg-white transition-all text-slate-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasscode(!showPasscode)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
+                      title={showPasscode ? "Hide Passcode" : "Show Passcode"}
+                    >
+                      <Eye className="w-4.5 h-4.5" />
+                    </button>
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400">
+                      <Lock className="w-4.5 h-4.5 text-emerald-600" />
+                    </div>
+                  </div>
 
                   {authError && (
-                    <p className="text-xs text-rose-600 font-bold flex items-center justify-center gap-1">
+                    <p className="text-xs text-rose-600 font-bold flex items-center justify-center gap-1 bg-rose-50 border border-rose-100 py-2 rounded-xl">
                       <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0" />
-                      <span>{isUrdu ? 'غلط کوڈ! دوبارہ کوشش کریں' : 'Incorrect Passcode. Enter "admin"'}</span>
+                      <span>{isUrdu ? 'غلط کوڈ! دوبارہ کوشش کریں' : 'Incorrect Passcode. Please try again.'}</span>
                     </p>
                   )}
 
                   <button
                     type="submit"
-                    className="w-full py-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs sm:text-sm cursor-pointer transition-colors shadow-md"
+                    className="w-full py-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs sm:text-sm cursor-pointer transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
                   >
-                    {isUrdu ? 'دروازہ کھولیں (لاگ ان)' : 'Authenticate & Unlock'}
+                    <Unlock className="w-4 h-4 text-amber-400" />
+                    <span>{isUrdu ? 'دروازہ کھولیں (لاگ ان)' : 'Authenticate & Unlock'}</span>
                   </button>
                 </form>
               </motion.div>
@@ -401,6 +470,7 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                         { id: 'appointments', label: { en: 'Patients Database', ur: 'مریضوں کے ریکارڈز' }, icon: Users },
                         { id: 'donations', label: { en: 'Donation Auditor', ur: 'عطیہ آڈیٹر' }, icon: Coins },
                         { id: 'subscriptions', label: { en: 'Broadcast Center', ur: 'براڈکاسٹ سنٹر' }, icon: Send },
+                        { id: 'complaints', label: { en: 'Integrity & Complaints', ur: 'شکایات سیل' }, icon: ShieldAlert },
                         { id: 'settings', label: { en: 'Database Health', ur: 'ڈیٹا بیس صحت' }, icon: Database }
                       ].map(tab => {
                         const TabIcon = tab.icon;
@@ -922,6 +992,253 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                         </div>
 
                       </div>
+                    </div>
+                  )}
+
+                  {/* ==========================================
+                      TAB 5: SECURE COMPLAINTS MANAGEMENT
+                      ========================================== */}
+                  {activeTab === 'complaints' && (
+                    <div className="space-y-6 text-left">
+                      
+                      {/* Counter Stats Panels */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          { title: { en: 'Total Reports', ur: 'کل درج شکایتیں' }, count: complaints.length, color: 'border-rose-200 bg-rose-50/50 text-rose-800' },
+                          { title: { en: 'Pending Review', ur: 'زیرِ غور' }, count: complaints.filter((c: any) => c.status === 'pending').length, color: 'border-amber-200 bg-amber-50 text-amber-800' },
+                          { title: { en: 'In Investigation', ur: 'زیرِ تفتیش' }, count: complaints.filter((c: any) => c.status === 'under_investigation').length, color: 'border-blue-200 bg-blue-50 text-blue-800' },
+                          { title: { en: 'Resolved Cases', ur: 'حل شدہ' }, count: complaints.filter((c: any) => c.status === 'resolved').length, color: 'border-emerald-200 bg-emerald-50 text-emerald-800' }
+                        ].map((stat, idx) => (
+                          <div key={idx} className={`border p-4 rounded-2xl flex flex-col justify-between ${stat.color}`}>
+                            <span className={`text-[10px] font-black uppercase tracking-wider block ${isUrdu ? 'font-urdu' : ''}`}>{stat.title[lang]}</span>
+                            <span className="text-2xl font-black font-mono mt-1">{stat.count}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Split view: List vs Detail */}
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        
+                        {/* Left column: Complaints List */}
+                        <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-4 space-y-4 shadow-sm">
+                          <div className="flex flex-col sm:flex-row gap-2 justify-between items-stretch sm:items-center">
+                            
+                            {/* Search bar */}
+                            <div className="relative flex-1">
+                              <input
+                                type="text"
+                                value={complaintSearch}
+                                onChange={(e) => setComplaintSearch(e.target.value)}
+                                placeholder={isUrdu ? "شکایت، زمرہ یا ٹکٹ آئی ڈی تلاش کریں..." : "Search by subject, category, or ID..."}
+                                className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-rose-600 focus:bg-white text-slate-800"
+                              />
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            </div>
+
+                            {/* Status Filter */}
+                            <select
+                              value={complaintFilterStatus}
+                              onChange={(e) => setComplaintFilterStatus(e.target.value)}
+                              className="text-xs p-2 rounded-xl border border-slate-200 bg-white"
+                            >
+                              <option value="all">All Statuses</option>
+                              <option value="pending">Pending</option>
+                              <option value="under_investigation">Under Investigation</option>
+                              <option value="resolved">Resolved</option>
+                              <option value="dismissed">Dismissed</option>
+                            </select>
+                          </div>
+
+                          {/* Complaints list table */}
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs border-collapse">
+                              <thead>
+                                <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                  <th className="py-2.5 px-2">ID</th>
+                                  <th className="py-2.5 px-2">Reporter</th>
+                                  <th className="py-2.5 px-2">Subject / Type</th>
+                                  <th className="py-2.5 px-2">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {complaints.filter((comp: any) => {
+                                  const term = complaintSearch.toLowerCase();
+                                  const matchText = (comp.subject || '').toLowerCase() + ' ' + (comp.wrongdoingType || '').toLowerCase() + ' ' + (comp.id || '').toLowerCase() + ' ' + (comp.name || '').toLowerCase();
+                                  const matchSearch = matchText.includes(term);
+                                  const matchStatus = complaintFilterStatus === 'all' || comp.status === complaintFilterStatus;
+                                  return matchSearch && matchStatus;
+                                }).length === 0 ? (
+                                  <tr>
+                                    <td colSpan={4} className="py-8 text-center text-slate-400 font-bold">
+                                      {isUrdu ? 'کوئی شکایت ریکارڈ نہیں ملا' : 'No complaint records matching filters.'}
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  complaints.filter((comp: any) => {
+                                    const term = complaintSearch.toLowerCase();
+                                    const matchText = (comp.subject || '').toLowerCase() + ' ' + (comp.wrongdoingType || '').toLowerCase() + ' ' + (comp.id || '').toLowerCase() + ' ' + (comp.name || '').toLowerCase();
+                                    const matchSearch = matchText.includes(term);
+                                    const matchStatus = complaintFilterStatus === 'all' || comp.status === complaintFilterStatus;
+                                    return matchSearch && matchStatus;
+                                  }).map((comp: any) => (
+                                    <tr
+                                      key={comp.id}
+                                      onClick={() => {
+                                        setSelectedComplaint(comp);
+                                        setEditComplaintStatus(comp.status);
+                                        setEditComplaintResolution(comp.resolutionNotes || '');
+                                      }}
+                                      className={`border-b border-slate-50 last:border-b-0 hover:bg-slate-50 transition-colors cursor-pointer ${
+                                        selectedComplaint?.id === comp.id ? 'bg-rose-50/50' : ''
+                                      }`}
+                                    >
+                                      <td className="py-2.5 px-2 font-mono font-black text-slate-600">{comp.id}</td>
+                                      <td className="py-2.5 px-2 font-bold text-slate-700">
+                                        {comp.name === "Anonymous Citizen" ? (
+                                          <span className="text-rose-600 italic bg-rose-50 px-1.5 py-0.5 rounded text-[10px]">Anonymous</span>
+                                        ) : comp.name}
+                                      </td>
+                                      <td className="py-2.5 px-2">
+                                        <p className="font-bold text-slate-900 truncate max-w-[150px]">{comp.subject}</p>
+                                        <p className="text-[10px] text-slate-400 font-medium truncate max-w-[150px]">{comp.wrongdoingType}</p>
+                                      </td>
+                                      <td className="py-2.5 px-2">
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                          comp.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                                          comp.status === 'under_investigation' ? 'bg-blue-100 text-blue-800' :
+                                          comp.status === 'resolved' ? 'bg-emerald-100 text-emerald-800' :
+                                          'bg-slate-100 text-slate-800'
+                                        }`}>
+                                          {comp.status === 'under_investigation' ? 'Investigating' : comp.status}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        {/* Right column: Action Panel / Resolution Note Details */}
+                        <div className="lg:col-span-6">
+                          <AnimatePresence mode="wait">
+                            {selectedComplaint ? (
+                              <motion.div
+                                key={selectedComplaint.id}
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -15 }}
+                                className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-sm"
+                              >
+                                <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-mono font-black text-rose-700">{selectedComplaint.id}</span>
+                                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest ${
+                                        selectedComplaint.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                                        selectedComplaint.status === 'under_investigation' ? 'bg-blue-100 text-blue-800' :
+                                        selectedComplaint.status === 'resolved' ? 'bg-emerald-100 text-emerald-800' :
+                                        'bg-slate-100 text-slate-800'
+                                      }`}>
+                                        {selectedComplaint.status === 'under_investigation' ? 'Investigating' : selectedComplaint.status}
+                                      </span>
+                                    </div>
+                                    <h4 className="text-sm font-black text-slate-900 mt-1">{selectedComplaint.subject}</h4>
+                                  </div>
+                                  <span className="text-[10px] text-slate-400 font-mono font-bold">{selectedComplaint.submittedAt}</span>
+                                </div>
+
+                                {/* Reporter Profile Details */}
+                                <div className="p-3 bg-slate-50 rounded-xl space-y-2 text-xs">
+                                  <p className="text-[10px] text-slate-400 font-extrabold tracking-wider uppercase">REPORTER CREDENTIALS</p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                                    <p><strong className="text-slate-500">Name: </strong> {selectedComplaint.name}</p>
+                                    <p><strong className="text-slate-500">WhatsApp: </strong> {selectedComplaint.whatsapp}</p>
+                                    <p className="sm:col-span-2"><strong className="text-slate-500">Email: </strong> {selectedComplaint.email}</p>
+                                  </div>
+                                  {selectedComplaint.name === "Anonymous Citizen" && (
+                                    <p className="text-[10px] bg-rose-50 text-rose-700 border border-rose-100 p-1.5 rounded font-bold">
+                                      ⚠ This report was filed anonymously. Reporter identities are protected.
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* Wrongdoing Type & Narrative Description */}
+                                <div className="space-y-1.5">
+                                  <p className="text-[10px] text-slate-400 font-extrabold tracking-wider uppercase">WRONGDOING TYPE</p>
+                                  <p className="text-xs bg-rose-50 border border-rose-100 text-rose-900 px-3 py-1.5 rounded-lg font-bold">
+                                    {selectedComplaint.wrongdoingType}
+                                  </p>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                  <p className="text-[10px] text-slate-400 font-extrabold tracking-wider uppercase">NARRATIVE & FACTS</p>
+                                  <div className="bg-slate-50/50 border border-slate-150 p-3.5 rounded-xl text-xs text-slate-800 leading-relaxed font-medium whitespace-pre-line">
+                                    {selectedComplaint.description}
+                                  </div>
+                                </div>
+
+                                {/* Scholar Resolution Form */}
+                                <form onSubmit={handleUpdateComplaint} className="border-t border-slate-100 pt-4 space-y-3">
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {/* Edit Status */}
+                                    <div className="space-y-1">
+                                      <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+                                        INVESTIGATION STATUS
+                                      </label>
+                                      <select
+                                        value={editComplaintStatus}
+                                        onChange={(e) => setEditComplaintStatus(e.target.value)}
+                                        className="w-full text-xs p-2 border border-slate-200 rounded-xl bg-white text-slate-800"
+                                      >
+                                        <option value="pending">Pending Review</option>
+                                        <option value="under_investigation">Under Investigation</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="dismissed">Dismissed</option>
+                                      </select>
+                                    </div>
+                                    <div className="flex items-end justify-end">
+                                      <button
+                                        type="submit"
+                                        disabled={complaintUpdateLoading}
+                                        className="px-4 py-2.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs shadow-md transition-colors w-full cursor-pointer"
+                                      >
+                                        {complaintUpdateLoading ? 'Saving...' : 'Save Updates'}
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Resolution Notes */}
+                                  <div className="space-y-1">
+                                    <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+                                      RESOLUTION NOTES / ACTION TAKEN
+                                    </label>
+                                    <textarea
+                                      rows={3}
+                                      value={editComplaintResolution}
+                                      onChange={(e) => setEditComplaintResolution(e.target.value)}
+                                      placeholder="Describe the disciplinary actions taken, warnings issued, or findings of the investigation..."
+                                      className="w-full text-xs p-2.5 border border-slate-200 rounded-xl resize-none text-slate-800"
+                                    />
+                                  </div>
+                                </form>
+
+                              </motion.div>
+                            ) : (
+                              <div className="bg-slate-100/50 border border-slate-200 border-dashed rounded-2xl h-80 flex flex-col items-center justify-center text-slate-400 text-center p-4">
+                                <ShieldAlert className="w-12 h-12 text-slate-300 animate-pulse mb-2" />
+                                <h4 className="text-xs font-bold uppercase tracking-wider">{isUrdu ? 'کوئی شکایت منتخب نہیں کی گئی' : 'No Report Selected'}</h4>
+                                <p className="text-[10px] text-slate-400 max-w-xs mt-1">
+                                  {isUrdu ? 'بائیں جانب کی فہرست سے کسی بھی شکایت پر کلک کریں تاکہ اس کے حقائق، ای میل، نمبرز اور تصفیہ کے لیے کارروائی کی جا سکے۔' : 'Click on any reported complaint/wrongdoing in the left column to view confidential facts, contact channels, and log disciplinary action notes.'}
+                                </p>
+                              </div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                      </div>
+
                     </div>
                   )}
 

@@ -5,21 +5,37 @@
 
 import { Service, Project, Event, GalleryItem, TransparencyReport, NewsArticle, SuccessStory, SocialPost } from './types';
 
-// Publicly hosted high-resolution, responsive, and reliable CDN image URLs
+// Import local images as ES modules for reliable bundling and display
+import heroBgImg from './assets/images/hero_charity_mosque_1784223601396.jpg';
+import masjidProjectImg from './assets/images/masjid_abdul_qadir_jilani_1784223622458.jpg';
+import foodProjectImg from './assets/images/food_dist_children_1784344146034.jpg';
+import educationProjectImg from './assets/images/school_children_1784344168521.jpg';
+import communityProjectImg from './assets/images/orphanage_children_1784344188831.jpg';
+import futureProjectImg from './assets/images/clinic_children_1784344209945.jpg';
+import aboutVolunteersImg from './assets/images/about_volunteers_1784228540277.jpg';
+import waterProjectImg from './assets/images/water_filtration_plant_1784481328361.jpg';
+
+// Events and assemblies
+import karbalaEventImg from './assets/images/karbala_conference_1784228487695.jpg';
+import gatheringEventImg from './assets/images/mosque_gathering_1784228503408.jpg';
+import naatEventImg from './assets/images/naat_gathering_1784228521736.jpg';
+import welfareEventImg from './assets/images/emergency_relief_1784228465999.jpg';
+
 export const IMAGES = {
-  heroBg: "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fm=webp&fit=crop&q=95&w=3840",
-  masjidProject: "https://images.unsplash.com/photo-1597935258735-e254c1839512?auto=format&fm=webp&fit=crop&q=95&w=2560",
-  foodProject: "https://images.unsplash.com/photo-1599059813005-11265ba4b4ce?auto=format&fm=webp&fit=crop&q=95&w=2560",
-  educationProject: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fm=webp&fit=crop&q=95&w=2560",
-  communityProject: "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fm=webp&fit=crop&q=95&w=2560",
-  futureProject: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fm=webp&fit=crop&q=95&w=2560",
-  aboutVolunteers: "https://images.unsplash.com/photo-1559027615-cd9995a0c950?auto=format&fm=webp&fit=crop&q=95&w=2560",
+  heroBg: heroBgImg,
+  masjidProject: masjidProjectImg,
+  foodProject: foodProjectImg,
+  educationProject: educationProjectImg,
+  communityProject: communityProjectImg,
+  futureProject: futureProjectImg,
+  aboutVolunteers: aboutVolunteersImg,
+  waterProject: waterProjectImg,
   
   // Events
-  karbalaEvent: "https://images.unsplash.com/photo-1590075865003-e48277faa558?auto=format&fm=webp&fit=crop&q=95&w=2560",
-  gatheringEvent: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fm=webp&fit=crop&q=95&w=2560",
-  naatEvent: "https://images.unsplash.com/photo-1585129638847-3bb076dc2ec6?auto=format&fm=webp&fit=crop&q=95&w=2560",
-  welfareEvent: "https://images.unsplash.com/photo-1584515901407-d8f4e35557aa?auto=format&fm=webp&fit=crop&q=95&w=2560"
+  karbalaEvent: karbalaEventImg,
+  gatheringEvent: gatheringEventImg,
+  naatEvent: naatEventImg,
+  welfareEvent: welfareEventImg
 };
 
 export const DICTIONARY = {
@@ -36,6 +52,8 @@ export const DICTIONARY = {
     news: { en: "News", ur: "خبریں" },
     contact: { en: "Contact Us", ur: "رابطہ کریں" },
     volunteer: { en: "Volunteer", ur: "رضاکار بنیں" },
+    supapay: { en: "SupaPay", ur: "سپا پے والٹ" },
+    patientPortal: { en: "Patient Portal", ur: "مریضوں کا ریکارڈ" },
     donate: { en: "Donate Now", ur: "عطیہ کریں" }
   },
   general: {
@@ -345,11 +363,11 @@ export const PROJECTS_DATA: Project[] = [
   },
   {
     id: "food-distribution-drive",
-    title: { en: "Daily Rashan & Dastarkhwan", ur: "روزانہ راشن اور لنگر" },
-    category: { en: "Food Security", ur: "خوراک کی فراہمی" },
+    title: { en: "Daily Rashan & Children's Dastarkhwan", ur: "روزانہ راشن اور بچوں کا لنگر" },
+    category: { en: "Food Security", ur: "بچوں کی خوراک" },
     description: {
-      en: "Distributing Dry Ration packs to verified low-income households and orphans, and serving hot cooked nutritious meals daily to laborers and commuters.",
-      ur: "مستحق اور غریب ترین خاندانوں کو ماہانہ خشک راشن پیک کی فراہمی، اور روزانہ مزدوروں اور ضرورت مندوں کو پکا ہوا گرم کھانا کھلانا۔"
+      en: "Distributing Dry Ration packs to verified low-income households and supplying daily nutritious, warm cooked meals to underprivileged children and orphans to combat childhood malnutrition across Karachi.",
+      ur: "کراچی کے پسماندہ علاقوں میں معصوم بچوں اور یتیموں میں روزانہ کی بنیاد پر پکا ہوا غذائیت سے بھرپور کھانا اور مستحق خاندانوں کو ماہانہ خشک راشن بیگز کی فراہمی۔"
     },
     image: IMAGES.foodProject,
     completed: false,
@@ -358,26 +376,26 @@ export const PROJECTS_DATA: Project[] = [
     goal: "PKR 5,000,000",
     details: {
       en: [
+        "Specifically focusing on child nutrition to safeguard young minds and bodies.",
         "A single monthly food bag (worth PKR 4,500) supports an average family of 6.",
         "Ration bags contain wheat flour, basmati rice, lentils, sugar, cooking oil, and tea.",
-        "Every distribution is monitored and performed with absolute human dignity.",
-        "Annual goal is to sustain 1,200 permanent families."
+        "Every distribution is monitored and performed with absolute human dignity."
       ],
       ur: [
+        "بچوں میں غذائیت کی کمی کو دور کرنے اور صحت مند نشوونما کے لیے خصوصی دسترخوان کا اہتمام۔",
         "ایک خاندان کا ماہانہ راشن بیگ (جس کی قیمت ۴,۵۰۰ روپے ہے) ۶ افراد کے کنبے کی کفالت کرتا ہے۔",
         "راشن بیگ میں آٹا، چاول، دالیں، چینی، کوکنگ آئل اور پتی شامل ہوتی ہے۔",
-        "تقسیم کا ہر مرحلہ انسانی عزتِ نفس کو مدنظر رکھتے ہوئے سرانجام دیا جاتا ہے۔",
-        "سالانہ ہدف ۱,۲۰۰ مستقل خاندانوں کی مستقل کفالت کرنا ہے۔"
+        "تقسیم کا ہر مرحلہ انسانی عزتِ نفس کو مدنظر رکھتے ہوئے سرانجام دیا جاتا ہے۔"
       ]
     }
   },
   {
     id: "education-orphans",
-    title: { en: "Orphan & Underprivileged Education Support", ur: "یتیم اور غریب بچوں کی تعلیمی کفالت" },
-    category: { en: "Education", ur: "تعلیم" },
+    title: { en: "Al-Hasnain Model School & Orphanage Support", ur: "الاحسنین ماڈل اسکول اور یتیم خانہ سرپرستی" },
+    category: { en: "Education & Orphans", ur: "تعلیم و یتیم خانہ" },
     description: {
-      en: "Sponsoring school fees, uniform, backpacks, stationary, and books for orphan children. We believe education is the single most powerful tool to break generational poverty.",
-      ur: "یتیم اور غریب بچوں کے اسکول کے اخراجات، فیس، یونیفارم، بستے اور کتب کی فراہمی۔ ہمارا ایمان ہے کہ تعلیم ہی غربت کے خاتمے کا واحد پائیدار ذریعہ ہے۔"
+      en: "Sponsoring comprehensive services for children in our Model Schools and supporting local orphanages. We cover high-quality school fees, distribute blue uniforms, books, stationery, and winter clothing to vulnerable South Asian children.",
+      ur: "ہمارے ماڈل اسکولوں اور یتیم خانوں کے غریب و یتیم بچوں کے تمام اخراجات بشمول فیس، یونیفارم، بستے، گرم کپڑے اور کتب کی فراہمی۔ ہمارا مقصد بچوں کے لیے روشن تعلیمی مستقبل قائم کرنا ہے۔"
     },
     image: IMAGES.educationProject,
     completed: false,
@@ -386,14 +404,16 @@ export const PROJECTS_DATA: Project[] = [
     goal: "PKR 3,000,000",
     details: {
       en: [
-        "Directly sponsoring fees for 150+ students in registered high-quality private schools.",
-        "Organizing extra coaching classes and digital literacy workshops.",
-        "Providing school supplies and winter sweaters annually.",
-        "Regular monitoring of student academic progress and counselor support."
+        "Directly sponsoring 200+ students in state-of-the-art charitable Model Schools.",
+        "Providing safe shelter, nutritious meals, and Islamic schooling for orphans.",
+        "Distributing high-quality blue & white uniforms, stationery, and books annually.",
+        "Regular monitoring of student academic progress and professional counselor support."
       ],
       ur: [
-        "رجسٹرڈ شدہ معیاری اسکولوں میں ۱۵۰ سے زائد طلبہ کی فیسوں کی براہ راست ادائیگی۔",
-        "اضافی ٹیوشن کلاسز اور ڈیجیٹل اسکلز ورکشاپس کا انعقاد۔"
+        "جدید اور بہترین معیار کے فلاحی ماڈل اسکولوں میں ۲۰۰ سے زائد یتیم و غریب بچوں کی فیسوں کی براہ راست ادائیگی۔",
+        "یتیم بچوں کے لیے رہائش، متوازن غذا اور معیاری دینی و دنیاوی تعلیم کی فراہمی۔",
+        "ہر سال طلبہ میں نئے اسکول یونیفارم، جوتے، بیگز اور مکمل تعلیمی کٹ کی تقسیم۔",
+        "بچوں کے تعلیمی سفر اور نفسیاتی نشوونما کی باقاعدہ نگرانی کرنا۔"
       ]
     }
   },
@@ -405,7 +425,7 @@ export const PROJECTS_DATA: Project[] = [
       en: "Setting up Clean Water RO plants in water-scarce sectors of Surjani Town to protect citizens from waterborne diseases, and assisting poor girls with standard marriage kits.",
       ur: "سرجانی ٹاؤن کے پانی کی شدید قلت والے علاقوں میں واٹر فلٹریشن (آر او) پلانٹس کی تنصیب اور غریب و یتیم بچیوں کی شادی کے لیے جہیز فنڈز۔"
     },
-    image: IMAGES.communityProject,
+    image: IMAGES.waterProject,
     completed: false,
     progress: 90,
     raised: "PKR 2,700,000",
@@ -424,11 +444,11 @@ export const PROJECTS_DATA: Project[] = [
   },
   {
     id: "future-clinic",
-    title: { en: "Future Project: Al-Hasnain Free Medical Clinic", ur: "مستقبل کا منصوبہ: الاحسنین فری میڈیکل کلینک" },
-    category: { en: "Upcoming", ur: "آنے والا منصوبہ" },
+    title: { en: "Future Project: Al-Hasnain Children & Family Free Hospital", ur: "مستقبل کا منصوبہ: الاحسنین چلڈرن اینڈ فیملی فری ہاسپٹل" },
+    category: { en: "Upcoming", ur: "طبی منصوبہ" },
     description: {
-      en: "Planning a modern, state-of-the-art charitable clinic to provide 100% free doctor consultations, maternity services, and essential pharmacy medicines to Surjani Town residents.",
-      ur: "سرجانی ٹاؤن کے رہائشیوں کے لیے ۱۰۰٪ مفت طبی معائنہ، زچگی کی سہولیات اور بنیادی ادویات کی فراہمی کے لیے ایک جدید چیریٹیبل کلینک کا قیام۔"
+      en: "Planning a state-of-the-art charitable hospital to provide 100% free expert pediatrician diagnostics, mother-and-child maternity services, and essential pharmacy medicines to Surjani Town families.",
+      ur: "سرجانی ٹاؤن کراچی کے خاندانوں بالخصوص بچوں کے لیے ۱۰۰٪ مفت ماہر ڈاکٹرز، پیڈیاٹرک معائنہ، اور زچگی کے ساتھ مفت ادویات کی فراہمی کے لیے ایک اسٹیٹ آف دی آرٹ اسپتال کا قیام۔"
     },
     image: IMAGES.futureProject,
     completed: false,
@@ -437,12 +457,13 @@ export const PROJECTS_DATA: Project[] = [
     goal: "PKR 5,000,000",
     details: {
       en: [
+        "Establishing a dedicated Pediatrics Emergency Ward for young children.",
         "Acquiring adjacent land plot near Jamia Masjid Abdul Qadir Jilani.",
         "Planned departments: General Outpatient (OPD), Pediatrics, and Maternity Care.",
-        "Recruiting panel of volunteer expert doctors from top Karachi hospitals.",
-        "Free dispensary supplying vital cardiovascular and diabetes medicines."
+        "Free dispensary supplying vital cardiovascular, pediatric, and diabetes medicines."
       ],
       ur: [
+        "بچوں کے علاج کے لیے ایک مخصوص اور جدید پیڈیاٹرک ایمرجنسی وارڈ کا قیام۔",
         "جامع مسجد عبدالقادر جیلانی کے قریب زمین کے حصول کے مراحل۔",
         "مجوزہ شعبہ جات: جنرل او پی ڈی، بچوں کا علاج، اور گائنی وارڈ۔"
       ]
@@ -539,8 +560,8 @@ export const GALLERY_DATA: GalleryItem[] = [
     title: { en: "Community Clean Water Plant", ur: "پانی کا فلٹریشن پلانٹ" },
     type: "photo",
     category: "welfare",
-    url: IMAGES.communityProject,
-    thumbnail: IMAGES.communityProject
+    url: IMAGES.waterProject,
+    thumbnail: IMAGES.waterProject
   },
   {
     id: "g5",
@@ -549,14 +570,6 @@ export const GALLERY_DATA: GalleryItem[] = [
     category: "events",
     url: IMAGES.karbalaEvent,
     thumbnail: IMAGES.karbalaEvent
-  },
-  {
-    id: "g6",
-    title: { en: "Construction Progress Video Review", ur: "تعمیراتی کام کی ویڈیو رپورٹ" },
-    type: "video",
-    category: "mosque",
-    url: "https://www.w3schools.com/html/mov_bbb.mp4", // Mock video
-    thumbnail: IMAGES.masjidProject
   },
   {
     id: "g7",
@@ -676,7 +689,7 @@ export const NEWS_DATA: NewsArticle[] = [
         "انشاء اللہ، رواں سال کے آخر تک قریبی علاقوں میں مزید ۳ واٹر پلانٹس نصب کرنے کا ارادہ ہے۔"
       ]
     },
-    image: IMAGES.communityProject,
+    image: IMAGES.waterProject,
     tag: { en: "Welfare Drive", ur: "فلاح و بہبود" }
   }
 ];

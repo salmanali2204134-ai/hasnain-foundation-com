@@ -334,13 +334,90 @@ Make sure the tone is full of empathy, community service, transparency, and prog
     { id: "DON-203", donorName: "Siddique Shah", email: "siddique@live.com", whatsapp: "03152204134", amount: 50000, paymentMethod: "SadaPay", transactionId: "SP-8832910", donationDate: "2026-07-17", status: "pending" }
   ];
 
+  interface ComplaintRecord {
+    id: string;
+    name: string;
+    email: string;
+    whatsapp: string;
+    subject: string;
+    wrongdoingType: string;
+    description: string;
+    status: 'pending' | 'under_investigation' | 'resolved' | 'dismissed';
+    submittedAt: string;
+    resolutionNotes?: string;
+  }
+
+  let complaints: ComplaintRecord[] = [
+    {
+      id: "COMP-301",
+      name: "Tariq Mahmood",
+      email: "tariq.m@gmail.com",
+      whatsapp: "03004567890",
+      subject: "Suspicious charging on Istikhara",
+      wrongdoingType: "Financial Misconduct / Fee Charging",
+      description: "An individual claiming to be a worker from the foundation asked for 5,000 PKR to perform Istikhara. The foundation explicitly states that Istikhara and basic spiritual treatments are free of cost. Please investigate if this person is a real worker.",
+      status: "under_investigation",
+      submittedAt: "2026-07-16 11:20:00",
+      resolutionNotes: "Inquiry started to identify any worker named Tariq or anyone impersonating the foundation."
+    },
+    {
+      id: "COMP-302",
+      name: "Anonymous Citizen",
+      email: "anonymous@hasnainfoundation.org",
+      whatsapp: "N/A",
+      subject: "Fake Facebook Page using Hasnain Foundation Logo",
+      wrongdoingType: "Brand Impersonation",
+      description: "I found a Facebook page called 'Hasnain Foundation Healing Services' which is asking people for advance online transfers for fake amulets. This looks like a scam trying to use your brand.",
+      status: "resolved",
+      submittedAt: "2026-07-15 15:45:00",
+      resolutionNotes: "Reported the fake Facebook page. Put up a warning notice on our official social media handles and website that we never charge any fees or sell commercial amulets."
+    }
+  ];
+
+  // Helper to verify admin passcode for secure data requests
+  const verifyAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const code = req.headers['x-admin-passcode'];
+    const actualPasscode = process.env.ADMIN_PASSCODE || "786786";
+    if (!code || String(code).trim() !== actualPasscode) {
+      return res.status(401).json({ success: false, error: "Unauthorized access. Invalid admin passcode." });
+    }
+    next();
+  };
+
   // -------------------------
   // APPOINTMENT CRUD ROUTES
   // -------------------------
 
-  // Get all patients/appointments
-  app.get("/api/appointments", (req, res) => {
+  // Get all patients/appointments (Secure Admin Only)
+  app.get("/api/appointments", verifyAdmin, (req, res) => {
     res.json({ success: true, appointments });
+  });
+
+  // Public search for a patient record (does not leak the whole database)
+  app.post("/api/appointments/search", (req, res) => {
+    try {
+      const { query } = req.body;
+      if (!query || !query.trim()) {
+        return res.status(400).json({ success: false, error: "Query parameter is required." });
+      }
+      const cleanQuery = query.trim().toLowerCase();
+      const cleanDigits = cleanQuery.replace(/\D/g, '');
+
+      const match = appointments.find(p => 
+        p.id?.toLowerCase() === cleanQuery ||
+        (cleanDigits && p.phone?.replace(/\D/g, '') === cleanDigits) ||
+        (cleanDigits && p.whatsapp?.replace(/\D/g, '') === cleanDigits) ||
+        p.email?.toLowerCase() === cleanQuery
+      );
+
+      if (match) {
+        return res.json({ success: true, appointment: match });
+      } else {
+        return res.json({ success: false, error: "No matching record found." });
+      }
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
   });
 
   // Create a new appointment
@@ -406,8 +483,8 @@ Make sure the tone is full of empathy, community service, transparency, and prog
     }
   });
 
-  // Update appointment (treatment notes, status, follow-up notes, etc.)
-  app.put("/api/appointments/:id", (req, res) => {
+  // Update appointment (Secure Admin Only)
+  app.put("/api/appointments/:id", verifyAdmin, (req, res) => {
     try {
       const { id } = req.params;
       const { status, treatmentNotes, followUpNotes, appointmentDate, appointmentTime } = req.body;
@@ -432,8 +509,8 @@ Make sure the tone is full of empathy, community service, transparency, and prog
     }
   });
 
-  // Delete appointment
-  app.delete("/api/appointments/:id", (req, res) => {
+  // Delete appointment (Secure Admin Only)
+  app.delete("/api/appointments/:id", verifyAdmin, (req, res) => {
     try {
       const { id } = req.params;
       const idx = appointments.findIndex(a => a.id === id);
@@ -481,13 +558,13 @@ Make sure the tone is full of empathy, community service, transparency, and prog
     }
   });
 
-  // Get subscribers list
-  app.get("/api/subscriptions", (req, res) => {
+  // Get subscribers list (Secure Admin Only)
+  app.get("/api/subscriptions", verifyAdmin, (req, res) => {
     res.json({ success: true, subscribers });
   });
 
-  // Trigger admin broadcast to subscribers
-  app.post("/api/subscriptions/broadcast", (req, res) => {
+  // Trigger admin broadcast to subscribers (Secure Admin Only)
+  app.post("/api/subscriptions/broadcast", verifyAdmin, (req, res) => {
     try {
       const { type, title, content } = req.body;
       if (!type || !title || !content) {
@@ -556,13 +633,13 @@ Make sure the tone is full of empathy, community service, transparency, and prog
     }
   });
 
-  // Get all donations
-  app.get("/api/donations", (req, res) => {
+  // Get all donations (Secure Admin Only)
+  app.get("/api/donations", verifyAdmin, (req, res) => {
     res.json({ success: true, donations });
   });
 
-  // Verify/reject donation status
-  app.put("/api/donations/:id/status", (req, res) => {
+  // Verify/reject donation status (Secure Admin Only)
+  app.put("/api/donations/:id/status", verifyAdmin, (req, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body; // 'verified' | 'rejected' | 'pending'
@@ -575,6 +652,72 @@ Make sure the tone is full of empathy, community service, transparency, and prog
       donations[idx].status = status;
 
       res.json({ success: true, donation: donations[idx] });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // -------------------------
+  // SECURE COMPLAINTS ROUTES
+  // -------------------------
+
+  // Submit a new complaint / wrongdoing report
+  app.post("/api/complaints", (req, res) => {
+    try {
+      const { name, email, whatsapp, subject, wrongdoingType, description } = req.body;
+      if (!subject || !wrongdoingType || !description) {
+        return res.status(400).json({ success: false, error: "Subject, category, and description are required." });
+      }
+
+      const nextIdNum = complaints.length > 0
+        ? Math.max(...complaints.map(c => parseInt(c.id.split('-').pop() || "300"))) + 1
+        : 301;
+      const nextId = `COMP-${nextIdNum}`;
+
+      const newComplaint: ComplaintRecord = {
+        id: nextId,
+        name: name || "Anonymous Citizen",
+        email: email || "anonymous@hasnainfoundation.org",
+        whatsapp: whatsapp || "N/A",
+        subject,
+        wrongdoingType,
+        description,
+        status: 'pending',
+        submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        resolutionNotes: ""
+      };
+
+      complaints.unshift(newComplaint);
+      res.status(201).json({ 
+        success: true, 
+        complaint: newComplaint, 
+        message: "Your secure complaint/report has been submitted successfully to our central integrity cell." 
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Get all complaints (Secure Admin Only)
+  app.get("/api/complaints", verifyAdmin, (req, res) => {
+    res.json({ success: true, complaints });
+  });
+
+  // Update complaint status or resolution notes (Secure Admin Only)
+  app.put("/api/complaints/:id", verifyAdmin, (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, resolutionNotes } = req.body;
+
+      const idx = complaints.findIndex(c => c.id === id);
+      if (idx === -1) {
+        return res.status(404).json({ success: false, error: "Complaint record not found." });
+      }
+
+      if (status) complaints[idx].status = status;
+      if (resolutionNotes !== undefined) complaints[idx].resolutionNotes = resolutionNotes;
+
+      res.json({ success: true, complaint: complaints[idx] });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
     }

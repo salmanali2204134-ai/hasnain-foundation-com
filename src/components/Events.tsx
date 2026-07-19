@@ -23,15 +23,6 @@ export default function Events({ lang }: EventsProps) {
     return event.status === filter;
   });
 
-  const handleEnquire = (title: string) => {
-    const text = encodeURIComponent(
-      isUrdu 
-        ? `السلام علیکم! میں حسنین فاؤنڈیشن کی تقریب "${title}" کے بارے میں معلومات حاصل کرنا چاہتا ہوں۔` 
-        : `Assalam-o-Alaikum! I would like to get information regarding the event: "${title}".`
-    );
-    window.open(`https://wa.me/923180202424?text=${text}`, '_blank');
-  };
-
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'conference': return 'bg-amber-550 text-amber-700 bg-amber-50 border-amber-200';
@@ -230,14 +221,20 @@ export default function Events({ lang }: EventsProps) {
                   <div className={`mt-6 pt-4 border-t border-slate-100 flex ${
                     isUrdu ? 'justify-end' : 'justify-start'
                   }`}>
-                    <button
-                      onClick={() => handleEnquire(event.title[lang])}
+                    <a
+                      href={`https://wa.me/923180202424?text=${encodeURIComponent(
+                        isUrdu 
+                          ? `السلام علیکم! میں حسنین فاؤنڈیشن کی تقریب "${event.title[lang]}" کے بارے میں معلومات حاصل کرنا چاہتا ہوں۔` 
+                          : `Assalam-o-Alaikum! I would like to get information regarding the event: "${event.title[lang]}".`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors duration-150 cursor-pointer"
                     >
                       <Info className="w-4 h-4" />
                       <span>{isUrdu ? 'تفصیلات و رہنمائی' : 'Enquire & Join'}</span>
                       <Send className={`w-3 h-3 ${isUrdu ? 'rotate-180' : ''}`} />
-                    </button>
+                    </a>
                   </div>
                 </div>
               </motion.div>

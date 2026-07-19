@@ -13,9 +13,10 @@ interface FooterProps {
   lang: Language;
   setActiveSection: (section: string) => void;
   onOpenAdmin?: () => void;
+  onOpenComplaint?: () => void;
 }
 
-export default function Footer({ lang, setActiveSection, onOpenAdmin }: FooterProps) {
+export default function Footer({ lang, setActiveSection, onOpenAdmin, onOpenComplaint }: FooterProps) {
   const isUrdu = lang === 'ur';
 
   const handleNavClick = (id: string) => {
@@ -24,8 +25,8 @@ export default function Footer({ lang, setActiveSection, onOpenAdmin }: FooterPr
 
   const socialLinks = [
     { name: 'Facebook', icon: Facebook, url: 'https://facebook.com/hasnainfoundation', color: 'hover:text-royal-500' },
-    { name: 'YouTube', icon: Youtube, url: 'https://youtube.com/hasnainfoundation', color: 'hover:text-red-500' },
-    { name: 'Instagram', icon: Instagram, url: 'https://instagram.com/hasnainfoundation', color: 'hover:text-pink-500' },
+    { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@HasnainFoundation-t8n', color: 'hover:text-red-500' },
+    { name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp', color: 'hover:text-pink-500' },
     { name: 'WhatsApp', icon: Phone, url: 'https://wa.me/923180202424', color: 'hover:text-emerald-500' }
   ];
 
@@ -80,7 +81,7 @@ export default function Footer({ lang, setActiveSection, onOpenAdmin }: FooterPr
                     key={link.name}
                     href={link.url}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className={`p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-500 transition-colors ${link.color} hover:border-slate-700`}
                     aria-label={link.name}
                   >
@@ -180,6 +181,17 @@ export default function Footer({ lang, setActiveSection, onOpenAdmin }: FooterPr
             >
               {DICTIONARY.footer.terms[lang]}
             </button>
+            {onOpenComplaint && (
+              <>
+                <span className="text-slate-800">|</span>
+                <button
+                  onClick={onOpenComplaint}
+                  className="hover:text-rose-400 text-rose-500 font-extrabold transition-colors cursor-pointer text-left flex items-center gap-1"
+                >
+                  <span>{isUrdu ? 'شکایت درج کریں' : 'File Complaint'}</span>
+                </button>
+              </>
+            )}
             {onOpenAdmin && (
               <>
                 <span className="text-slate-800">|</span>

@@ -58,15 +58,6 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
     }
   };
 
-  const handleWhatsAppReceipt = () => {
-    const text = encodeURIComponent(
-      isUrdu
-        ? "السلام علیکم! میں نے حسنین فاؤنڈیشن کو عطیہ کی رقم منتقل کر دی ہے، برائے مہربانی رسید تصدیق فرما دیں۔"
-        : "Assalam-o-Alaikum! I have transferred my donation to Hasnain Foundation. Here is my payment receipt for verification."
-    );
-    window.open(`https://wa.me/923180202424?text=${text}`, '_blank');
-  };
-
   const handlePledgeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!pledgeName || !pledgeAmount) return;
@@ -361,15 +352,21 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
                   </p>
                 </div>
                 
-                <button
-                  onClick={handleWhatsAppReceipt}
+                <a
+                  href={`https://wa.me/923180202424?text=${encodeURIComponent(
+                    isUrdu
+                      ? "السلام علیکم! میں نے حسنین فاؤنڈیشن کو عطیہ کی رقم منتقل کر دی ہے، برائے مہربانی رسید تصدیق فرما دیں۔"
+                      : "Assalam-o-Alaikum! I have transferred my donation to Hasnain Foundation. Here is my payment receipt for verification."
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold cursor-pointer transition-colors duration-150 shadow-none ${
                     isUrdu ? 'font-urdu' : ''
                   }`}
                 >
                   <Send className="w-4 h-4 rotate-45 sm:rotate-0" />
                   <span>{DICTIONARY.donate.whatsappReceipt[lang]}</span>
-                </button>
+                </a>
               </div>
             </motion.div>
           </div>

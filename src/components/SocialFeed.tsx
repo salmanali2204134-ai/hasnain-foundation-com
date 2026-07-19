@@ -210,7 +210,7 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
         </div>
 
         {/* Tab Selection Filter */}
-        <div className={`flex justify-start border-b border-slate-100 mb-8 overflow-x-auto no-scrollbar ${isUrdu ? 'flex-row-reverse' : ''}`}>
+        <div className={`flex justify-start border-b border-slate-100 mb-2 overflow-x-auto no-scrollbar ${isUrdu ? 'flex-row-reverse' : ''}`}>
           {(['all', 'facebook', 'youtube', 'instagram'] as const).map((tab) => (
             <button
               key={tab}
@@ -227,6 +227,41 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
               {tab === 'instagram' && 'Instagram'}
             </button>
           ))}
+        </div>
+
+        {/* Channel Direct visit link helper */}
+        <div className={`flex justify-between items-center gap-4 mb-8 text-xs ${isUrdu ? 'flex-row-reverse' : ''}`}>
+          <div className="text-slate-400 text-[11px]">
+            {activeTab === 'all' 
+              ? (isUrdu ? 'تمام میڈیا اپ ڈیٹس دکھائے جا رہے ہیں' : 'Showing all channel updates')
+              : (isUrdu ? `${activeTab} کی تازہ ترین فیڈ دکھائی جا رہی ہے` : `Filtered by ${activeTab} content`)}
+          </div>
+          {activeTab !== 'all' && (
+            <a
+              href={
+                activeTab === 'facebook'
+                  ? 'https://facebook.com/hasnainfoundation'
+                  : activeTab === 'youtube'
+                    ? 'https://www.youtube.com/@HasnainFoundation-t8n'
+                    : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp'
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                const url = activeTab === 'facebook'
+                  ? 'https://facebook.com/hasnainfoundation'
+                  : activeTab === 'youtube'
+                    ? 'https://www.youtube.com/@HasnainFoundation-t8n'
+                    : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp';
+                window.open(url, '_blank', 'noopener,noreferrer');
+                e.preventDefault();
+              }}
+              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-bold hover:underline transition-colors cursor-pointer"
+            >
+              <span>{isUrdu ? `آفیشل ${activeTab} پر جائیں` : `Visit official ${activeTab}`}</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
         </div>
 
         {/* Status Messages */}
@@ -283,22 +318,64 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
                 <div>
                   {/* Author, Platform and Date row */}
                   <div className={`flex items-center justify-between mb-4 ${isUrdu ? 'flex-row-reverse' : ''}`}>
-                    <div className={`flex items-center gap-2.5 ${isUrdu ? 'flex-row-reverse' : ''}`}>
-                      <div className="w-9 h-9 rounded-full bg-slate-200 border border-slate-100 flex items-center justify-center text-slate-800 uppercase font-bold text-xs shrink-0 font-mono">
+                    <a 
+                      href={
+                        post.platform === 'facebook' 
+                          ? 'https://facebook.com/hasnainfoundation' 
+                          : post.platform === 'youtube' 
+                            ? 'https://www.youtube.com/@HasnainFoundation-t8n' 
+                            : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp'
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        const url = post.platform === 'facebook' 
+                          ? 'https://facebook.com/hasnainfoundation' 
+                          : post.platform === 'youtube' 
+                            ? 'https://www.youtube.com/@HasnainFoundation-t8n' 
+                            : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp';
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                        e.preventDefault();
+                      }}
+                      className="group flex items-center gap-2.5 cursor-pointer"
+                      title={isUrdu ? "آفیشل اکاؤنٹ پر جائیں" : "Visit official account"}
+                    >
+                      <div className="w-9 h-9 rounded-full bg-slate-200 border border-slate-100 flex items-center justify-center text-slate-800 uppercase font-bold text-xs shrink-0 font-mono group-hover:border-emerald-400 transition-colors">
                         {post.author.charAt(0)}
                       </div>
                       <div className={isUrdu ? 'text-right font-urdu' : 'text-left font-sans'}>
-                        <h4 className="text-xs font-extrabold text-slate-800">{post.author}</h4>
+                        <h4 className="text-xs font-extrabold text-slate-800 group-hover:text-emerald-600 transition-colors">{post.author}</h4>
                         <div className="flex items-center gap-1 text-[10px] text-slate-400">
                           <Clock className="w-2.5 h-2.5" />
                           <span>{post.date}</span>
                         </div>
                       </div>
-                    </div>
+                    </a>
                     
-                    <div className="p-1.5 rounded-lg bg-white border border-slate-200/70 shadow-2xs">
+                    <a 
+                      href={
+                        post.platform === 'facebook' 
+                          ? 'https://facebook.com/hasnainfoundation' 
+                          : post.platform === 'youtube' 
+                            ? 'https://www.youtube.com/@HasnainFoundation-t8n' 
+                            : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp'
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        const url = post.platform === 'facebook' 
+                          ? 'https://facebook.com/hasnainfoundation' 
+                          : post.platform === 'youtube' 
+                            ? 'https://www.youtube.com/@HasnainFoundation-t8n' 
+                            : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp';
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                        e.preventDefault();
+                      }}
+                      className="p-1.5 rounded-lg bg-white border border-slate-200/70 shadow-2xs hover:border-emerald-500 hover:bg-emerald-50/10 transition-all cursor-pointer block"
+                      title={isUrdu ? `${post.platform} آفیشل پیج` : `Open official ${post.platform}`}
+                    >
                       {getPlatformIcon(post.platform)}
-                    </div>
+                    </a>
                   </div>
 
                   {/* Core Content Body */}
@@ -361,10 +438,15 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
                   </button>
 
                   <a 
-                    href={post.platform === 'facebook' ? 'https://facebook.com/hasnainfoundation' : post.platform === 'youtube' ? 'https://youtube.com/hasnainfoundation' : 'https://instagram.com/hasnainfoundation'} 
+                    href={post.platform === 'facebook' ? 'https://facebook.com/hasnainfoundation' : post.platform === 'youtube' ? 'https://www.youtube.com/@HasnainFoundation-t8n' : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp'} 
                     target="_blank" 
-                    rel="noreferrer" 
-                    className="p-1 hover:text-blue-600 transition-colors"
+                    rel="noopener noreferrer" 
+                    onClick={(e) => {
+                      const url = post.platform === 'facebook' ? 'https://facebook.com/hasnainfoundation' : post.platform === 'youtube' ? 'https://www.youtube.com/@HasnainFoundation-t8n' : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp';
+                      window.open(url, '_blank', 'noopener,noreferrer');
+                      e.preventDefault();
+                    }}
+                    className="p-1 hover:text-blue-600 transition-colors animate-pulse"
                     title="View Original"
                   >
                     <ExternalLink className="w-3 h-3" />
@@ -385,6 +467,41 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
             </p>
           </div>
         )}
+
+        {/* Follow us on Instagram Banner Bar */}
+        <a
+          href="https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => {
+            window.open("https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp", '_blank', 'noopener,noreferrer');
+            e.preventDefault();
+          }}
+          className="mt-12 p-5 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-amber-500/5 rounded-2xl border border-pink-500/10 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-xs relative overflow-hidden group block hover:shadow-md cursor-pointer transition-all duration-300"
+        >
+          <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/5 rounded-full blur-2xl pointer-events-none translate-x-10 -translate-y-10 group-hover:bg-pink-500/10 transition-colors duration-300" />
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="p-3 rounded-xl bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-500 text-white shadow-md active:scale-95 transition-transform duration-200">
+              <Instagram className="w-6 h-6" />
+            </div>
+            <div className={isUrdu ? 'text-right' : 'text-left'}>
+              <h4 className="text-sm font-extrabold text-slate-800">
+                {isUrdu ? 'انسٹاگرام پر حسنین فاؤنڈیشن کو فالو کریں' : 'Follow Hasnain Foundation on Instagram'}
+              </h4>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {isUrdu 
+                  ? 'روزانہ کی مستند ویڈیوز، دعائیں، فلاحی کاموں کے لائیو مناظر اور دیگر اپ ڈیٹس کے لیے' 
+                  : 'Get daily reels, authentic Duas, on-ground charity distributions, and instant visual welfare updates.'}
+              </p>
+            </div>
+          </div>
+          <div
+            className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 text-white text-xs font-black rounded-xl hover:shadow-lg transition-all text-center flex items-center justify-center gap-2 shadow-sm active:scale-95 relative z-10"
+          >
+            <span>{isUrdu ? 'ابھی فالو کریں' : 'Follow @hasnainfoundation'}</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </div>
+        </a>
 
       </div>
 

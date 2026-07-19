@@ -6,15 +6,16 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
 import { DICTIONARY } from '../data';
-import { MapPin, Phone, Mail, Send, CheckCircle, Smartphone } from 'lucide-react';
+import { MapPin, Phone, Mail, Send, CheckCircle, Smartphone, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { submitContactToSupabase } from '../lib/supabase';
 
 interface ContactProps {
   lang: Language;
+  onOpenComplaint?: () => void;
 }
 
-export default function Contact({ lang }: ContactProps) {
+export default function Contact({ lang, onOpenComplaint }: ContactProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -185,16 +186,53 @@ export default function Contact({ lang }: ContactProps) {
             </div>
 
             {/* INTEGRATED ACTUAL GOOGLE MAPS IFRAME EMBED */}
-            <div className="bg-white rounded-xl border border-slate-200 p-2 h-64 sm:h-72 overflow-hidden relative shadow-none">
-              <iframe
-                title="Jamia Masjid Abdul Qadir Jilani Map"
-                src="https://maps.google.com/maps?q=Jamia%20Masjid%20Abdul%20Qadir%20Jilani,%20Surjani%20Town%20Karachi&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                className="w-full h-full rounded-lg border-0"
-                allowFullScreen={false}
-                loading="lazy"
-                referrerPolicy="no-referrer"
-              />
+            <div className="bg-white rounded-xl border border-slate-200 p-2 overflow-hidden relative shadow-none flex flex-col gap-2">
+              <div className="h-64 sm:h-72 w-full overflow-hidden rounded-lg">
+                <iframe
+                  title="Jamia Masjid Abdul Qadir Jilani Map"
+                  src="https://maps.google.com/maps?q=Jamia%20Masjid%20Abdul%20Qadir%20Jilani,%20Surjani%20Town%20Karachi&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                  className="w-full h-full border-0"
+                  allowFullScreen={false}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <a 
+                href="https://maps.app.goo.gl/WAH1sv76pVNsSQiHA"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+              >
+                <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{isUrdu ? 'گوگل میپس پر لوکیشن دیکھیں' : 'Open in Google Maps'}</span>
+              </a>
             </div>
+
+            {/* COMPLAINTS SECURE MODULE LINK */}
+            {onOpenComplaint && (
+              <div className="bg-rose-50 border border-rose-100 rounded-xl p-5 space-y-3 shadow-none text-left">
+                <div className="flex items-center gap-2 text-rose-800">
+                  <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+                  <span className={`font-extrabold text-xs sm:text-sm ${isUrdu ? 'font-urdu' : ''}`}>
+                    {isUrdu ? 'بدعنوانی یا فیس چارجنگ کی شکایت' : 'Report Wrongdoing / Fee Charging'}
+                  </span>
+                </div>
+                <p className={`text-rose-700/80 text-[11px] leading-relaxed ${isUrdu ? 'font-urdu leading-loose text-xs' : ''}`}>
+                  {isUrdu 
+                    ? 'ہمارے تمام روحانی علاج، دم اور استخارہ بالکل مفت ہیں۔ اگر کوئی فیس مانگے تو خفیہ اور محفوظ شکایت یہاں درج کریں۔'
+                    : 'Spiritual treatments are completely free of charge. If anyone demands money or acts wrongfully, file a secure report immediately.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={onOpenComplaint}
+                  className={`w-full py-2 bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-sm text-center ${
+                    isUrdu ? 'font-urdu' : ''
+                  }`}
+                >
+                  {isUrdu ? 'خفیہ شکایت درج کریں' : 'File Secure Confidential Report'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* CONTACT FORM: Right (lg:col-span-7) */}

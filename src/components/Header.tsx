@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Language } from '../types';
 import { DICTIONARY } from '../data';
 import Logo from './Logo';
-import { Menu, X, Globe, Heart, Phone } from 'lucide-react';
+import { Menu, X, Globe, Heart, Phone, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface HeaderProps {
@@ -15,9 +15,10 @@ interface HeaderProps {
   setLang: (lang: Language) => void;
   activeSection: string;
   setActiveSection: (section: string) => void;
+  onOpenAdmin?: () => void;
 }
 
-export default function Header({ lang, setLang, activeSection, setActiveSection }: HeaderProps) {
+export default function Header({ lang, setLang, activeSection, setActiveSection, onOpenAdmin }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isUrdu = lang === 'ur';
@@ -35,6 +36,7 @@ export default function Header({ lang, setLang, activeSection, setActiveSection 
     { id: 'about', label: DICTIONARY.nav.about[lang] },
     { id: 'services', label: DICTIONARY.nav.services[lang] },
     { id: 'appointment', label: DICTIONARY.nav.appointment[lang] },
+    { id: 'patient-portal', label: DICTIONARY.nav.patientPortal[lang] },
     { id: 'library', label: DICTIONARY.nav.library[lang] },
     { id: 'projects', label: DICTIONARY.nav.projects[lang] },
     { id: 'events', label: DICTIONARY.nav.events[lang] },
@@ -42,6 +44,7 @@ export default function Header({ lang, setLang, activeSection, setActiveSection 
     { id: 'transparency', label: DICTIONARY.nav.transparency[lang] },
     { id: 'news', label: DICTIONARY.nav.news[lang] },
     { id: 'volunteer', label: DICTIONARY.nav.volunteer[lang] },
+    { id: 'supapay', label: DICTIONARY.nav.supapay[lang] },
     { id: 'contact', label: DICTIONARY.nav.contact[lang] },
   ];
 
@@ -93,33 +96,7 @@ export default function Header({ lang, setLang, activeSection, setActiveSection 
             <Logo lang={lang} variant="header" />
           </button>
 
-          {/* Desktop Navigation Links */}
-          <nav className={`hidden lg:flex items-center gap-1 xl:gap-2 ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
-            {navItems.map((item) => {
-              const isActive = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  id={`nav-item-${item.id}`}
-                  onClick={() => handleNavClick(item.id)}
-                  className={`relative px-3 py-2 rounded-lg text-[13px] xl:text-[14px] font-semibold transition-all duration-150 cursor-pointer ${
-                    isActive 
-                      ? 'text-emerald-800 bg-emerald-50/60' 
-                      : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
-                  } ${isUrdu ? 'font-urdu text-sm' : 'font-sans'}`}
-                >
-                  {item.label}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNavIndicator"
-                      className="absolute bottom-0 left-3 right-3 h-[2px] bg-emerald-700 rounded-full"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </nav>
+          {/* Navigation links removed from Header (moved to Right Sidebar) */}
 
           {/* Action Area (Lang Toggle + Donate Button + Mobile Toggle) */}
           <div className={`flex items-center gap-3 ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -133,6 +110,19 @@ export default function Header({ lang, setLang, activeSection, setActiveSection 
               <Globe className="w-3.5 h-3.5 text-emerald-600" />
               <span>{lang === 'en' ? 'اردو' : 'English'}</span>
             </button>
+
+            {/* Admin Portal Button */}
+            {onOpenAdmin && (
+              <button
+                id="header-admin-btn"
+                onClick={onOpenAdmin}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-xl border border-amber-200 text-amber-700 hover:border-amber-500 hover:text-amber-800 transition-all duration-200 text-xs font-bold cursor-pointer bg-amber-50"
+                title={isUrdu ? 'ایڈمن پورٹل' : 'Admin CRM Portal'}
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-600" />
+                <span className="hidden sm:inline">{isUrdu ? 'ایڈمن CRM' : 'Admin CRM'}</span>
+              </button>
+            )}
 
             {/* Direct Donate Button (Desktop) */}
             <button
@@ -187,7 +177,7 @@ export default function Header({ lang, setLang, activeSection, setActiveSection 
                 ))}
                 
                 {/* Mobile direct donate block */}
-                <div className="pt-4 border-t border-slate-100">
+                <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
                   <button
                     id="mobile-donate-btn"
                     onClick={() => handleNavClick('donate')}
@@ -198,6 +188,22 @@ export default function Header({ lang, setLang, activeSection, setActiveSection 
                     <Heart className="w-4 h-4 fill-current text-white/90" />
                     <span>{DICTIONARY.nav.donate[lang]}</span>
                   </button>
+
+                  {onOpenAdmin && (
+                    <button
+                      id="mobile-admin-btn"
+                      onClick={() => {
+                        onOpenAdmin();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 font-bold text-sm cursor-pointer hover:bg-amber-100 transition-colors ${
+                        isUrdu ? 'font-urdu' : 'font-sans'
+                      }`}
+                    >
+                      <Lock className="w-4 h-4 text-amber-600" />
+                      <span>{isUrdu ? 'ایڈمن CRM پورٹل' : 'Admin CRM Portal'}</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </motion.div>
