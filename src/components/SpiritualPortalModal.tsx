@@ -61,7 +61,7 @@ export default function SpiritualPortalModal({ lang, isOpen, onClose, initialTab
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           transition={{ type: "spring", duration: 0.5 }}
-          className="bg-white rounded-3xl border border-slate-200 w-full max-w-5xl h-[85vh] md:h-[80vh] max-h-[900px] overflow-hidden shadow-2xl relative flex flex-col z-10"
+          className="bg-white rounded-3xl border border-slate-200 w-full max-w-6xl h-[92vh] md:h-[88vh] max-h-[950px] overflow-hidden shadow-2xl relative flex flex-col z-10"
         >
           
           {/* Top Header Panel */}
@@ -149,7 +149,7 @@ export default function SpiritualPortalModal({ lang, isOpen, onClose, initialTab
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="p-4 sm:p-6"
+                  className="p-2 sm:p-4"
                 >
                   <AppointmentSystem lang={lang} />
                 </motion.div>
@@ -160,7 +160,7 @@ export default function SpiritualPortalModal({ lang, isOpen, onClose, initialTab
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="p-4 sm:p-6"
+                  className="p-2 sm:p-4"
                 >
                   <KnowledgeLibrary lang={lang} />
                 </motion.div>

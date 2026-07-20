@@ -9,9 +9,11 @@ import {
   X, Lock, Unlock, Settings, Users, Target, TrendingUp, 
   Trash2, Download, Search, Plus, Coins, ShieldAlert, CheckCircle,
   Database, Activity, Terminal, Copy, Check, ShieldCheck, AlertCircle, RefreshCw,
-  UserCheck, FileText, Mail, Phone, MapPin, Calendar, Clock, Printer, Eye, Smartphone, Send, Shield
+  UserCheck, FileText, Mail, Phone, MapPin, Calendar, Clock, Printer, Eye, Smartphone, Send, Shield,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import DuroodBank from './DuroodBank';
 
 interface AdminPanelProps {
   lang: Language;
@@ -29,7 +31,7 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
   const [authError, setAuthError] = useState(false);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'appointments' | 'donations' | 'subscriptions' | 'settings' | 'complaints'>('appointments');
+  const [activeTab, setActiveTab] = useState<'appointments' | 'donations' | 'subscriptions' | 'settings' | 'complaints' | 'durood'>('appointments');
 
   // Backend Data States
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -471,6 +473,7 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                         { id: 'donations', label: { en: 'Donation Auditor', ur: 'عطیہ آڈیٹر' }, icon: Coins },
                         { id: 'subscriptions', label: { en: 'Broadcast Center', ur: 'براڈکاسٹ سنٹر' }, icon: Send },
                         { id: 'complaints', label: { en: 'Integrity & Complaints', ur: 'شکایات سیل' }, icon: ShieldAlert },
+                        { id: 'durood', label: { en: 'Durood Bank CRM', ur: 'درود بینک انتظامیہ' }, icon: Sparkles },
                         { id: 'settings', label: { en: 'Database Health', ur: 'ڈیٹا بیس صحت' }, icon: Database }
                       ].map(tab => {
                         const TabIcon = tab.icon;
@@ -1262,6 +1265,15 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                           &gt; Status: OK - Syncing perfectly with server memory.
                         </p>
                       </div>
+                    </div>
+                  )}
+
+                  {/* ==========================================
+                      TAB 5: DUROOD BANK CRM
+                      ========================================== */}
+                  {activeTab === 'durood' && (
+                    <div className="bg-slate-950 rounded-2xl border border-emerald-800/20 overflow-hidden shadow-2xl p-1">
+                      <DuroodBank lang={lang} forceAdmin={true} />
                     </div>
                   )}
 

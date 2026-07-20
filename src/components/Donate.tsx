@@ -37,7 +37,8 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
   const walletDetails = [
     { name: "Easypaisa", number: "03152204134", color: "bg-emerald-600 text-white" },
     { name: "JazzCash", number: "03202628645", color: "bg-amber-600 text-white" },
-    { name: "NayaPay / SadaPay", number: "03180202424", color: "bg-royal-600 text-white" }
+    { name: "SadaPay", number: "03180202424", color: "bg-teal-600 text-white" },
+    { name: "NayaPay", number: "03180202424", color: "bg-orange-500 text-white" }
   ];
 
   const copyToClipboard = (text: string, key: string) => {
@@ -422,8 +423,8 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
               </h4>
               <p className="text-xs text-emerald-300 max-w-xs mt-2 font-medium leading-relaxed">
                 {isUrdu 
-                  ? "آسان پیسہ / جیز کیش / بینک ایپ کا اسکینر کھولیں اور براہِ راست فنڈز منتقل کرنے کے لیے اسکین کریں۔" 
-                  : "Open your Easypaisa / JazzCash / Mobile Banking QR scanner and scan to transfer funds directly."}
+                  ? "آسان پیسہ / جیز کیش / نیا پے / بینک ایپ کا اسکینر کھولیں اور براہِ راست فنڈز منتقل کرنے کے لیے اسکین کریں۔" 
+                  : "Open your Easypaisa / JazzCash / SadaPay / NayaPay / Mobile Banking QR scanner and scan to transfer funds directly."}
               </p>
             </div>
 

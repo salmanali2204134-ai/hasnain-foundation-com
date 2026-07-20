@@ -116,32 +116,14 @@ export default function AppointmentSystem({ lang, prefilledReason = '', onSucces
   };
 
   return (
-    <section id="appointment-section" className="py-24 bg-slate-50 relative overflow-hidden">
+    <div id="appointment-section" className="py-2 bg-slate-50 relative overflow-hidden">
       {/* Decorative patterns */}
       <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-emerald-950/5 to-transparent pointer-events-none" />
       <div className="absolute -left-64 top-1/4 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -right-64 bottom-1/4 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
+      <div className="max-w-4xl mx-auto px-1 sm:px-2 relative z-10">
         
-        {/* Title and Intro */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-bold uppercase tracking-widest mb-4">
-            <Shield className="w-4 h-4 text-emerald-600 animate-pulse" />
-            <span>{isUrdu ? 'روحانی شفا خانہ اور استخارہ' : 'Spiritual Registry & Consultation'}</span>
-          </div>
-          
-          <h2 className={`text-3xl sm:text-4xl font-black text-slate-900 tracking-tight ${isUrdu ? 'font-urdu leading-snug' : 'font-sans'}`}>
-            {isUrdu ? 'مریض رجسٹریشن اور آن لائن بکنگ فارم' : 'Patient Registration & Booking System'}
-          </h2>
-          
-          <p className={`mt-4 text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
-            {isUrdu 
-              ? 'جادو، جنات، نظر بد، بندش یا استخارہ کے لیے قرآن و سنت کے مطابق مستند شرعی رہنمائی حاصل کریں۔ مندرجہ ذیل فارم پُر کریں، ہماری ٹیم فوری رابطہ کرے گی۔'
-              : 'Register for authentic Quranic healing sessions, spiritual consultations, or Online Istikhara. Fill out the secure form below to generate your patient card.'}
-          </p>
-        </div>
-
         {/* Outer Form Frame */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden backdrop-blur-md">
           
@@ -624,6 +606,6 @@ export default function AppointmentSystem({ lang, prefilledReason = '', onSucces
         </div>
 
       </div>
-    </section>
+    </div>
   );
 }

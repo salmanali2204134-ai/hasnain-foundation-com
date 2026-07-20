@@ -79,8 +79,137 @@ export const REQUIRED_TABLES = [
   {
     name: 'donations_log',
     columns: 'id (uuid/text), donor_name (text), email (text), amount (numeric), category (text), created_at (timestamp)'
+  },
+  {
+    name: 'durood_bank',
+    columns: 'id (serial/uuid primary key), full_name (text), mobile (text), whatsapp (text), email (text), city (text), country (text), durood_type (text), quantity (integer), intention (text), created_at (timestamp), updated_at (timestamp)'
   }
 ];
+
+export interface DuroodSubmission {
+  id?: any;
+  full_name: string;
+  mobile: string;
+  whatsapp?: string;
+  email?: string;
+  city: string;
+  country: string;
+  durood_type: string;
+  quantity: number;
+  intention: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Helper to submit a Durood entry to Supabase
+ */
+export async function submitDuroodToSupabase(data: DuroodSubmission) {
+  try {
+    const payload = {
+      full_name: data.full_name,
+      mobile: data.mobile,
+      whatsapp: data.whatsapp || '',
+      email: data.email || '',
+      city: data.city,
+      country: data.country,
+      durood_type: data.durood_type,
+      quantity: Number(data.quantity),
+      intention: data.intention,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data: result, error } = await supabase
+      .from('durood_bank')
+      .insert([payload])
+      .select();
+
+    if (error) throw error;
+    return { success: true, result };
+  } catch (error: any) {
+    console.warn('Failed to insert Durood submission to Supabase. Saving locally instead.', error);
+    // Return success: false with error details so component can fall back to local storage
+    return { success: false, error: error.message || error };
+  }
+}
+
+/**
+ * Fetch all Durood submissions from Supabase
+ */
+export async function fetchDuroodSubmissions(): Promise<DuroodSubmission[]> {
+  try {
+    const { data, error } = await supabase
+      .from('durood_bank')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error: any) {
+    console.error('Error fetching Durood submissions:', error);
+    return [];
+  }
+}
+
+/**
+ * Delete a single Durood submission
+ */
+export async function deleteDuroodSubmission(id: any) {
+  try {
+    const { error } = await supabase
+      .from('durood_bank')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting Durood submission:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Bulk delete Durood submissions
+ */
+export async function bulkDeleteDuroodSubmissions(ids: any[]) {
+  try {
+    const { error } = await supabase
+      .from('durood_bank')
+      .delete()
+      .in('id', ids);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error bulk deleting Durood submissions:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Update a Durood submission (Admin only)
+ */
+export async function updateDuroodSubmission(id: any, data: Partial<DuroodSubmission>) {
+  try {
+    const payload = {
+      ...data,
+      updated_at: new Date().toISOString()
+    };
+    const { data: result, error } = await supabase
+      .from('durood_bank')
+      .update(payload)
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    return { success: true, result };
+  } catch (error: any) {
+    console.error('Error updating Durood submission:', error);
+    return { success: false, error: error.message };
+  }
+}
 
 /**
  * Helper to submit contact form submissions to Supabase

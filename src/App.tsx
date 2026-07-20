@@ -8,6 +8,7 @@ import { Language } from './types';
 import { DICTIONARY } from './data';
 import Header from './components/Header';
 import Hero from './components/Hero';
+import MobileQuickNavigation from './components/MobileQuickNavigation';
 import About from './components/About';
 import Services from './components/Services';
 import SpiritualPortalModal from './components/SpiritualPortalModal';
@@ -25,8 +26,8 @@ import Footer from './components/Footer';
 import DonationTracker from './components/DonationTracker';
 import AdminPanel from './components/AdminPanel';
 import ComplaintModal from './components/ComplaintModal';
-import SupaPayDashboard from './components/SupaPayDashboard';
 import PatientPortal from './components/PatientPortal';
+import DuroodBank from './components/DuroodBank';
 import SocialFollowers from './components/SocialFollowers';
 import FacebookReels from './components/FacebookReels';
 import useMetaTags from './hooks/useMetaTags';
@@ -36,7 +37,14 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('en');
-  const [activeSection, setActiveSection] = useState<string>('home');
+  const [activeSectionState, setActiveSectionState] = useState<string>('home');
+  const [scrollTrigger, setScrollTrigger] = useState(0);
+
+  const activeSection = activeSectionState;
+  const setActiveSection = (section: string) => {
+    setActiveSectionState(section);
+    setScrollTrigger(prev => prev + 1);
+  };
   const [targetProjectId, setTargetProjectId] = useState<string | undefined>(undefined);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -109,15 +117,18 @@ export default function App() {
       return false;
     };
 
-    // Try immediately
+    // Try immediately, or retry periodically until found (up to 20 times or 1 second)
     if (!scrollToElement()) {
-      // If not found, try after a brief delay to allow transition/mounting
-      const timer = setTimeout(() => {
-        scrollToElement();
-      }, 100);
-      return () => clearTimeout(timer);
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (scrollToElement() || attempts >= 20) {
+          clearInterval(interval);
+        }
+      }, 50);
+      return () => clearInterval(interval);
     }
-  }, [activeSection]);
+  }, [activeSection, scrollTrigger]);
 
   const handleProjectDonate = (projectId?: string) => {
     setTargetProjectId(projectId);
@@ -171,16 +182,6 @@ export default function App() {
             >
               <Transparency lang={lang} />
             </motion.div>
-          ) : activeSection === 'supapay' ? (
-            <motion.div
-              key="supapay-page"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.35 }}
-            >
-              <SupaPayDashboard lang={lang} />
-            </motion.div>
           ) : activeSection === 'patient-portal' ? (
             <motion.div
               key="patient-portal-page"
@@ -197,6 +198,16 @@ export default function App() {
                 }} 
               />
             </motion.div>
+          ) : activeSection === 'durood-bank' ? (
+            <motion.div
+              key="durood-bank-page"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+            >
+              <DuroodBank lang={lang} />
+            </motion.div>
           ) : (
             // The stacked, highly interactive multi-section Single Page Layout
             <motion.div
@@ -207,7 +218,22 @@ export default function App() {
               transition={{ duration: 0.3 }}
             >
               {/* 1. Hero Block */}
-              <Hero lang={lang} onDonateClick={() => handleProjectDonate()} />
+              <Hero 
+                lang={lang} 
+                onDonateClick={() => handleProjectDonate()} 
+                onDuroodClick={() => setActiveSection('durood-bank')}
+              />
+
+              {/* Mobile Quick Navigation (3 buttons on each side) */}
+              <MobileQuickNavigation
+                lang={lang}
+                activeSection={activeSection}
+                setActiveSection={setActiveSection}
+                onOpenSpiritual={() => {
+                  setSpiritualTab('appointment');
+                  setIsSpiritualOpen(true);
+                }}
+              />
 
               {/* 2. About Section */}
               <About lang={lang} />

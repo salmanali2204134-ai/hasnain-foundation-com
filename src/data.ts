@@ -21,6 +21,19 @@ import gatheringEventImg from './assets/images/mosque_gathering_1784228503408.jp
 import naatEventImg from './assets/images/naat_gathering_1784228521736.jpg';
 import welfareEventImg from './assets/images/emergency_relief_1784228465999.jpg';
 
+// Additional on-ground welfare, education, and health images
+import charityClinicImg from './assets/images/charity_clinic_1784228563831.jpg';
+import communityWelfareImg from './assets/images/community_welfare_1784228447787.jpg';
+import educationalSupportImg from './assets/images/educational_support_1784228429812.jpg';
+import foodDistributionImg from './assets/images/food_distribution_1784228414416.jpg';
+
+// Newly added Hazrat Sahib and foundation activity images
+import ruhaniIlajHealingImg from './assets/images/ruhani_ilaj_healing_1784539076055.jpg';
+import onlineIstikharaZoomImg from './assets/images/online_istikhara_zoom_1784539097542.jpg';
+import massWeddingCharityImg from './assets/images/mass_wedding_charity_1784539112843.jpg';
+import eidGiftsDistributionImg from './assets/images/eid_gifts_distribution_1784539132887.jpg';
+import hazratSahibQuranClassImg from './assets/images/hazrat_sahib_quran_class_1784539149702.jpg';
+
 export const IMAGES = {
   heroBg: heroBgImg,
   masjidProject: masjidProjectImg,
@@ -35,7 +48,20 @@ export const IMAGES = {
   karbalaEvent: karbalaEventImg,
   gatheringEvent: gatheringEventImg,
   naatEvent: naatEventImg,
-  welfareEvent: welfareEventImg
+  welfareEvent: welfareEventImg,
+
+  // Additional
+  charityClinic: charityClinicImg,
+  communityWelfare: communityWelfareImg,
+  educationalSupport: educationalSupportImg,
+  foodDistribution: foodDistributionImg,
+
+  // Newly added
+  ruhaniIlajHealing: ruhaniIlajHealingImg,
+  onlineIstikharaZoom: onlineIstikharaZoomImg,
+  massWeddingCharity: massWeddingCharityImg,
+  eidGiftsDistribution: eidGiftsDistributionImg,
+  hazratSahibQuranClass: hazratSahibQuranClassImg
 };
 
 export const DICTIONARY = {
@@ -52,8 +78,8 @@ export const DICTIONARY = {
     news: { en: "News", ur: "خبریں" },
     contact: { en: "Contact Us", ur: "رابطہ کریں" },
     volunteer: { en: "Volunteer", ur: "رضاکار بنیں" },
-    supapay: { en: "SupaPay", ur: "سپا پے والٹ" },
     patientPortal: { en: "Patient Portal", ur: "مریضوں کا ریکارڈ" },
+    duroodBank: { en: "Durood Bank", ur: "درود بینک" },
     donate: { en: "Donate Now", ur: "عطیہ کریں" }
   },
   general: {
@@ -174,7 +200,8 @@ export const DICTIONARY = {
     catFood: { en: "Food Drive", ur: "راشن تقسیم" },
     catEducation: { en: "Education", ur: "تعلیم و تربیت" },
     catWelfare: { en: "Welfare", ur: "فلاح و بہبود" },
-    catEvents: { en: "Events", ur: "اجتماعات" }
+    catEvents: { en: "Events", ur: "اجتماعات" },
+    catSpiritual: { en: "Spiritual Healing", ur: "روحانی علاج" }
   },
   transparency: {
     title: { en: "Financial Transparency", ur: "مالی شفافیت" },
@@ -586,6 +613,118 @@ export const GALLERY_DATA: GalleryItem[] = [
     category: "welfare",
     url: IMAGES.welfareEvent,
     thumbnail: IMAGES.welfareEvent
+  },
+  {
+    id: "g9",
+    title: { en: "Charity Clinic Diagnostics", ur: "فلاحی کلینک اور تشخیصی مرکز" },
+    type: "photo",
+    category: "welfare",
+    url: IMAGES.charityClinic,
+    thumbnail: IMAGES.charityClinic
+  },
+  {
+    id: "g10",
+    title: { en: "Community General Welfare Services", ur: "عام سماجی فلاحی خدمات" },
+    type: "photo",
+    category: "welfare",
+    url: IMAGES.communityWelfare,
+    thumbnail: IMAGES.communityWelfare
+  },
+  {
+    id: "g11",
+    title: { en: "Free Books & Educational Supplies", ur: "مفت کتب اور تعلیمی سامان کی تقسیم" },
+    type: "photo",
+    category: "education",
+    url: IMAGES.educationalSupport,
+    thumbnail: IMAGES.educationalSupport
+  },
+  {
+    id: "g12",
+    title: { en: "On-Ground Food Distribution Drive", ur: "بچوں اور خاندانوں میں کھانا تقسیم کرنا" },
+    type: "photo",
+    category: "food",
+    url: IMAGES.foodDistribution,
+    thumbnail: IMAGES.foodDistribution
+  },
+  {
+    id: "g13",
+    title: { en: "Spiritual Healing & Consultations", ur: "مستند روحانی علاج اور رہنمائی" },
+    type: "photo",
+    category: "spiritual",
+    url: IMAGES.ruhaniIlajHealing,
+    thumbnail: IMAGES.ruhaniIlajHealing
+  },
+  {
+    id: "g14",
+    title: { en: "Online Istikhara & Zoom Sessions", ur: "آن لائن استخارہ اور شرعی رہنمائی" },
+    type: "photo",
+    category: "spiritual",
+    url: IMAGES.onlineIstikharaZoom,
+    thumbnail: IMAGES.onlineIstikharaZoom
+  },
+  {
+    id: "g15",
+    title: { en: "Collective Mass Wedding Ceremony", ur: "اجتماعی شادی پراجیکٹ کے تحت جہیز کی فراہمی" },
+    type: "photo",
+    category: "welfare",
+    url: IMAGES.massWeddingCharity,
+    thumbnail: IMAGES.massWeddingCharity
+  },
+  {
+    id: "g16",
+    title: { en: "Eid Gifts Program for Orphan Children", ur: "یتیم اور مستحق بچوں میں عید گفٹ پیکیج کی تقسیم" },
+    type: "photo",
+    category: "welfare",
+    url: IMAGES.eidGiftsDistribution,
+    thumbnail: IMAGES.eidGiftsDistribution
+  },
+  {
+    id: "g17",
+    title: { en: "Quran Learning & Islamic Education Class", ur: "حضرت صاحب بچوں کو قرآن مجید پڑھاتے ہوئے" },
+    type: "photo",
+    category: "education",
+    url: IMAGES.hazratSahibQuranClass,
+    thumbnail: IMAGES.hazratSahibQuranClass
+  },
+  {
+    id: "g18",
+    title: { en: "Orphanage Children Activities & Support", ur: "یتیم اور مستحق بچوں کی کفالت اور تفریحی سرگرمیاں" },
+    type: "photo",
+    category: "welfare",
+    url: IMAGES.communityProject,
+    thumbnail: IMAGES.communityProject
+  },
+  {
+    id: "g19",
+    title: { en: "Children Healthcare & General Checkups", ur: "بچوں کی صحت اور فلاحی طبی معائنہ" },
+    type: "photo",
+    category: "welfare",
+    url: IMAGES.futureProject,
+    thumbnail: IMAGES.futureProject
+  },
+  {
+    id: "g20",
+    title: { en: "Foundation Volunteers Orientation Meeting", ur: "رضاکاروں کا فلاحی اور تنظیمی معلوماتی سیشن" },
+    type: "photo",
+    category: "welfare",
+    url: IMAGES.aboutVolunteers,
+    thumbnail: IMAGES.aboutVolunteers
+  },
+  {
+    id: "g21",
+    title: { en: "Great Naat Sharif & Zikr Mehfil", ur: "عظیم الشان محفلِ نعت اور ذکرِ الہٰ" },
+    type: "photo",
+    category: "events",
+    url: IMAGES.naatEvent,
+    thumbnail: IMAGES.naatEvent
+  },
+  {
+    id: "g22",
+    title: { en: "Masjid Abdul Qadir Jilani Main Hall", ur: "جامع مسجد عبدالقادر جیلانی کا مرکزی ہال" },
+    type: "photo",
+    category: "mosque",
+    url: IMAGES.heroBg,
+    thumbnail: IMAGES.heroBg
   }
 ];
 

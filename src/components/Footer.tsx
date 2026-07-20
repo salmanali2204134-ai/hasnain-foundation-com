@@ -9,6 +9,20 @@ import { DICTIONARY } from '../data';
 import Logo from './Logo';
 import { Facebook, Youtube, Instagram, Phone, Mail, MapPin } from 'lucide-react';
 
+const Tiktok = ({ className }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
+
 interface FooterProps {
   lang: Language;
   setActiveSection: (section: string) => void;
@@ -27,6 +41,7 @@ export default function Footer({ lang, setActiveSection, onOpenAdmin, onOpenComp
     { name: 'Facebook', icon: Facebook, url: 'https://facebook.com/hasnainfoundation', color: 'hover:text-royal-500' },
     { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@HasnainFoundation-t8n', color: 'hover:text-red-500' },
     { name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp', color: 'hover:text-pink-500' },
+    { name: 'TikTok', icon: Tiktok, url: 'https://tiktok.com/@hasnainfoundation', color: 'hover:text-slate-100' },
     { name: 'WhatsApp', icon: Phone, url: 'https://wa.me/923180202424', color: 'hover:text-emerald-500' }
   ];
 

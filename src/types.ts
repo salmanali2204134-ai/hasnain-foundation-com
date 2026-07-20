@@ -74,7 +74,7 @@ export interface GalleryItem {
     ur: string;
   };
   type: 'photo' | 'video';
-  category: 'mosque' | 'food' | 'education' | 'welfare' | 'events';
+  category: 'mosque' | 'food' | 'education' | 'welfare' | 'events' | 'spiritual';
   url: string;
   thumbnail: string;
 }

@@ -67,7 +67,7 @@ export default function Contact({ lang, onOpenComplaint }: ContactProps) {
   };
 
   return (
-    <section id="contact-us-section" className="py-20 sm:py-24 bg-slate-50 overflow-hidden">
+    <section id="contact-section" className="py-20 sm:py-24 bg-slate-50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
         {/* Section Heading */}

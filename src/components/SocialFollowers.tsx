@@ -8,6 +8,20 @@ import { Language } from '../types';
 import { Youtube, Facebook, Instagram, Phone, Mail, CheckCircle, Users, Bell, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
+const Tiktok = ({ className }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
+
 interface SocialFollowersProps {
   lang: Language;
 }
@@ -51,6 +65,15 @@ export default function SocialFollowers({ lang }: SocialFollowersProps) {
       color: 'bg-pink-600/10 text-pink-600 border-pink-600/20',
       hoverColor: 'hover:border-pink-500 hover:bg-pink-600/5',
       url: 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp'
+    },
+    {
+      name: 'TikTok',
+      count: '24.1K',
+      label: { en: 'Followers', ur: 'فالوورز' },
+      icon: Tiktok,
+      color: 'bg-slate-900/10 text-slate-900 border-slate-900/20',
+      hoverColor: 'hover:border-slate-800 hover:bg-slate-900/5',
+      url: 'https://tiktok.com/@hasnainfoundation'
     },
     {
       name: 'WhatsApp Group',
@@ -271,8 +294,9 @@ export default function SocialFollowers({ lang }: SocialFollowersProps) {
           {/* COLUMN 2: Social media grid (lg:col-span-6) */}
           <div className="lg:col-span-6">
             <div className="grid grid-cols-2 gap-4">
-              {socialStats.map((social) => {
+              {socialStats.map((social, index) => {
                 const IconComponent = social.icon;
+                const isFullWidth = socialStats.length % 2 !== 0 && index === socialStats.length - 1;
                 return (
                   <a
                     key={social.name}
@@ -285,7 +309,9 @@ export default function SocialFollowers({ lang }: SocialFollowersProps) {
                         e.preventDefault();
                       }
                     }}
-                    className={`p-6 rounded-2xl border border-slate-200 bg-white transition-all duration-200 flex flex-col justify-between h-40 ${social.hoverColor} hover:shadow-sm cursor-pointer`}
+                    className={`p-6 rounded-2xl border border-slate-200 bg-white transition-all duration-200 flex flex-col justify-between h-40 ${social.hoverColor} hover:shadow-sm cursor-pointer ${
+                      isFullWidth ? 'col-span-2' : ''
+                    }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className={`p-2.5 rounded-xl border ${social.color}`}>

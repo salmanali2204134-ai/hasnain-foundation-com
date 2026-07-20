@@ -12,9 +12,10 @@ import { motion } from 'motion/react';
 interface HeroProps {
   lang: Language;
   onDonateClick: () => void;
+  onDuroodClick?: () => void;
 }
 
-export default function Hero({ lang, onDonateClick }: HeroProps) {
+export default function Hero({ lang, onDonateClick, onDuroodClick }: HeroProps) {
   const isUrdu = lang === 'ur';
 
   // Statistics items
@@ -152,6 +153,20 @@ export default function Hero({ lang, onDonateClick }: HeroProps) {
               <Send className="w-4 h-4 text-emerald-400 rotate-45 sm:rotate-0" />
               <span>{DICTIONARY.general.whatsappContact[lang]}</span>
             </a>
+
+            {/* Durood Bank Premium Button */}
+            {onDuroodClick && (
+              <button
+                id="hero-durood-btn"
+                onClick={onDuroodClick}
+                className={`w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold text-base border border-amber-400 hover:border-amber-500 transition-all duration-300 cursor-pointer shadow-lg shadow-amber-500/20 active:scale-[0.98] ${
+                  isUrdu ? 'font-urdu' : 'font-sans'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 text-slate-950 animate-pulse fill-slate-950/20" />
+                <span>{isUrdu ? '📿 درود بینک' : 'Durood Bank'}</span>
+              </button>
+            )}
           </motion.div>
         </div>
 

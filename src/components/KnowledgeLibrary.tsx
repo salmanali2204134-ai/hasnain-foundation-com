@@ -100,6 +100,252 @@ const TOPICS: LibraryTopic[] = [
   }
 ];
 
+function wrapCanvasText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  align: 'left' | 'right' | 'center' = 'left'
+): number {
+  const words = text.split(' ');
+  let line = '';
+  const lines: string[] = [];
+
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + ' ';
+    const metrics = ctx.measureText(testLine);
+    const testWidth = metrics.width;
+    if (testWidth > maxWidth && n > 0) {
+      lines.push(line);
+      line = words[n] + ' ';
+    } else {
+      line = testLine;
+    }
+  }
+  lines.push(line);
+
+  let currentY = y;
+  for (let i = 0; i < lines.length; i++) {
+    ctx.textAlign = align;
+    ctx.fillText(lines[i].trim(), x, currentY);
+    currentY += lineHeight;
+  }
+  return lines.length * lineHeight;
+}
+
+function getPrintableHtml(topic: LibraryTopic) {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Hasnain Foundation - ${topic.title.en}</title>
+        <meta charset="utf-8">
+        <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Inter:wght@400;600;800&family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+        <style>
+          @media print {
+            body {
+              background-color: #ffffff !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .container {
+              box-shadow: none !important;
+              margin: 0 !important;
+              border-width: 8px !important;
+            }
+          }
+          body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+          }
+          .container {
+            width: 100%;
+            max-width: 800px;
+            background: #ffffff;
+            border: 12px double #d97706; /* Elegant double gold border */
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            box-sizing: border-box;
+            position: relative;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #065f46;
+          }
+          .subtitle {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            color: #b45309;
+            margin-top: 5px;
+            text-transform: uppercase;
+          }
+          .card-title {
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 30px;
+          }
+          .arabic-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+          }
+          .arabic {
+            font-family: 'Amiri', serif;
+            font-size: 32px;
+            line-height: 1.8;
+            color: #047857;
+            margin: 0;
+            direction: rtl;
+          }
+          .translations {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+          }
+          .translation-block {
+            padding: 15px 20px;
+            background-color: #fafaf9;
+            border-radius: 8px;
+          }
+          .translation-block.ur-block {
+            border-right: 4px solid #f59e0b;
+            text-align: right;
+          }
+          .translation-block.en-block {
+            border-left: 4px solid #10b981;
+            text-align: left;
+          }
+          .label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #b45309;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+          }
+          .translation {
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0;
+            color: #334155;
+          }
+          .translation.urdu {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            font-size: 18px;
+            line-height: 2.2;
+            direction: rtl;
+          }
+          .ref-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 35px;
+          }
+          .ref-item {
+            margin-bottom: 8px;
+          }
+          .ref-item:last-child {
+            margin-bottom: 0;
+          }
+          .footer {
+            text-align: center;
+            font-size: 11px;
+            color: #64748b;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 20px;
+            line-height: 1.6;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">HASNAIN FOUNDATION</div>
+            <div class="subtitle">Spiritual Healing & Ruqyah Center</div>
+          </div>
+          
+          <div class="card-title">
+            ${topic.title.en} <br/>
+            <span style="font-family: 'Noto Nastaliq Urdu', serif; font-size: 20px; color: #b45309; direction: rtl; display: inline-block; margin-top: 8px;">${topic.title.ur}</span>
+          </div>
+          
+          <div class="arabic-box">
+            <p class="arabic" dir="rtl">${topic.arabic}</p>
+          </div>
+          
+          <div class="translations">
+            <div class="translation-block ur-block">
+              <div class="label">اردو ترجمہ (Urdu Translation)</div>
+              <p class="translation urdu" dir="rtl">${topic.urdu}</p>
+            </div>
+            
+            <div class="translation-block en-block">
+              <div class="label">English Translation</div>
+              <p class="translation english">${topic.english}</p>
+            </div>
+          </div>
+          
+          <div class="ref-box">
+            <div class="ref-item">
+              <strong>Quranic Source:</strong> ${topic.quranReference.en} (${topic.quranReference.ur})
+            </div>
+            <div class="ref-item" style="border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 8px;">
+              <strong>Hadith Reference:</strong> ${topic.hadithReference.en}
+              <div style="font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; font-size: 14px; margin-top: 5px; line-height: 1.8; color: #475569;">
+                ${topic.hadithReference.ur}
+              </div>
+            </div>
+          </div>
+          
+          <div class="footer">
+            Hasnain Foundation Spiritual Healing Center - Free of charge for the sake of Allah.<br />
+            Khalifa Salman Ali Qadri: 0315-2204134 | Allama Shayan Ali Qadri: 0313-3830370<br />
+            Official Web: www.hasnainfoundation.org
+          </div>
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            }, 500);
+          }
+        </script>
+      </body>
+    </html>
+  `;
+}
+
 export default function KnowledgeLibrary({ lang }: { lang: Language }) {
   const isUrdu = lang === 'ur';
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'surah' | 'adhkar' | 'protection'>('all');
@@ -108,60 +354,179 @@ export default function KnowledgeLibrary({ lang }: { lang: Language }) {
 
   const handleAction = (topicId: string, actionType: 'jpg' | 'pdf' | 'print' | 'share') => {
     const key = `${topicId}-${actionType}`;
+    const topic = TOPICS.find(t => t.id === topicId);
+    if (!topic) return;
     
-    if (actionType === 'print') {
-      const element = document.getElementById(`printable-${topicId}`);
-      if (element) {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(`
-            <html>
-              <head>
-                <title>Hasnain Foundation - Spiritual Healing Card</title>
-                <style>
-                  body { font-family: 'Inter', sans-serif; padding: 40px; color: #0f172a; background-color: #ffffff; text-align: center; }
-                  .container { max-width: 800px; margin: 0 auto; border: 4px double #b45309; padding: 30px; border-radius: 12px; }
-                  .logo { font-size: 24px; font-weight: bold; color: #047857; margin-bottom: 5px; }
-                  .subtitle { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #b45309; margin-bottom: 30px; }
-                  .title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
-                  .arabic { font-size: 24px; line-height: 1.8; color: #065f46; margin: 20px 0; font-weight: 500; direction: rtl; }
-                  .translation { font-size: 15px; margin: 15px 0; line-height: 1.6; }
-                  .urdu { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; color: #1e293b; }
-                  .english { color: #334155; }
-                  .ref-box { margin-top: 30px; padding: 15px; background: #f8fafc; border-radius: 8px; font-size: 13px; text-align: left; }
-                  .footer { margin-top: 40px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 15px; }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <div class="logo">HASNAIN FOUNDATION</div>
-                  <div class="subtitle">Spiritual Healing Center</div>
-                  <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 20px;" />
-                  ${element.innerHTML}
-                  <div class="footer">
-                    Hasnain Foundation Spiritual Healing Center - Quran & Sunnah Based Healing. <br />
-                    Khalifa Salman Ali Qadri: 0315-2204134 | Allama Shayan Ali Qadri: 0313-3830370
-                  </div>
-                </div>
-                <script>window.onload = function() { window.print(); window.close(); }</script>
-              </body>
-            </html>
-          `);
-          printWindow.document.close();
-        }
+    if (actionType === 'print' || actionType === 'pdf') {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(getPrintableHtml(topic));
+        printWindow.document.close();
       }
     } else if (actionType === 'share') {
-      const topic = TOPICS.find(t => t.id === topicId);
-      const shareText = `*${topic?.title[lang]}*\n\nArabic: ${topic?.arabic}\n\nDownload this from Hasnain Foundation Spiritual Healing Library at ${window.location.href}`;
+      const shareText = `*${topic.title[lang]}*\n\nArabic: ${topic.arabic}\n\nDownload this from Hasnain Foundation Spiritual Healing Library at ${window.location.href}`;
       navigator.clipboard.writeText(shareText);
-    } else {
-      // JPG / PDF mock download
-      const link = document.createElement('a');
-      link.href = '#';
-      link.setAttribute('download', `Hasnain_Foundation_${topicId}.${actionType}`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    } else if (actionType === 'jpg') {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 1600;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Draw elegant gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#022c22'); // deep emerald
+        gradient.addColorStop(0.5, '#064e3b');
+        gradient.addColorStop(1, '#022c22');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw double gold border
+        ctx.strokeStyle = '#f59e0b'; // Amber gold
+        ctx.lineWidth = 8;
+        ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+        ctx.lineWidth = 3;
+        ctx.strokeRect(45, 45, canvas.width - 90, canvas.height - 90);
+
+        // Draw Corner Ornaments (Classic Islamic geometric art look)
+        const drawCorner = (cx: number, cy: number, rot: number) => {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(rot);
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(40, 0);
+          ctx.lineTo(40, 40);
+          ctx.lineTo(0, 40);
+          ctx.closePath();
+          ctx.stroke();
+          ctx.restore();
+        };
+        drawCorner(60, 60, 0);
+        drawCorner(canvas.width - 60, 60, Math.PI / 2);
+        drawCorner(canvas.width - 60, canvas.height - 60, Math.PI);
+        drawCorner(60, canvas.height - 60, -Math.PI / 2);
+
+        // Header
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 36px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('HASNAIN FOUNDATION', canvas.width / 2, 120);
+
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 20px "Inter", sans-serif';
+        ctx.fillText('OFFICIAL SPIRITUAL HEALING CENTER', canvas.width / 2, 160);
+
+        // Decorative Divider
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(100, 200);
+        ctx.lineTo(canvas.width - 100, 200);
+        ctx.stroke();
+
+        // Card Title
+        ctx.fillStyle = '#fef3c7';
+        ctx.font = 'bold 32px "Inter", sans-serif';
+        ctx.fillText(topic.title.en, canvas.width / 2, 260);
+
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 24px "Inter", sans-serif';
+        ctx.fillText(topic.title.ur, canvas.width / 2, 310);
+
+        // Arabic Calligraphy Box Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.2)';
+        ctx.lineWidth = 2;
+        // round rect for Arabic
+        const rx = 100, ry = 360, rw = canvas.width - 200, rh = 340, radius = 20;
+        ctx.beginPath();
+        ctx.moveTo(rx + radius, ry);
+        ctx.lineTo(rx + rw - radius, ry);
+        ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + radius);
+        ctx.lineTo(rx + rw, ry + rh - radius);
+        ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - radius, ry + rh);
+        ctx.lineTo(rx + radius, ry + rh);
+        ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - radius);
+        ctx.lineTo(rx, ry + radius);
+        ctx.quadraticCurveTo(rx, ry, rx + radius, ry);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Arabic Text
+        ctx.fillStyle = '#ecfdf5';
+        ctx.font = 'bold 32px "Amiri", "Georgia", serif';
+        ctx.direction = 'rtl';
+        wrapCanvasText(ctx, topic.arabic, canvas.width / 2, 450, canvas.width - 260, 60, 'center');
+        ctx.direction = 'ltr'; // reset
+
+        // Urdu Translation
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 20px "Inter", sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(':اردو ترجمہ', canvas.width - 100, 750);
+
+        ctx.fillStyle = '#f3f4f6';
+        ctx.font = 'bold 22px "Inter", sans-serif';
+        ctx.direction = 'rtl';
+        wrapCanvasText(ctx, topic.urdu, canvas.width - 100, 800, canvas.width - 200, 45, 'right');
+        ctx.direction = 'ltr'; // reset
+
+        // English Translation
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 20px "Inter", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('ENGLISH TRANSLATION:', 100, 1020);
+
+        ctx.fillStyle = '#e5e7eb';
+        ctx.font = '18px "Inter", sans-serif';
+        wrapCanvasText(ctx, topic.english, 100, 1060, canvas.width - 200, 32, 'left');
+
+        // References Block
+        ctx.fillStyle = 'rgba(4, 120, 87, 0.1)';
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.15)';
+        const r2x = 100, r2y = 1220, r2w = canvas.width - 200, r2h = 180;
+        ctx.beginPath();
+        ctx.rect(r2x, r2y, r2w, r2h);
+        ctx.fill();
+        ctx.stroke();
+
+        // Quran Ref
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 16px "Inter", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('QURAN REFERENCE: ' + topic.quranReference.en + ' (' + topic.quranReference.ur + ')', 120, 1260);
+
+        // Hadith Ref
+        ctx.fillStyle = '#34d399';
+        ctx.fillText('AUTHENTIC HADITH:', 120, 1300);
+        ctx.fillStyle = '#e5e7eb';
+        ctx.font = 'italic 15px "Inter", sans-serif';
+        wrapCanvasText(ctx, topic.hadithReference.en, 120, 1330, canvas.width - 240, 25, 'left');
+
+        // Footer Contact
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.font = '14px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Hasnain Foundation Spiritual Healing Center - Free of charge for the sake of Allah.', canvas.width / 2, 1445);
+        ctx.fillText('Khalifa Salman Ali Qadri: 0315-2204134 | Allama Shayan Ali Qadri: 0313-3830370', canvas.width / 2, 1475);
+        ctx.fillText('Official Portal: www.hasnainfoundation.org', canvas.width / 2, 1505);
+
+        // Trigger real download
+        try {
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+          const link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = `Hasnain_Foundation_${topicId}.jpg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (e) {
+          console.error("Canvas toDataURL failed:", e);
+        }
+      }
     }
 
     setActionSuccess(prev => ({
@@ -192,34 +557,12 @@ export default function KnowledgeLibrary({ lang }: { lang: Language }) {
   });
 
   return (
-    <section id="library-section" className="py-24 bg-gradient-to-b from-slate-900 to-emerald-950 text-white relative overflow-hidden">
+    <div id="library-section" className="py-2 bg-gradient-to-b from-slate-900 to-emerald-950 text-white rounded-3xl relative overflow-hidden">
       {/* Background patterns */}
       <div className="absolute inset-0 bg-[radial-gradient(#b45309_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none" />
       
       {/* Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Title Block */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-widest mb-4">
-            <BookOpen className="w-4 h-4" />
-            <span>{isUrdu ? 'روحانی لائبریری' : 'Knowledge Repository'}</span>
-          </div>
-          
-          <h2 className={`text-3xl sm:text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-amber-200 tracking-tight ${
-            isUrdu ? 'font-urdu leading-snug' : 'font-sans'
-          }`}>
-            {isUrdu ? 'مستند قرآنی و مسنون روحانی لائبریری' : 'Islamic Spiritual Knowledge Library'}
-          </h2>
-          
-          <p className={`mt-4 text-slate-300 text-sm sm:text-base leading-relaxed ${
-            isUrdu ? 'font-urdu' : 'font-sans'
-          }`}>
-            {isUrdu 
-              ? 'قرآن پاک کی آیاتِ شفاء اور رسول اللہ ﷺ کی مستند دعاؤں کے خوبصورت ہائی ریزولوشن کارڈز ڈاؤن لوڈ، پرنٹ اور شیئر کریں۔ تمام حوالہ جات سو فیصد مستند ہیں۔'
-              : 'Download, print, and share beautiful high-resolution spiritual cards of healing Quranic verses and authentic prayers. All references are verified by our Islamic scholars.'}
-          </p>
-        </div>
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 relative z-10 py-4">
 
         {/* Filter & Search Bar */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-md mb-12">
@@ -446,6 +789,6 @@ export default function KnowledgeLibrary({ lang }: { lang: Language }) {
         </div>
 
       </div>
-    </section>
+    </div>
   );
 }

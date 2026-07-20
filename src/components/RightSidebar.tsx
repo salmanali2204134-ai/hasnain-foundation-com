@@ -41,6 +41,7 @@ export default function RightSidebar({ lang, activeSection, setActiveSection }: 
     { id: 'services', label: DICTIONARY.nav.services[lang], icon: HeartHandshake },
     { id: 'appointment', label: DICTIONARY.nav.appointment[lang], icon: Calendar },
     { id: 'patient-portal', label: DICTIONARY.nav.patientPortal[lang], icon: UserCheck },
+    { id: 'durood-bank', label: DICTIONARY.nav.duroodBank[lang], icon: Sparkles },
     { id: 'library', label: DICTIONARY.nav.library[lang], icon: BookOpen },
     { id: 'projects', label: DICTIONARY.nav.projects[lang], icon: Target },
     { id: 'events', label: DICTIONARY.nav.events[lang], icon: CalendarDays },
@@ -48,7 +49,6 @@ export default function RightSidebar({ lang, activeSection, setActiveSection }: 
     { id: 'transparency', label: DICTIONARY.nav.transparency[lang], icon: ShieldCheck },
     { id: 'news', label: DICTIONARY.nav.news[lang], icon: Newspaper },
     { id: 'volunteer', label: DICTIONARY.nav.volunteer[lang], icon: Users },
-    { id: 'supapay', label: DICTIONARY.nav.supapay[lang], icon: CreditCard },
     { id: 'contact', label: DICTIONARY.nav.contact[lang], icon: PhoneCall },
   ];
 

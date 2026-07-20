@@ -25,7 +25,8 @@ export default function Gallery({ lang }: GalleryProps) {
     { id: 'food', label: DICTIONARY.gallery.catFood[lang] },
     { id: 'education', label: DICTIONARY.gallery.catEducation[lang] },
     { id: 'welfare', label: DICTIONARY.gallery.catWelfare[lang] },
-    { id: 'events', label: DICTIONARY.gallery.catEvents[lang] }
+    { id: 'events', label: DICTIONARY.gallery.catEvents[lang] },
+    { id: 'spiritual', label: DICTIONARY.gallery.catSpiritual[lang] }
   ];
 
   // Filter items
