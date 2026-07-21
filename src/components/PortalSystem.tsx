@@ -229,7 +229,22 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
         setView('login-member');
       }, 3500);
     } catch (err: any) {
-      console.warn("Supabase insertion error, using local fallback", err);
+      console.warn("Supabase insertion error, trying contact_submissions fallback", err);
+      try {
+        const fallbackPayload = {
+          name: newMember.full_name,
+          email: newMember.email,
+          phone: newMember.mobile,
+          subject: 'MEMBER_SIGNUP',
+          message: JSON.stringify(newMember)
+        };
+        const { error: fbErr } = await supabase.from('contact_submissions').insert([fallbackPayload]);
+        if (fbErr) throw fbErr;
+        console.log("Member registered via fallback contact_submissions table successfully.");
+      } catch (fbErr) {
+        console.warn("Both primary and secondary insertion failed, using pure local storage", fbErr);
+      }
+
       // Local storage fallback so the application ALWAYS works
       const stored = JSON.parse(localStorage.getItem('hasnain_members_local') || '[]');
       stored.unshift(newMember);
@@ -309,7 +324,22 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
         setView('login-volunteer');
       }, 3500);
     } catch (err: any) {
-      console.warn("Supabase insertion error, using local fallback", err);
+      console.warn("Supabase insertion error, trying contact_submissions fallback", err);
+      try {
+        const fallbackPayload = {
+          name: newVolunteer.full_name,
+          email: newVolunteer.email,
+          phone: newVolunteer.mobile,
+          subject: 'VOLUNTEER_SIGNUP',
+          message: JSON.stringify(newVolunteer)
+        };
+        const { error: fbErr } = await supabase.from('contact_submissions').insert([fallbackPayload]);
+        if (fbErr) throw fbErr;
+        console.log("Volunteer registered via fallback contact_submissions table successfully.");
+      } catch (fbErr) {
+        console.warn("Both primary and secondary insertion failed, using pure local storage", fbErr);
+      }
+
       // Local storage fallback
       const stored = JSON.parse(localStorage.getItem('hasnain_volunteers_local') || '[]');
       stored.unshift(newVolunteer);
@@ -337,13 +367,49 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
     setLoginError(null);
 
     try {
-      // 1. Try Supabase
-      const { data: member, error } = await supabase
-        .from('members')
-        .select('*')
-        .eq('email', loginEmail.trim().toLowerCase())
-        .eq('password', loginPassword.trim())
-        .maybeSingle();
+      // 1. Try Supabase primary table
+      let member = null;
+      try {
+        const { data, error } = await supabase
+          .from('members')
+          .select('*')
+          .eq('email', loginEmail.trim().toLowerCase())
+          .eq('password', loginPassword.trim())
+          .maybeSingle();
+        
+        if (!error && data) {
+          member = data;
+        }
+      } catch (pErr) {
+        console.warn("Primary members login query failed, trying fallback:", pErr);
+      }
+
+      // 1B. If not found, try fallback contact_submissions table
+      if (!member) {
+        try {
+          const { data: contacts, error: cErr } = await supabase
+            .from('contact_submissions')
+            .select('*')
+            .eq('subject', 'MEMBER_SIGNUP');
+          
+          if (!cErr && contacts) {
+            const matchedRow = contacts.find(row => {
+              try {
+                const obj = JSON.parse(row.message);
+                return obj.email.toLowerCase() === loginEmail.trim().toLowerCase() && obj.password === loginPassword.trim();
+              } catch {
+                return false;
+              }
+            });
+            if (matchedRow) {
+              member = JSON.parse(matchedRow.message);
+              member._contact_id = matchedRow.id;
+            }
+          }
+        } catch (fbErr) {
+          console.warn("Fallback members login query failed:", fbErr);
+        }
+      }
 
       if (member) {
         setCurrentMember(member);
@@ -383,13 +449,49 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
     setLoginError(null);
 
     try {
-      // 1. Try Supabase
-      const { data: volunteer, error } = await supabase
-        .from('volunteers')
-        .select('*')
-        .eq('email', loginEmail.trim().toLowerCase())
-        .eq('password', loginPassword.trim())
-        .maybeSingle();
+      // 1. Try Supabase primary table
+      let volunteer = null;
+      try {
+        const { data, error } = await supabase
+          .from('volunteers')
+          .select('*')
+          .eq('email', loginEmail.trim().toLowerCase())
+          .eq('password', loginPassword.trim())
+          .maybeSingle();
+        
+        if (!error && data) {
+          volunteer = data;
+        }
+      } catch (pErr) {
+        console.warn("Primary volunteers login query failed, trying fallback:", pErr);
+      }
+
+      // 1B. If not found, try fallback contact_submissions table
+      if (!volunteer) {
+        try {
+          const { data: contacts, error: cErr } = await supabase
+            .from('contact_submissions')
+            .select('*')
+            .eq('subject', 'VOLUNTEER_SIGNUP');
+          
+          if (!cErr && contacts) {
+            const matchedRow = contacts.find(row => {
+              try {
+                const obj = JSON.parse(row.message);
+                return obj.email.toLowerCase() === loginEmail.trim().toLowerCase() && obj.password === loginPassword.trim();
+              } catch {
+                return false;
+              }
+            });
+            if (matchedRow) {
+              volunteer = JSON.parse(matchedRow.message);
+              volunteer._contact_id = matchedRow.id;
+            }
+          }
+        } catch (fbErr) {
+          console.warn("Fallback volunteers login query failed:", fbErr);
+        }
+      }
 
       if (volunteer) {
         setCurrentVolunteer(volunteer);

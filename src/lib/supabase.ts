@@ -338,13 +338,36 @@ export async function fetchMembersFromSupabase(): Promise<any[]> {
       .order('registration_date', { ascending: false });
 
     if (error) throw error;
-    if (data) {
+    if (data && data.length > 0) {
       localStorage.setItem('hasnain_members_local', JSON.stringify(data));
       return data;
     }
-    return [];
+    // If table exists but is empty, check if we have fallback submissions too
+    throw new Error('Table empty or query fall-through');
   } catch (err) {
-    console.warn('Error fetching members from Supabase, loading local:', err);
+    console.warn('fetchMembersFromSupabase primary query fell back, trying contact_submissions fallback:', err);
+    try {
+      const { data, error } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .eq('subject', 'MEMBER_SIGNUP');
+      
+      if (!error && data) {
+        const parsed = data.map(row => {
+          try {
+            const obj = JSON.parse(row.message);
+            obj._contact_id = row.id;
+            return obj;
+          } catch {
+            return null;
+          }
+        }).filter(Boolean);
+        localStorage.setItem('hasnain_members_local', JSON.stringify(parsed));
+        return parsed;
+      }
+    } catch (e2) {
+      console.error('Failed contact_submissions fallback for members:', e2);
+    }
     const cached = localStorage.getItem('hasnain_members_local');
     return cached ? JSON.parse(cached) : [];
   }
@@ -352,19 +375,55 @@ export async function fetchMembersFromSupabase(): Promise<any[]> {
 
 export async function updateMemberInSupabase(id: string, payload: any) {
   try {
+    // 1. Try primary table
     const { data, error } = await supabase
       .from('members')
       .update(payload)
       .eq('id', id)
       .select();
 
+    if (!error && data && data.length > 0) {
+      await fetchMembersFromSupabase();
+      return { success: true, result: data };
+    }
     if (error) throw error;
-    
-    // Refresh local cache
-    await fetchMembersFromSupabase();
-    return { success: true, result: data };
   } catch (err: any) {
-    console.warn('Error updating member, falling back to local:', err);
+    console.warn('Error updating member, trying contact_submissions fallback:', err);
+    try {
+      const { data: contacts, error: cErr } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .eq('subject', 'MEMBER_SIGNUP');
+
+      if (!cErr && contacts) {
+        const matched = contacts.find(row => {
+          try {
+            const obj = JSON.parse(row.message);
+            return obj.id === id;
+          } catch {
+            return false;
+          }
+        });
+
+        if (matched) {
+          const currentObj = JSON.parse(matched.message);
+          const updatedObj = { ...currentObj, ...payload };
+          const { error: uErr } = await supabase
+            .from('contact_submissions')
+            .update({ message: JSON.stringify(updatedObj) })
+            .eq('id', matched.id);
+
+          if (!uErr) {
+            await fetchMembersFromSupabase();
+            return { success: true };
+          }
+        }
+      }
+    } catch (e2) {
+      console.error('Failed updating contact_submissions fallback for member:', e2);
+    }
+
+    // Local fallback
     const cached = localStorage.getItem('hasnain_members_local');
     if (cached) {
       let list = JSON.parse(cached);
@@ -377,6 +436,7 @@ export async function updateMemberInSupabase(id: string, payload: any) {
 
 export async function deleteMemberFromSupabase(id: string) {
   try {
+    // 1. Try primary table
     const { error } = await supabase
       .from('members')
       .delete()
@@ -387,7 +447,39 @@ export async function deleteMemberFromSupabase(id: string) {
     await fetchMembersFromSupabase();
     return { success: true };
   } catch (err: any) {
-    console.warn('Error deleting member, falling back to local:', err);
+    console.warn('Error deleting member, trying contact_submissions fallback:', err);
+    try {
+      const { data: contacts, error: cErr } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .eq('subject', 'MEMBER_SIGNUP');
+
+      if (!cErr && contacts) {
+        const matched = contacts.find(row => {
+          try {
+            const obj = JSON.parse(row.message);
+            return obj.id === id;
+          } catch {
+            return false;
+          }
+        });
+
+        if (matched) {
+          const { error: dErr } = await supabase
+            .from('contact_submissions')
+            .delete()
+            .eq('id', matched.id);
+
+          if (!dErr) {
+            await fetchMembersFromSupabase();
+            return { success: true };
+          }
+        }
+      }
+    } catch (e2) {
+      console.error('Failed deleting contact_submissions fallback for member:', e2);
+    }
+
     const cached = localStorage.getItem('hasnain_members_local');
     if (cached) {
       let list = JSON.parse(cached);
@@ -406,13 +498,35 @@ export async function fetchVolunteersFromSupabase(): Promise<any[]> {
       .order('id', { ascending: false });
 
     if (error) throw error;
-    if (data) {
+    if (data && data.length > 0) {
       localStorage.setItem('hasnain_volunteers_local', JSON.stringify(data));
       return data;
     }
-    return [];
+    throw new Error('Table empty or query fall-through');
   } catch (err) {
-    console.warn('Error fetching volunteers from Supabase, loading local:', err);
+    console.warn('fetchVolunteersFromSupabase primary query fell back, trying contact_submissions fallback:', err);
+    try {
+      const { data, error } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .eq('subject', 'VOLUNTEER_SIGNUP');
+      
+      if (!error && data) {
+        const parsed = data.map(row => {
+          try {
+            const obj = JSON.parse(row.message);
+            obj._contact_id = row.id;
+            return obj;
+          } catch {
+            return null;
+          }
+        }).filter(Boolean);
+        localStorage.setItem('hasnain_volunteers_local', JSON.stringify(parsed));
+        return parsed;
+      }
+    } catch (e2) {
+      console.error('Failed contact_submissions fallback for volunteers:', e2);
+    }
     const cached = localStorage.getItem('hasnain_volunteers_local');
     return cached ? JSON.parse(cached) : [];
   }
@@ -426,13 +540,47 @@ export async function updateVolunteerInSupabase(id: string, payload: any) {
       .eq('id', id)
       .select();
 
+    if (!error && data && data.length > 0) {
+      await fetchVolunteersFromSupabase();
+      return { success: true, result: data };
+    }
     if (error) throw error;
-
-    // Refresh local cache
-    await fetchVolunteersFromSupabase();
-    return { success: true, result: data };
   } catch (err: any) {
-    console.warn('Error updating volunteer, falling back to local:', err);
+    console.warn('Error updating volunteer, trying contact_submissions fallback:', err);
+    try {
+      const { data: contacts, error: cErr } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .eq('subject', 'VOLUNTEER_SIGNUP');
+
+      if (!cErr && contacts) {
+        const matched = contacts.find(row => {
+          try {
+            const obj = JSON.parse(row.message);
+            return obj.id === id;
+          } catch {
+            return false;
+          }
+        });
+
+        if (matched) {
+          const currentObj = JSON.parse(matched.message);
+          const updatedObj = { ...currentObj, ...payload };
+          const { error: uErr } = await supabase
+            .from('contact_submissions')
+            .update({ message: JSON.stringify(updatedObj) })
+            .eq('id', matched.id);
+
+          if (!uErr) {
+            await fetchVolunteersFromSupabase();
+            return { success: true };
+          }
+        }
+      }
+    } catch (e2) {
+      console.error('Failed updating contact_submissions fallback for volunteer:', e2);
+    }
+
     const cached = localStorage.getItem('hasnain_volunteers_local');
     if (cached) {
       let list = JSON.parse(cached);
@@ -455,7 +603,39 @@ export async function deleteVolunteerFromSupabase(id: string) {
     await fetchVolunteersFromSupabase();
     return { success: true };
   } catch (err: any) {
-    console.warn('Error deleting volunteer, falling back to local:', err);
+    console.warn('Error deleting volunteer, trying contact_submissions fallback:', err);
+    try {
+      const { data: contacts, error: cErr } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .eq('subject', 'VOLUNTEER_SIGNUP');
+
+      if (!cErr && contacts) {
+        const matched = contacts.find(row => {
+          try {
+            const obj = JSON.parse(row.message);
+            return obj.id === id;
+          } catch {
+            return false;
+          }
+        });
+
+        if (matched) {
+          const { error: dErr } = await supabase
+            .from('contact_submissions')
+            .delete()
+            .eq('id', matched.id);
+
+          if (!dErr) {
+            await fetchVolunteersFromSupabase();
+            return { success: true };
+          }
+        }
+      }
+    } catch (e2) {
+      console.error('Failed deleting contact_submissions fallback for volunteer:', e2);
+    }
+
     const cached = localStorage.getItem('hasnain_volunteers_local');
     if (cached) {
       let list = JSON.parse(cached);
