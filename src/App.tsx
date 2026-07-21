@@ -29,6 +29,7 @@ import ComplaintModal from './components/ComplaintModal';
 import PatientPortal from './components/PatientPortal';
 import DuroodBank from './components/DuroodBank';
 import VerifyReceipt from './components/VerifyReceipt';
+import PortalSystem from './components/PortalSystem';
 import SocialFollowers from './components/SocialFollowers';
 import FacebookReels from './components/FacebookReels';
 import useMetaTags from './hooks/useMetaTags';
@@ -47,6 +48,7 @@ export default function App() {
     setScrollTrigger(prev => prev + 1);
   };
   const [targetProjectId, setTargetProjectId] = useState<string | undefined>(undefined);
+  const [scannedMemberId, setScannedMemberId] = useState<string>('');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isComplaintOpen, setIsComplaintOpen] = useState(false);
@@ -74,8 +76,12 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const hasVerify = params.get('verify') || params.get('receiptId') || params.get('verify-receipt');
+    const verifyMember = params.get('verifyMember');
     if (hasVerify) {
       setActiveSectionState('verify-receipt');
+    } else if (verifyMember) {
+      setScannedMemberId(verifyMember);
+      setActiveSectionState('portal-system');
     }
   }, []);
 
@@ -232,6 +238,24 @@ export default function App() {
             >
               <DuroodBank lang={lang} />
             </motion.div>
+          ) : activeSection === 'portal-system' ? (
+            <motion.div
+              key="portal-system-page"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+            >
+              <PortalSystem 
+                lang={lang} 
+                verifyMemberId={scannedMemberId}
+                onBackToHome={() => {
+                  setScannedMemberId('');
+                  window.history.pushState({}, '', window.location.pathname);
+                  setActiveSection('home');
+                }} 
+              />
+            </motion.div>
           ) : (
             // The stacked, highly interactive multi-section Single Page Layout
             <motion.div
@@ -258,12 +282,6 @@ export default function App() {
                   setIsSpiritualOpen(true);
                 }}
               />
-
-              {/* 2. About Section */}
-              <About lang={lang} />
-
-              {/* 3. Services Section */}
-              <Services lang={lang} />
 
               {/* 3.5 Dynamic Donation Goal Tracker */}
               <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 -mb-6">
@@ -296,6 +314,12 @@ export default function App() {
 
               {/* 7.5 Volunteer Section */}
               <Volunteer lang={lang} />
+
+              {/* 2. About Section (Core Values) */}
+              <About lang={lang} />
+
+              {/* 3. Services Section (Our Services) */}
+              <Services lang={lang} />
 
               {/* 8. Contact Section */}
               <Contact lang={lang} onOpenComplaint={() => setIsComplaintOpen(true)} />

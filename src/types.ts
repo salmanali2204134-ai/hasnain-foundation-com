@@ -170,4 +170,70 @@ export interface DailyActivity {
   updated_at?: string;
 }
 
+export interface Member {
+  id: string;
+  profile_photo: string;
+  cnic_front: string;
+  cnic_back: string;
+  full_name: string;
+  father_name: string;
+  cnic: string;
+  mobile: string;
+  whatsapp: string;
+  email: string;
+  password?: string;
+  date_of_birth: string;
+  gender: string;
+  address: string;
+  city: string;
+  occupation: string;
+  blood_group: string;
+  membership_type: string;
+  registration_date: string;
+  status: 'pending' | 'approved' | 'rejected' | 'suspended' | 'active';
+  internal_notes?: string;
+  issue_date?: string;
+  expiry_date?: string;
+  donations_count?: number;
+  durood_count?: number;
+  events_count?: number;
+  certificates?: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Volunteer {
+  id: string;
+  profile_photo: string;
+  cnic_front: string;
+  cnic_back: string;
+  full_name: string;
+  father_name: string;
+  cnic: string;
+  mobile: string;
+  whatsapp: string;
+  email: string;
+  password?: string;
+  date_of_birth: string;
+  gender: string;
+  address: string;
+  city: string;
+  blood_group: string;
+  skills: string;
+  availability: string;
+  emergency_contact: string;
+  experience: string;
+  assigned_department: string;
+  status: 'pending' | 'approved' | 'rejected' | 'suspended' | 'active';
+  internal_notes?: string;
+  issue_date?: string;
+  expiry_date?: string;
+  assigned_duties?: string[];
+  attendance_count?: number;
+  events_count?: number;
+  performance_rating?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 

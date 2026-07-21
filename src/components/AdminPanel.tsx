@@ -14,13 +14,20 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import DuroodBank from './DuroodBank';
+import MemberVolunteerCRM from './MemberVolunteerCRM';
 import { 
   fetchActivitiesFromSupabase, 
   submitActivityToSupabase, 
   updateActivityInSupabase, 
   deleteActivityFromSupabase, 
   uploadActivityMedia,
-  DailyActivity
+  DailyActivity,
+  fetchMembersFromSupabase,
+  updateMemberInSupabase,
+  deleteMemberFromSupabase,
+  fetchVolunteersFromSupabase,
+  updateVolunteerInSupabase,
+  deleteVolunteerFromSupabase
 } from '../lib/supabase';
 
 interface AdminPanelProps {
@@ -102,6 +109,21 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
   const [activitySearch, setActivitySearch] = useState('');
   const [activityCategoryFilter, setActivityCategoryFilter] = useState('all');
 
+  // Members & Volunteers Management States
+  const [members, setMembers] = useState<any[]>([]);
+  const [volunteers, setVolunteers] = useState<any[]>([]);
+  const [memberSearch, setMemberSearch] = useState('');
+  const [memberFilterStatus, setMemberFilterStatus] = useState('all');
+  const [selectedMember, setSelectedMember] = useState<any | null>(null);
+  const [volunteerSearch, setVolunteerSearch] = useState('');
+  const [volunteerFilterStatus, setVolunteerFilterStatus] = useState('all');
+  const [selectedVolunteer, setSelectedVolunteer] = useState<any | null>(null);
+
+  const [memberNotes, setMemberNotes] = useState('');
+  const [memberStatusState, setMemberStatusState] = useState('pending');
+  const [volunteerNotes, setVolunteerNotes] = useState('');
+  const [volunteerStatusState, setVolunteerStatusState] = useState('pending');
+
   // Load all dashboard data
   const loadDashboardData = async () => {
     setLoading(true);
@@ -110,12 +132,14 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
       const headers = { 
         'x-admin-passcode': passcode.trim() 
       };
-      const [aptRes, donRes, subRes, compRes, actRes] = await Promise.all([
+      const [aptRes, donRes, subRes, compRes, actRes, membersRes, volunteersRes] = await Promise.all([
         fetch('/api/appointments', { headers }).then(r => r.json()),
         fetch('/api/donations', { headers }).then(r => r.json()),
         fetch('/api/subscriptions', { headers }).then(r => r.json()),
         fetch('/api/complaints', { headers }).then(r => r.json()).catch(() => ({ success: false, complaints: [] })),
-        fetchActivitiesFromSupabase()
+        fetchActivitiesFromSupabase(),
+        fetchMembersFromSupabase(),
+        fetchVolunteersFromSupabase()
       ]);
 
       if (aptRes.success) setAppointments(aptRes.appointments);
@@ -123,6 +147,8 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
       if (subRes.success) setSubscribers(subRes.subscribers);
       if (compRes.success) setComplaints(compRes.complaints);
       if (actRes) setActivitiesList(actRes);
+      if (membersRes) setMembers(membersRes);
+      if (volunteersRes) setVolunteers(volunteersRes);
     } catch (err: any) {
       console.error(err);
       setErrorMessage(isUrdu ? "ڈیٹا لوڈ کرنے میں ناکامی" : "Failed to load CRM database from server.");
@@ -350,6 +376,76 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
       }
     } catch (err: any) {
       alert("Error updating donation status: " + err.message);
+    }
+  };
+
+  // Save Member Changes
+  const handleUpdateMember = async (memberId: string, updatedFields: any) => {
+    try {
+      const res = await updateMemberInSupabase(memberId, updatedFields);
+      if (res.success) {
+        setMembers(prev => prev.map(m => m.id === memberId ? { ...m, ...updatedFields } : m));
+        if (selectedMember && selectedMember.id === memberId) {
+          setSelectedMember({ ...selectedMember, ...updatedFields });
+        }
+        alert(isUrdu ? 'رکن کا ریکارڈ کامیابی سے اپ ڈیٹ ہو گیا ہے!' : 'Member record updated successfully!');
+      }
+    } catch (err: any) {
+      alert('Error updating member: ' + err.message);
+    }
+  };
+
+  // Delete Member
+  const handleDeleteMember = async (memberId: string) => {
+    if (!confirm(isUrdu ? 'کیا آپ واقعی اس رکن کو حذف کرنا چاہتے ہیں؟' : 'Are you sure you want to delete this member?')) {
+      return;
+    }
+    try {
+      const res = await deleteMemberFromSupabase(memberId);
+      if (res.success) {
+        setMembers(prev => prev.filter(m => m.id !== memberId));
+        if (selectedMember && selectedMember.id === memberId) {
+          setSelectedMember(null);
+        }
+        alert(isUrdu ? 'رکن کامیابی سے حذف کر دیا گیا ہے!' : 'Member deleted successfully!');
+      }
+    } catch (err: any) {
+      alert('Error deleting member: ' + err.message);
+    }
+  };
+
+  // Save Volunteer Changes
+  const handleUpdateVolunteer = async (volunteerId: string, updatedFields: any) => {
+    try {
+      const res = await updateVolunteerInSupabase(volunteerId, updatedFields);
+      if (res.success) {
+        setVolunteers(prev => prev.map(v => v.id === volunteerId ? { ...v, ...updatedFields } : v));
+        if (selectedVolunteer && selectedVolunteer.id === volunteerId) {
+          setSelectedVolunteer({ ...selectedVolunteer, ...updatedFields });
+        }
+        alert(isUrdu ? 'رضاکار کا ریکارڈ کامیابی سے اپ ڈیٹ ہو گیا ہے!' : 'Volunteer record updated successfully!');
+      }
+    } catch (err: any) {
+      alert('Error updating volunteer: ' + err.message);
+    }
+  };
+
+  // Delete Volunteer
+  const handleDeleteVolunteer = async (volunteerId: string) => {
+    if (!confirm(isUrdu ? 'کیا آپ واقعی اس رضاکار کو حذف کرنا چاہتے ہیں؟' : 'Are you sure you want to delete this volunteer?')) {
+      return;
+    }
+    try {
+      const res = await deleteVolunteerFromSupabase(volunteerId);
+      if (res.success) {
+        setVolunteers(prev => prev.filter(v => v.id !== volunteerId));
+        if (selectedVolunteer && selectedVolunteer.id === volunteerId) {
+          setSelectedVolunteer(null);
+        }
+        alert(isUrdu ? 'رضاکار کامیابی سے حذف کر دیا گیا ہے!' : 'Volunteer deleted successfully!');
+      }
+    } catch (err: any) {
+      alert('Error deleting volunteer: ' + err.message);
     }
   };
 
@@ -716,6 +812,8 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                   <div className="flex-1 overflow-y-auto py-2 space-y-1 my-2 pr-0.5 sm:pr-1 scrollbar-thin">
                     {[
                       { id: 'appointments', label: { en: 'Patient CRM', ur: 'مریضوں کے ریکارڈز' }, icon: Users },
+                      { id: 'members', label: { en: 'Members Panel', ur: 'رکنیت انتظامیہ' }, icon: Users },
+                      { id: 'volunteers', label: { en: 'Volunteers Panel', ur: 'رضاکار انتظامیہ' }, icon: UserCheck },
                       { id: 'donors', label: { en: 'Donor Database', ur: 'ڈونر ڈیٹا بیس' }, icon: UserCheck },
                       { id: 'donations', label: { en: 'Donation Auditor', ur: 'عطیہ آڈیٹر' }, icon: Coins },
                       { id: 'auditor', label: { en: 'Auditor Terminal', ur: 'آڈٹ اور تجارتی حسابات' }, icon: TrendingUp },
@@ -2553,6 +2651,25 @@ CREATE POLICY "Allow public delete daily_activities" ON daily_activities FOR DEL
                     <div className="bg-slate-950 rounded-2xl border border-emerald-800/20 overflow-hidden shadow-2xl p-1">
                       <DuroodBank lang={lang} forceAdmin={true} />
                     </div>
+                  )}
+
+                  {/* ==========================================
+                      TABS: MEMBERS & VOLUNTEERS CRM
+                      ========================================== */}
+                  {(activeTab === 'members' || activeTab === 'volunteers') && (
+                    <MemberVolunteerCRM
+                      lang={lang}
+                      activeTab={activeTab}
+                      isUrdu={isUrdu}
+                      members={members}
+                      volunteers={volunteers}
+                      onUpdateMember={handleUpdateMember}
+                      onDeleteMember={handleDeleteMember}
+                      onUpdateVolunteer={handleUpdateVolunteer}
+                      onDeleteVolunteer={handleDeleteVolunteer}
+                      setSelectedDocument={setSelectedDocument}
+                      loadDashboardData={loadDashboardData}
+                    />
                   )}
 
                 </div>

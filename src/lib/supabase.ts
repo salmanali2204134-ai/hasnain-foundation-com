@@ -327,6 +327,146 @@ export async function fetchVolunteerRegistrations() {
 }
 
 // ==========================================
+// MEMBERS & VOLUNTEERS PORTAL CRUD HELPERS
+// ==========================================
+
+export async function fetchMembersFromSupabase(): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from('members')
+      .select('*')
+      .order('registration_date', { ascending: false });
+
+    if (error) throw error;
+    if (data) {
+      localStorage.setItem('hasnain_members_local', JSON.stringify(data));
+      return data;
+    }
+    return [];
+  } catch (err) {
+    console.warn('Error fetching members from Supabase, loading local:', err);
+    const cached = localStorage.getItem('hasnain_members_local');
+    return cached ? JSON.parse(cached) : [];
+  }
+}
+
+export async function updateMemberInSupabase(id: string, payload: any) {
+  try {
+    const { data, error } = await supabase
+      .from('members')
+      .update(payload)
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    
+    // Refresh local cache
+    await fetchMembersFromSupabase();
+    return { success: true, result: data };
+  } catch (err: any) {
+    console.warn('Error updating member, falling back to local:', err);
+    const cached = localStorage.getItem('hasnain_members_local');
+    if (cached) {
+      let list = JSON.parse(cached);
+      list = list.map((item: any) => item.id === id ? { ...item, ...payload } : item);
+      localStorage.setItem('hasnain_members_local', JSON.stringify(list));
+    }
+    return { success: true, isLocalFallback: true };
+  }
+}
+
+export async function deleteMemberFromSupabase(id: string) {
+  try {
+    const { error } = await supabase
+      .from('members')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    await fetchMembersFromSupabase();
+    return { success: true };
+  } catch (err: any) {
+    console.warn('Error deleting member, falling back to local:', err);
+    const cached = localStorage.getItem('hasnain_members_local');
+    if (cached) {
+      let list = JSON.parse(cached);
+      list = list.filter((item: any) => item.id !== id);
+      localStorage.setItem('hasnain_members_local', JSON.stringify(list));
+    }
+    return { success: true, isLocalFallback: true };
+  }
+}
+
+export async function fetchVolunteersFromSupabase(): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from('volunteers')
+      .select('*')
+      .order('id', { ascending: false });
+
+    if (error) throw error;
+    if (data) {
+      localStorage.setItem('hasnain_volunteers_local', JSON.stringify(data));
+      return data;
+    }
+    return [];
+  } catch (err) {
+    console.warn('Error fetching volunteers from Supabase, loading local:', err);
+    const cached = localStorage.getItem('hasnain_volunteers_local');
+    return cached ? JSON.parse(cached) : [];
+  }
+}
+
+export async function updateVolunteerInSupabase(id: string, payload: any) {
+  try {
+    const { data, error } = await supabase
+      .from('volunteers')
+      .update(payload)
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+
+    // Refresh local cache
+    await fetchVolunteersFromSupabase();
+    return { success: true, result: data };
+  } catch (err: any) {
+    console.warn('Error updating volunteer, falling back to local:', err);
+    const cached = localStorage.getItem('hasnain_volunteers_local');
+    if (cached) {
+      let list = JSON.parse(cached);
+      list = list.map((item: any) => item.id === id ? { ...item, ...payload } : item);
+      localStorage.setItem('hasnain_volunteers_local', JSON.stringify(list));
+    }
+    return { success: true, isLocalFallback: true };
+  }
+}
+
+export async function deleteVolunteerFromSupabase(id: string) {
+  try {
+    const { error } = await supabase
+      .from('volunteers')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    await fetchVolunteersFromSupabase();
+    return { success: true };
+  } catch (err: any) {
+    console.warn('Error deleting volunteer, falling back to local:', err);
+    const cached = localStorage.getItem('hasnain_volunteers_local');
+    if (cached) {
+      let list = JSON.parse(cached);
+      list = list.filter((item: any) => item.id !== id);
+      localStorage.setItem('hasnain_volunteers_local', JSON.stringify(list));
+    }
+    return { success: true, isLocalFallback: true };
+  }
+}
+
+// ==========================================
 // DAILY ACTIVITIES MANAGEMENT SYSTEM CRUD
 // ==========================================
 

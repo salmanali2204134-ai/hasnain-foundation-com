@@ -68,17 +68,82 @@ CREATE TABLE contact_submissions (
 );
 
 -- =====================================================================
--- TABLE 4: VOLUNTEER REGISTRATIONS
+-- TABLE 4: VOLUNTEERS (Upgraded full profile model)
 -- =====================================================================
-CREATE TABLE volunteer_registrations (
-    id TEXT PRIMARY KEY, -- Maps to a generated unique handle
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    interests TEXT[] DEFAULT '{}',
+CREATE TABLE volunteers (
+    id TEXT PRIMARY KEY, -- HF-V-XXXX
+    profile_photo TEXT DEFAULT '',
+    cnic_front TEXT DEFAULT '',
+    cnic_back TEXT DEFAULT '',
+    full_name TEXT NOT NULL,
+    father_name TEXT DEFAULT '',
+    cnic TEXT NOT NULL,
+    mobile TEXT NOT NULL,
+    whatsapp TEXT DEFAULT '',
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL DEFAULT '123456',
+    date_of_birth TEXT DEFAULT '',
+    gender TEXT NOT NULL,
+    address TEXT DEFAULT '',
+    city TEXT DEFAULT 'Karachi',
+    blood_group TEXT DEFAULT 'B+',
+    skills TEXT DEFAULT '',
     availability TEXT DEFAULT 'Weekends',
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    emergency_contact TEXT DEFAULT '',
+    experience TEXT DEFAULT '',
+    assigned_department TEXT DEFAULT 'Welfare Support',
+    status TEXT DEFAULT 'pending', -- pending, approved, rejected, suspended, active
+    internal_notes TEXT DEFAULT '',
+    issue_date TEXT DEFAULT '',
+    expiry_date TEXT DEFAULT '',
+    assigned_duties TEXT[] DEFAULT '{}',
+    attendance_count INTEGER DEFAULT 0,
+    events_count INTEGER DEFAULT 0,
+    performance_rating INTEGER DEFAULT 5,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX idx_volunteers_status ON volunteers(status);
+CREATE INDEX idx_volunteers_email ON volunteers(email);
+
+-- =====================================================================
+-- TABLE 4B: MEMBERS (Full profile membership model)
+-- =====================================================================
+CREATE TABLE members (
+    id TEXT PRIMARY KEY, -- HF-M-XXXX
+    profile_photo TEXT DEFAULT '',
+    cnic_front TEXT DEFAULT '',
+    cnic_back TEXT DEFAULT '',
+    full_name TEXT NOT NULL,
+    father_name TEXT DEFAULT '',
+    cnic TEXT NOT NULL,
+    mobile TEXT NOT NULL,
+    whatsapp TEXT DEFAULT '',
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL DEFAULT '123456',
+    date_of_birth TEXT DEFAULT '',
+    gender TEXT NOT NULL,
+    address TEXT DEFAULT '',
+    city TEXT DEFAULT 'Karachi',
+    occupation TEXT DEFAULT '',
+    blood_group TEXT DEFAULT 'B+',
+    membership_type TEXT DEFAULT 'Regular', -- Regular, Premium, Life, Patron
+    registration_date TEXT NOT NULL,
+    status TEXT DEFAULT 'pending', -- pending, approved, rejected, suspended, active
+    internal_notes TEXT DEFAULT '',
+    issue_date TEXT DEFAULT '',
+    expiry_date TEXT DEFAULT '',
+    donations_count INTEGER DEFAULT 0,
+    durood_count INTEGER DEFAULT 0,
+    events_count INTEGER DEFAULT 0,
+    certificates TEXT[] DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_members_status ON members(status);
+CREATE INDEX idx_members_email ON members(email);
 
 -- =====================================================================
 -- TABLE 5: DONATIONS LOG
@@ -101,7 +166,8 @@ CREATE TABLE donations_log (
 ALTER TABLE durood_bank ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_submissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE volunteer_registrations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE volunteers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE donations_log ENABLE ROW LEVEL SECURITY;
 
 -- -----------------------------------------------------
@@ -160,16 +226,51 @@ USING (true)
 WITH CHECK (true);
 
 -- -----------------------------------------------------
--- POLICIES FOR volunteer_registrations
+-- POLICIES FOR volunteers
 -- -----------------------------------------------------
 -- 1. Allow Public to register as a volunteer
 CREATE POLICY "Allow Public Volunteer Registration" 
-ON volunteer_registrations FOR INSERT 
+ON volunteers FOR INSERT 
 WITH CHECK (true);
 
--- 2. Allow only Admins to review volunteer registrations
+-- 2. Allow Public to view volunteer profiles (essential for QR ID Verification & Portal Logins)
+CREATE POLICY "Allow Public Volunteer Select" 
+ON volunteers FOR SELECT 
+USING (true);
+
+-- 3. Allow Admins to manage volunteers, and Volunteers to update their own profiles
+CREATE POLICY "Allow Volunteer Update Self" 
+ON volunteers FOR UPDATE 
+USING (true)
+WITH CHECK (true);
+
 CREATE POLICY "Allow Authenticated Admin Volunteer Access" 
-ON volunteer_registrations FOR ALL 
+ON volunteers FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- -----------------------------------------------------
+-- POLICIES FOR members
+-- -----------------------------------------------------
+-- 1. Allow Public to register as a member
+CREATE POLICY "Allow Public Member Registration" 
+ON members FOR INSERT 
+WITH CHECK (true);
+
+-- 2. Allow Public to view member profiles (essential for QR ID Verification & Portal Logins)
+CREATE POLICY "Allow Public Member Select" 
+ON members FOR SELECT 
+USING (true);
+
+-- 3. Allow Admins to manage members, and Members to update their own profiles
+CREATE POLICY "Allow Member Update Self" 
+ON members FOR UPDATE 
+USING (true)
+WITH CHECK (true);
+
+CREATE POLICY "Allow Authenticated Admin Member Access" 
+ON members FOR ALL 
 TO authenticated 
 USING (true) 
 WITH CHECK (true);
