@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { generateReceiptPdf, sendReceiptEmail } from "./src/lib/pdfAndEmail";
 
 dotenv.config();
 
@@ -181,6 +182,53 @@ Make sure the tone is full of empathy, community service, transparency, and prog
     }
   });
 
+  // API Route for Donor Appreciation Letter Generation
+  app.post("/api/gemini/generate-appreciation", async (req, res) => {
+    try {
+      const { donorName, totalAmount, count, lastPurpose } = req.body;
+      if (!donorName) {
+        return res.status(400).json({ error: "Missing donorName parameter." });
+      }
+
+      const ai = getGeminiClient();
+
+      const prompt = `Write a highly professional, heartfelt, and spiritually inspiring donor appreciation letter for a benefactor of the Hasnain Foundation in Karachi, Pakistan.
+      
+Donor Name: "${donorName}"
+Total Contributions Lifetime: "PKR ${Number(totalAmount).toLocaleString()}"
+Total Donations count: "${count}"
+Last Contribution Purpose: "${lastPurpose || 'General Charity'}"
+
+You MUST return a JSON object with the following fields:
+1. "letterEn": The full appreciation letter in eloquent English (approx 120-150 words). Mention the total amount contributed and their generous count of donations. Express deep gratitude and how their money directly funds welfare programs in Karachi (like Jamia Masjid Al-Qadir, RO water filtration plants, orphan schooling, and daily meals). Include a signature from Khalifa Salman Ali Qadri (Trustee).
+2. "letterUr": The exact equivalent appreciation letter in highly refined, elegant, and standard Urdu script (using respectful honorifics like "Mohtaram", "JazakAllah Khair", and poetic prayers for barakah in wealth and family). Maintain the same detailed references to their contributions and signature in Urdu.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction: "You are the Executive Director of Hasnain Foundation Karachi. You draft exquisite, highly personalized donor appreciation letters and spiritual prayers for our donors in bilingual English and Urdu.",
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              letterEn: { type: Type.STRING },
+              letterUr: { type: Type.STRING },
+            },
+            required: ["letterEn", "letterUr"],
+          }
+        }
+      });
+
+      const letterJsonStr = response.text || "{}";
+      const letterObj = JSON.parse(letterJsonStr);
+      res.json({ success: true, ...letterObj });
+    } catch (error: any) {
+      console.error("Gemini Appreciation Letter Error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // ==========================================
   // IN-MEMORY DATABASE FOR HASNAIN FOUNDATION
   // ==========================================
@@ -222,12 +270,15 @@ Make sure the tone is full of empathy, community service, transparency, and prog
     id: string;
     donorName: string;
     email: string;
-    whatsapp: string;
+    mobile: string;
+    whatsapp?: string;
     amount: number;
     paymentMethod: string;
+    purpose: string;
     transactionId: string;
     receiptUrl?: string;
     donationDate: string;
+    donationTime: string;
     status: 'pending' | 'verified' | 'rejected';
   }
 
@@ -329,9 +380,9 @@ Make sure the tone is full of empathy, community service, transparency, and prog
   ];
 
   let donations: DonationReceipt[] = [
-    { id: "DON-201", donorName: "Aftab Ahmed", email: "aftab@gmail.com", whatsapp: "03009998877", amount: 25000, paymentMethod: "United Bank Limited (UBL)", transactionId: "TXN98231221", donationDate: "2026-07-15", status: "verified" },
-    { id: "DON-202", donorName: "Farhan Qadri", email: "farhan.q@gmail.com", whatsapp: "03203456789", amount: 150000, paymentMethod: "EasyPaisa", transactionId: "EP-4421590", donationDate: "2026-07-16", status: "verified" },
-    { id: "DON-203", donorName: "Siddique Shah", email: "siddique@live.com", whatsapp: "03152204134", amount: 50000, paymentMethod: "SadaPay", transactionId: "SP-8832910", donationDate: "2026-07-17", status: "pending" }
+    { id: "HF-2026-000001", donorName: "Aftab Ahmed", email: "aftab@gmail.com", mobile: "03009998877", whatsapp: "03009998877", amount: 25000, paymentMethod: "United Bank Limited (UBL)", purpose: "masjid", transactionId: "TXN98231221", donationDate: "2026-07-15", donationTime: "02:15:30 PM", status: "verified" },
+    { id: "HF-2026-000002", donorName: "Farhan Qadri", email: "farhan.q@gmail.com", mobile: "03203456789", whatsapp: "03203456789", amount: 150000, paymentMethod: "EasyPaisa", purpose: "general", transactionId: "EP-4421590", donationDate: "2026-07-16", donationTime: "11:45:00 AM", status: "verified" },
+    { id: "HF-2026-000003", donorName: "Siddique Shah", email: "siddique@live.com", mobile: "03152204134", whatsapp: "03152204134", amount: 50000, paymentMethod: "SadaPay", purpose: "water", transactionId: "SP-8832910", donationDate: "2026-07-17", donationTime: "05:20:12 PM", status: "pending" }
   ];
 
   interface ComplaintRecord {
@@ -604,30 +655,84 @@ Make sure the tone is full of empathy, community service, transparency, and prog
   // DONATION ROUTES
   // -------------------------
 
+  // -------------------------
+  // DONATION ROUTES
+  // -------------------------
+
   // Submit donation receipt
-  app.post("/api/donations", (req, res) => {
+  app.post("/api/donations", async (req, res) => {
     try {
-      const { donorName, email, whatsapp, amount, paymentMethod, transactionId, receiptUrl } = req.body;
-      if (!donorName || !amount || !paymentMethod || !transactionId) {
-        return res.status(400).json({ success: false, error: "Donor Name, Amount, Payment Method, and Transaction ID are required." });
+      const { donorName, email, mobile, whatsapp, amount, paymentMethod, purpose, transactionId, receiptUrl } = req.body;
+      if (!donorName || !amount || !paymentMethod || !transactionId || !mobile || !purpose) {
+        return res.status(400).json({ success: false, error: "Donor Name, Mobile Number, Amount, Payment Method, Purpose, and Transaction ID are required." });
       }
 
-      const nextId = `DON-${201 + donations.length}`;
+      // Duplicate protection: check if transactionId already exists
+      const isDuplicate = donations.some(d => d.transactionId.trim().toLowerCase() === transactionId.trim().toLowerCase());
+      if (isDuplicate) {
+        return res.status(400).json({ success: false, error: "A donation with this Transaction ID has already been submitted." });
+      }
+
+      // Timezone-correct Karachi Date and Time
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { timeZone: 'Asia/Karachi', year: 'numeric', month: '2-digit', day: '2-digit' });
+      const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Karachi', hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const [m, d, y] = dateStr.split('/');
+      const karachiDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+
+      // Auto generate receipt number starting HF-2026-000001
+      let maxNum = 0;
+      donations.forEach(r => {
+        const match = r.id.match(/^HF-2026-(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1]);
+          if (num > maxNum) maxNum = num;
+        }
+      });
+      const nextId = `HF-2026-${String(maxNum + 1).padStart(6, '0')}`;
+
       const newDonation: DonationReceipt = {
         id: nextId,
         donorName,
-        email: email || "anonymous@donor.com",
-        whatsapp: whatsapp || "",
+        email: email || "",
+        mobile,
+        whatsapp: whatsapp || mobile || "",
         amount: Number(amount),
         paymentMethod,
+        purpose,
         transactionId,
         receiptUrl: receiptUrl || "",
-        donationDate: new Date().toISOString().substring(0, 10),
+        donationDate: karachiDate,
+        donationTime: timeStr,
         status: 'pending' // verified by admin inside CRM
       };
 
+      // Generate Receipt PDF buffer & Save locally
+      try {
+        const pdfBuffer = await generateReceiptPdf(newDonation);
+        const emailRes = await sendReceiptEmail(newDonation, pdfBuffer);
+        newDonation.receiptUrl = emailRes.filePath || `/receipts/receipt_${newDonation.id}_${newDonation.transactionId}.pdf`;
+      } catch (pdfErr: any) {
+        console.error("Failed to pre-generate and archive PDF receipt:", pdfErr);
+      }
+
       donations.unshift(newDonation);
       res.status(201).json({ success: true, donation: newDonation, message: "Donation receipt submitted successfully!" });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Public receipt verification endpoint (QR code scanning destination)
+  app.get("/api/donations/verify/:id", (req, res) => {
+    try {
+      const { id } = req.params;
+      const match = donations.find(d => d.id.trim().toUpperCase() === id.trim().toUpperCase());
+      if (match) {
+        return res.json({ success: true, verified: true, donation: match });
+      } else {
+        return res.status(404).json({ success: false, verified: false, error: "Invalid Receipt" });
+      }
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
     }
@@ -639,7 +744,7 @@ Make sure the tone is full of empathy, community service, transparency, and prog
   });
 
   // Verify/reject donation status (Secure Admin Only)
-  app.put("/api/donations/:id/status", verifyAdmin, (req, res) => {
+  app.put("/api/donations/:id/status", verifyAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body; // 'verified' | 'rejected' | 'pending'
@@ -650,6 +755,14 @@ Make sure the tone is full of empathy, community service, transparency, and prog
       }
 
       donations[idx].status = status;
+
+      // Re-generate and overwrite PDF to reflect audited status changes (e.g. Verified vs Rejected)
+      try {
+        const pdfBuffer = await generateReceiptPdf(donations[idx]);
+        await sendReceiptEmail(donations[idx], pdfBuffer);
+      } catch (pdfErr) {
+        console.error("Failed to re-generate PDF on audit status change:", pdfErr);
+      }
 
       res.json({ success: true, donation: donations[idx] });
     } catch (err: any) {
@@ -722,6 +835,9 @@ Make sure the tone is full of empathy, community service, transparency, and prog
       res.status(500).json({ success: false, error: err.message });
     }
   });
+
+  // Serve receipts folder as static directory
+  app.use('/receipts', express.static(path.join(process.cwd(), 'receipts')));
 
   // Serve static files / Vite middleware
   if (process.env.NODE_ENV !== "production") {

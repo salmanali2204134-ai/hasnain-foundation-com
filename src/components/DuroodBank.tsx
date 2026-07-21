@@ -12,7 +12,8 @@ import {
   deleteDuroodSubmission, 
   bulkDeleteDuroodSubmissions, 
   updateDuroodSubmission,
-  DuroodSubmission 
+  DuroodSubmission,
+  supabase
 } from '../lib/supabase';
 import { 
   Award, BookOpen, Calendar, Check, CheckCircle, ChevronRight, Clock, 
@@ -139,6 +140,14 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
     date: string;
   } | null>(null);
 
+  const sortSubmissionsNewestFirst = (list: DuroodSubmission[]) => {
+    return [...list].sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA;
+    });
+  };
+
   // Load submissions
   const loadSubmissions = async () => {
     setLoading(true);
@@ -154,8 +163,8 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
       }
 
       if (data && data.length > 0) {
-        // We got data from Supabase! Merge any local submissions that haven't been synced yet
-        setSubmissions(data);
+        // We got data from Supabase!
+        setSubmissions(sortSubmissionsNewestFirst(data));
         setSyncStatus('synced');
         
         // Synchronize local storage to match Supabase
@@ -163,9 +172,9 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
       } else {
         // Fallback to local storage or seed data if empty
         if (parsedLocal.length > 0) {
-          setSubmissions(parsedLocal);
+          setSubmissions(sortSubmissionsNewestFirst(parsedLocal));
         } else {
-          setSubmissions(SEED_DATA);
+          setSubmissions(sortSubmissionsNewestFirst(SEED_DATA));
           localStorage.setItem('local_durood_submissions', JSON.stringify(SEED_DATA));
         }
         setSyncStatus('local');
@@ -174,9 +183,9 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
       console.error("Error loading Durood submissions:", error);
       const localStored = localStorage.getItem('local_durood_submissions');
       if (localStored) {
-        try { setSubmissions(JSON.parse(localStored)); } catch(e){}
+        try { setSubmissions(sortSubmissionsNewestFirst(JSON.parse(localStored))); } catch(e){}
       } else {
-        setSubmissions(SEED_DATA);
+        setSubmissions(sortSubmissionsNewestFirst(SEED_DATA));
       }
       setSyncStatus('local');
     } finally {
@@ -186,7 +195,49 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
 
   useEffect(() => {
     loadSubmissions();
+
+    // Enable real-time updates so new submissions appear automatically
+    const channel = supabase
+      .channel('durood_bank_realtime_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'durood_bank'
+        },
+        (payload) => {
+          console.log('Real-time notification on table durood_bank:', payload);
+          if (payload.eventType === 'INSERT') {
+            const newRecord = payload.new as DuroodSubmission;
+            setSubmissions(prev => {
+              if (prev.some(sub => sub.id === newRecord.id)) return prev;
+              return sortSubmissionsNewestFirst([newRecord, ...prev]);
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedRecord = payload.new as DuroodSubmission;
+            setSubmissions(prev => 
+              sortSubmissionsNewestFirst(prev.map(sub => sub.id === updatedRecord.id ? updatedRecord : sub))
+            );
+          } else if (payload.eventType === 'DELETE') {
+            const deletedRecord = payload.old as { id: any };
+            setSubmissions(prev => prev.filter(sub => sub.id !== deletedRecord.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  // Sync state to local storage whenever submissions state is modified
+  useEffect(() => {
+    if (submissions.length > 0) {
+      localStorage.setItem('local_durood_submissions', JSON.stringify(submissions));
+    }
+  }, [submissions]);
 
   // Compute stats
   const stats = useMemo(() => {
@@ -239,6 +290,10 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
     }
 
     setIsSubmitting(true);
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-GB'); 
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
     const submissionData: DuroodSubmission = {
       full_name: formData.isAnonymous ? (isUrdu ? 'مخفی پڑھنے والا' : 'Anonymous Reciter') : formData.fullName.trim(),
       mobile: formData.mobile.trim(),
@@ -249,22 +304,30 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
       durood_type: formData.duroodType,
       quantity: Number(formData.quantity),
       intention: formData.intention,
-      created_at: new Date().toISOString()
+      date: dateStr,
+      time: timeStr,
+      created_at: now.toISOString()
     };
 
     try {
       const res = await submitDuroodToSupabase(submissionData);
       
-      // Update local memory
-      const updatedList = [submissionData, ...submissions];
-      setSubmissions(updatedList);
-      localStorage.setItem('local_durood_submissions', JSON.stringify(updatedList));
-
-      if (res.success) {
+      let insertedItem = submissionData;
+      if (res.success && res.result && res.result[0]) {
+        insertedItem = res.result[0];
         setSyncStatus('synced');
       } else {
+        insertedItem = {
+          ...submissionData,
+          id: `local-${Date.now()}`
+        };
         setSyncStatus('local');
       }
+
+      setSubmissions(prev => {
+        if (prev.some(sub => sub.id === insertedItem.id)) return prev;
+        return sortSubmissionsNewestFirst([insertedItem, ...prev]);
+      });
 
       setSubmittedName(formData.fullName);
       setSubmittedQuantity(Number(formData.quantity));
@@ -282,9 +345,14 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
     } catch (err) {
       console.error(err);
       // fallback
-      const updatedList = [submissionData, ...submissions];
-      setSubmissions(updatedList);
-      localStorage.setItem('local_durood_submissions', JSON.stringify(updatedList));
+      const insertedItem = {
+        ...submissionData,
+        id: `local-${Date.now()}`
+      };
+      setSubmissions(prev => {
+        if (prev.some(sub => sub.id === insertedItem.id)) return prev;
+        return sortSubmissionsNewestFirst([insertedItem, ...prev]);
+      });
       setSyncStatus('local');
 
       setSubmittedName(formData.fullName);
@@ -806,6 +874,10 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
     if (!manualEntry.fullName || !manualEntry.mobile || !manualEntry.quantity) return;
 
     try {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-GB'); 
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
       const payload: DuroodSubmission = {
         full_name: manualEntry.fullName.trim(),
         mobile: manualEntry.mobile.trim(),
@@ -816,13 +888,27 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
         durood_type: manualEntry.duroodType,
         quantity: Number(manualEntry.quantity),
         intention: manualEntry.intention,
-        created_at: new Date().toISOString()
+        date: dateStr,
+        time: timeStr,
+        created_at: now.toISOString()
       };
 
       const res = await submitDuroodToSupabase(payload);
-      const newList = [payload, ...submissions];
-      setSubmissions(newList);
-      localStorage.setItem('local_durood_submissions', JSON.stringify(newList));
+      
+      let insertedItem = payload;
+      if (res.success && res.result && res.result[0]) {
+        insertedItem = res.result[0];
+      } else {
+        insertedItem = {
+          ...payload,
+          id: `local-${Date.now()}`
+        };
+      }
+
+      setSubmissions(prev => {
+        if (prev.some(sub => sub.id === insertedItem.id)) return prev;
+        return sortSubmissionsNewestFirst([insertedItem, ...prev]);
+      });
 
       setManualEntry({
         fullName: '',

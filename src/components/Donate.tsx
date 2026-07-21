@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Language } from '../types';
 import { DICTIONARY } from '../data';
 import DonationTracker from './DonationTracker';
-import { Landmark, Smartphone, Copy, Check, Send, Award, Heart, Sparkles, AlertCircle } from 'lucide-react';
+import { Landmark, Smartphone, Copy, Check, Send, Award, Heart, Sparkles, AlertCircle, Printer, Download, Share2, ExternalLink, QrCode, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface DonateProps {
@@ -18,11 +18,19 @@ interface DonateProps {
 export default function Donate({ lang, selectedProjectId }: DonateProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   
-  // Pledge interactive panel state
-  const [pledgeName, setPledgeName] = useState('');
-  const [pledgeAmount, setPledgeAmount] = useState('');
-  const [pledgeCategory, setPledgeCategory] = useState('general');
+  // Real Donation Receipt System State
+  const [donorName, setDonorName] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
+  const [amount, setAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('EasyPaisa');
+  const [purpose, setPurpose] = useState(selectedProjectId || 'general');
+  const [transactionId, setTransactionId] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const [showThankYou, setShowThankYou] = useState(false);
+  const [receipt, setReceipt] = useState<any | null>(null);
 
   const isUrdu = lang === 'ur';
 
@@ -59,17 +67,97 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
     }
   };
 
-  const handlePledgeSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pledgeName || !pledgeAmount) return;
-    setShowThankYou(true);
+    if (!donorName || !mobile || !amount || !paymentMethod || !purpose || !transactionId) {
+      setError(isUrdu ? 'براہ کرم تمام لازمی فیلڈز پُر کریں۔' : 'Please fill in all required fields.');
+      return;
+    }
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/donations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          donorName,
+          email,
+          mobile,
+          whatsapp: mobile,
+          amount: Number(amount),
+          paymentMethod,
+          purpose,
+          transactionId
+        })
+      });
+
+      const data = await res.json();
+      if (data.success && data.donation) {
+        setReceipt(data.donation);
+        setShowThankYou(true);
+      } else {
+        setError(data.error || (isUrdu ? 'جمع کرانے میں خرابی پیش آئی۔' : 'Failed to submit donation receipt.'));
+      }
+    } catch (err: any) {
+      setError(isUrdu ? 'نیٹ ورک کا مسئلہ ہے۔ دوبارہ کوشش کریں۔' : 'Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResetPledge = () => {
-    setPledgeName('');
-    setPledgeAmount('');
-    setPledgeCategory('general');
+  const handleResetForm = () => {
+    setDonorName('');
+    setMobile('');
+    setEmail('');
+    setAmount('');
+    setPaymentMethod('EasyPaisa');
+    setPurpose('general');
+    setTransactionId('');
+    setError(null);
+    setReceipt(null);
     setShowThankYou(false);
+  };
+
+  const formatPurpose = (pur: string) => {
+    switch (pur) {
+      case 'general': return isUrdu ? 'عمومی عطیہ (جنرل فنڈ)' : 'General Donation';
+      case 'masjid': return isUrdu ? 'جامع مسجد تعمیراتی فنڈ' : 'Jamia Masjid Construction';
+      case 'food': return isUrdu ? 'راشن اور کھانا فنڈ' : 'Food Security Drive';
+      case 'education': return isUrdu ? 'یتیم بچوں کا تعلیمی فنڈ' : 'Orphan Education Support';
+      case 'water': return isUrdu ? 'آر او پلانٹ / صاف پانی فنڈ' : 'Community RO Water Plant';
+      default: return pur;
+    }
+  };
+
+  // Export & Sharing actions
+  const triggerDownload = () => {
+    if (receipt?.receiptUrl) {
+      window.open(receipt.receiptUrl, '_blank');
+    }
+  };
+
+  const triggerPrint = () => {
+    if (receipt?.receiptUrl) {
+      window.open(receipt.receiptUrl, '_blank');
+    }
+  };
+
+  const triggerWhatsAppShare = () => {
+    if (!receipt) return;
+    const verifyUrl = `${window.location.origin}/?verify=${receipt.id}`;
+    const textMsg = `*Hasnain Foundation - Official Donation Receipt* 🌟\n\nDear *${receipt.donorName}*,\nThank you for your generous contribution of *PKR ${receipt.amount.toLocaleString()}* towards *${formatPurpose(receipt.purpose)}*.\n\n*Receipt details:*\n- *Receipt No:* ${receipt.id}\n- *Transaction ID:* ${receipt.transactionId}\n- *Date:* ${receipt.donationDate} (${receipt.donationTime || ''})\n- *Status:* ${receipt.status.toUpperCase()}\n\n*Verify authenticity online:*\n${verifyUrl}\n\nMay Allah reward you abundantly. Ameen.\nOfficial Email: hasnainfoundation225@gmail.com`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textMsg)}`, '_blank');
+  };
+
+  const triggerEmailShare = () => {
+    if (!receipt) return;
+    const verifyUrl = `${window.location.origin}/?verify=${receipt.id}`;
+    const subject = `Official Donation Receipt - Hasnain Foundation (${receipt.id})`;
+    const bodyText = `Dear ${receipt.donorName},\n\nAssalam-o-Alaikum,\n\nThank you for your generous donation to the Hasnain Foundation.\n\nReceipt Details:\n-------------------------------\nReceipt ID: ${receipt.id}\nAmount: PKR ${receipt.amount.toLocaleString()}\nCause: ${formatPurpose(receipt.purpose)}\nDate: ${receipt.donationDate}\nTransaction Ref: ${receipt.transactionId}\n-------------------------------\n\nVerify this receipt online here:\n${verifyUrl}\n\nOfficial Email: hasnainfoundation225@gmail.com\nHasnain Foundation Trust\nKarachi, Pakistan`;
+    window.open(`mailto:${receipt.email || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`, '_blank');
   };
 
   // Vector QR Code representation
@@ -428,99 +516,189 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
               </p>
             </div>
 
-            {/* Interactive Donation Pledge Panel */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8">
+            {/* Interactive Donation Receipt Form Panel */}
+            <div className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8 shadow-md">
               <AnimatePresence mode="wait">
                 {!showThankYou ? (
                   <motion.form
-                    key="pledge-form"
+                    key="donation-form"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    onSubmit={handlePledgeSubmit}
+                    onSubmit={handleFormSubmit}
                     className="space-y-4"
                   >
-                    <div className={`flex items-center gap-2 mb-4 ${isUrdu ? 'flex-row-reverse text-right' : 'text-left'}`}>
+                    <div className={`flex items-center gap-2 mb-2 ${isUrdu ? 'flex-row-reverse text-right' : 'text-left'}`}>
                       <Heart className="w-5 h-5 text-emerald-700 fill-current" />
-                      <h3 className={`text-base font-bold text-slate-900 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
-                        {isUrdu ? 'آن لائن ریکارڈ کی تیاری' : 'Mock Donation Pledge'}
+                      <h3 className={`text-base font-black text-slate-900 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                        {isUrdu ? 'رپورٹ برائے عطیہ و رسید فارم' : 'Donation Receipt Submission'}
                       </h3>
                     </div>
 
-                    <p className={`text-xs text-slate-500 leading-relaxed ${isUrdu ? 'font-urdu text-right leading-loose' : 'font-sans'}`}>
+                    <p className={`text-[11px] text-slate-500 leading-relaxed ${isUrdu ? 'font-urdu text-right leading-loose' : 'font-sans'}`}>
                       {isUrdu 
-                        ? "عطیہ کی نیت درج کریں اور آن لائن ڈیجیٹل سرٹیفکیٹ حاصل کریں۔ یہ صرف ایک تعلیمی اور آزمائشی عمل ہے۔"
-                        : "Enter your mock donation pledge here to see the interactive digital certificate generated for you. Playable & realistic!"}
+                        ? "رقم ٹرانسفر کرنے کے بعد آفیشل رسید حاصل کرنے کے لیے درج ذیل تفصیلات درج کریں۔ ہماری انتظامیہ فوراً اس کی تصدیق کرے گی۔"
+                        : "Submit your payment transaction details below. A professional, digitally-verified PDF receipt with a unique serial number and scannable verification QR Code will be instantly generated."}
                     </p>
+
+                    {error && (
+                      <div className="p-3.5 bg-rose-50 text-rose-700 border border-rose-100 rounded-xl text-xs flex items-start gap-2.5">
+                        <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
+                        <span className={isUrdu ? 'font-urdu text-right block' : ''}>{error}</span>
+                      </div>
+                    )}
 
                     {/* Donor Name */}
                     <div className="space-y-1">
                       <label className={`block text-xs font-bold text-slate-500 uppercase tracking-wider ${isUrdu ? 'font-urdu text-right' : ''}`}>
-                        {isUrdu ? 'عطیہ دہندہ کا نام' : 'Donor Name'}
+                        {isUrdu ? 'عطیہ دہندہ کا نام (لازمی)' : 'Donor Name *'}
                       </label>
                       <input
                         type="text"
                         required
-                        value={pledgeName}
-                        onChange={(e) => setPledgeName(e.target.value)}
-                        placeholder={isUrdu ? "مثال: احمد علی" : "e.g. Ahmed Ali"}
-                        className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:border-emerald-700 text-xs ${
+                        value={donorName}
+                        onChange={(e) => setDonorName(e.target.value)}
+                        placeholder={isUrdu ? "مثال: فاروق خان" : "e.g. Farooq Khan"}
+                        className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-emerald-700 text-xs focus:bg-white transition-colors ${
                           isUrdu ? 'text-right font-urdu' : ''
                         }`}
                       />
                     </div>
 
-                    {/* Pledge Amount */}
+                    {/* Mobile Number */}
                     <div className="space-y-1">
                       <label className={`block text-xs font-bold text-slate-500 uppercase tracking-wider ${isUrdu ? 'font-urdu text-right' : ''}`}>
-                        {isUrdu ? 'عطیہ کی رقم (PKR)' : 'Pledge Amount (PKR)'}
+                        {isUrdu ? 'موبائل نمبر / واٹس ایپ (لازمی)' : 'Mobile / WhatsApp Number *'}
                       </label>
                       <input
-                        type="number"
+                        type="tel"
                         required
-                        min="1"
-                        value={pledgeAmount}
-                        onChange={(e) => setPledgeAmount(e.target.value)}
-                        placeholder="e.g. 5000"
-                        className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:border-emerald-700 font-mono text-xs ${
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        placeholder="e.g. 03152204134"
+                        className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-emerald-700 text-xs font-mono focus:bg-white transition-colors ${
                           isUrdu ? 'text-right' : ''
                         }`}
                       />
                     </div>
 
-                    {/* Cause */}
+                    {/* Email */}
                     <div className="space-y-1">
                       <label className={`block text-xs font-bold text-slate-500 uppercase tracking-wider ${isUrdu ? 'font-urdu text-right' : ''}`}>
-                        {isUrdu ? 'مخصوص فنڈ / مقصد' : 'Designated Cause'}
+                        {isUrdu ? 'ای میل ایڈریس (اختیاری)' : 'Email Address (Optional)'}
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="e.g. donor@example.com"
+                        className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-emerald-700 text-xs focus:bg-white transition-colors ${
+                          isUrdu ? 'text-right font-mono' : ''
+                        }`}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Amount */}
+                      <div className="space-y-1">
+                        <label className={`block text-xs font-bold text-slate-500 uppercase tracking-wider ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                          {isUrdu ? 'عطیہ کی رقم (PKR)' : 'Donation Amount *'}
+                        </label>
+                        <input
+                          type="number"
+                          required
+                          min="10"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          placeholder="e.g. 5000"
+                          className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-emerald-700 font-mono text-xs focus:bg-white transition-colors ${
+                            isUrdu ? 'text-right' : ''
+                          }`}
+                        />
+                      </div>
+
+                      {/* Payment Method */}
+                      <div className="space-y-1">
+                        <label className={`block text-xs font-bold text-slate-500 uppercase tracking-wider ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                          {isUrdu ? 'ادائیگی کا ذریعہ *' : 'Payment Method *'}
+                        </label>
+                        <select
+                          value={paymentMethod}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-emerald-700 text-xs cursor-pointer focus:bg-white transition-colors ${
+                            isUrdu ? 'font-urdu text-right' : ''
+                          }`}
+                        >
+                          <option value="EasyPaisa">Easypaisa</option>
+                          <option value="JazzCash">JazzCash</option>
+                          <option value="SadaPay">SadaPay</option>
+                          <option value="NayaPay">NayaPay</option>
+                          <option value="United Bank Limited (UBL)">UBL Ameen Islamic</option>
+                          <option value="Other">Other Bank Transfer</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Purpose */}
+                    <div className="space-y-1">
+                      <label className={`block text-xs font-bold text-slate-500 uppercase tracking-wider ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                        {isUrdu ? 'عطیہ کا مخصوص مقصد *' : 'Donation Purpose *'}
                       </label>
                       <select
-                        value={pledgeCategory}
-                        onChange={(e) => setPledgeCategory(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:border-emerald-700 text-xs cursor-pointer ${
+                        value={purpose}
+                        onChange={(e) => setPurpose(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-emerald-700 text-xs cursor-pointer focus:bg-white transition-colors ${
                           isUrdu ? 'font-urdu text-right' : ''
                         }`}
                       >
-                        <option value="general">{isUrdu ? "عمومی عطیہ (جنرل فنڈ)" : "General Donation"}</option>
+                        <option value="general">{isUrdu ? "عمومی عطیہ (جنرل فنڈ)" : "General Sadaqah / Zakat"}</option>
                         <option value="masjid">{isUrdu ? "جامع مسجد تعمیراتی فنڈ" : "Jamia Masjid Construction"}</option>
                         <option value="food">{isUrdu ? "راشن اور کھانا فنڈ" : "Food Security Drive"}</option>
                         <option value="education">{isUrdu ? "یتیم بچوں کا تعلیمی فنڈ" : "Orphan Education Support"}</option>
-                        <option value="water">{isUrdu ? "آر او پلانٹ / صاف پانی فنڈ" : "Community RO Water Plant"}</option>
+                        <option value="water">{isUrdu ? "صاف پانی / آر او پلانٹ فنڈ" : "Community RO Water Plant"}</option>
                       </select>
                     </div>
 
-                    {/* Submit Pledge */}
+                    {/* Transaction ID */}
+                    <div className="space-y-1">
+                      <label className={`block text-xs font-bold text-slate-500 uppercase tracking-wider ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                        {isUrdu ? 'ٹرانزیکشن آئی ڈی / رسید نمبر (لازمی)' : 'Transaction ID / Reference Number *'}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={transactionId}
+                        onChange={(e) => setTransactionId(e.target.value)}
+                        placeholder="e.g. EP-4421590 or TXN98231221"
+                        className={`w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-emerald-700 text-xs font-mono focus:bg-white transition-colors ${
+                          isUrdu ? 'text-right' : ''
+                        }`}
+                      />
+                    </div>
+
+                    {/* Submit Button */}
                     <button
                       type="submit"
-                      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition-colors cursor-pointer ${
+                      disabled={loading}
+                      className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm transition-colors cursor-pointer ${
                         isUrdu ? 'font-urdu' : ''
                       }`}
                     >
-                      <Award className="w-4 h-4" />
-                      <span>{isUrdu ? 'عطیہ کا عہد درج کریں' : 'Submit Mock Pledge'}</span>
+                      {loading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <span>{isUrdu ? 'رسید آڈٹ کی جا رہی ہے...' : 'Generating Verified Receipt...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Award className="w-4.5 h-4.5" />
+                          <span>{isUrdu ? 'سرکاری تصدیق شدہ رسید حاصل کریں' : 'Generate Certified Receipt'}</span>
+                        </>
+                      )}
                     </button>
                   </motion.form>
                 ) : (
-                  // Thank You screen and customized PDF receipt lookalike!
+                  // Luxury Green & Gold Receipt Card with Live Verification QR
                   <motion.div
                     key="thankyou-receipt"
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -528,63 +706,138 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
                     exit={{ opacity: 0 }}
                     className="space-y-6 text-center"
                   >
-                    <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg w-14 h-14 flex items-center justify-center mx-auto">
+                    <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl w-14 h-14 flex items-center justify-center mx-auto shadow-inner">
                       <Award className="w-8 h-8 text-emerald-700" />
                     </div>
 
-                    <div className="space-y-2">
-                      <h3 className={`text-xl font-bold text-slate-900 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
-                        {DICTIONARY.donate.thankYouTitle[lang]}
+                    <div className="space-y-1">
+                      <h3 className={`text-lg sm:text-xl font-black text-slate-900 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                        {isUrdu ? 'الحمدللہ! عطیہ وصول ہو گیا' : 'Thank You for Your Donation!'}
                       </h3>
-                      <p className={`text-xs text-slate-500 leading-relaxed ${
+                      <p className={`text-[11px] text-slate-500 leading-relaxed ${
                         isUrdu ? 'font-urdu leading-loose' : 'font-sans'
                       }`}>
-                        {DICTIONARY.donate.thankYouMsg[lang]}
+                        {isUrdu 
+                          ? "آپ کا آفیشل ڈیجیٹل سرٹیفکیٹ اور پی ڈی ایف رسید کامیابی سے تیار کر دی گئی ہے۔"
+                          : "Your donation has been registered! A digital receipt and official certificate are ready below."}
                       </p>
                     </div>
 
-                    {/* Highly Polished Certificate Vector representation */}
-                    <div className="p-5 rounded-xl bg-slate-50 border border-dashed border-amber-500 text-slate-800 space-y-4 text-xs font-sans relative overflow-hidden">
-                      <span className="block text-amber-700 font-extrabold tracking-widest uppercase text-[10px]">
-                        {isUrdu ? 'عطیہ کا سرٹیفکیٹ' : 'Certificate of Appreciation'}
-                      </span>
+                    {/* Highly Polished Luxury Certificate & Receipt Card representation */}
+                    <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-white border-2 border-emerald-600 text-slate-800 space-y-5 text-xs font-sans relative overflow-hidden shadow-lg">
+                      
+                      {/* Inner gold frame border */}
+                      <div className="absolute inset-2.5 border border-dashed border-amber-500 pointer-events-none rounded-lg" />
 
-                      <div className="space-y-1.5 relative z-10">
-                        <p className="text-slate-400 text-[10px]">{isUrdu ? 'یہ سرٹیفکیٹ انتہائی عزت سے پیش کیا جاتا ہے برائے:' : 'Presented with gratitude to:'}</p>
-                        <p className={`text-base font-bold text-slate-900 ${isUrdu ? 'font-urdu leading-none' : ''}`}>
-                          {pledgeName}
+                      <div className="flex justify-between items-start relative z-10">
+                        <div className="text-left">
+                          <span className="block text-amber-700 font-black tracking-widest uppercase text-[9px]">{isUrdu ? 'آفیشل رسید' : 'OFFICIAL RECEIPT'}</span>
+                          <span className="text-sm font-black text-slate-900 font-mono tracking-wider">{receipt?.id}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="block text-emerald-800 font-black tracking-wider uppercase text-[9px]">HASNAIN FOUNDATION</span>
+                          <span className="text-[10px] text-slate-400 font-mono">{receipt?.donationDate}</span>
+                        </div>
+                      </div>
+
+                      {/* Donor Name Label Card */}
+                      <div className="space-y-1 py-1 text-center relative z-10 border-y border-slate-100">
+                        <p className="text-slate-400 text-[10px] uppercase font-bold">{isUrdu ? 'پیش خدمت مع تشکر برائے:' : 'Presented with gratitude to:'}</p>
+                        <p className={`text-lg font-black text-emerald-900 ${isUrdu ? 'font-urdu leading-normal' : 'font-sans'}`}>
+                          {receipt?.donorName}
                         </p>
                       </div>
 
-                      <div className="border-t border-slate-200 pt-3 flex justify-between items-center relative z-10 text-[10px] sm:text-[11px]">
-                        <div className="text-left">
-                          <span className="block text-slate-400 text-[9px]">{isUrdu ? 'رقم' : 'Amount pledged'}</span>
-                          <span className="font-bold text-slate-900 font-mono">PKR {Number(pledgeAmount).toLocaleString()}</span>
+                      <div className="grid grid-cols-2 gap-4 relative z-10 text-[11px] text-left pt-1">
+                        <div>
+                          <span className="block text-slate-400 text-[9px] uppercase font-bold">{isUrdu ? 'رقم' : 'Amount Contributed'}</span>
+                          <span className="font-black text-emerald-800 text-sm font-mono">PKR {receipt?.amount.toLocaleString()}/-</span>
                         </div>
-                        <div className="text-right">
-                          <span className="block text-slate-400 text-[9px]">{isUrdu ? 'مقصد' : 'Allocated for'}</span>
-                          <span className={`font-bold text-slate-900 ${isUrdu ? 'font-urdu' : ''}`}>
-                            {pledgeCategory === 'general' ? (isUrdu ? 'عمومی صدقات' : 'General Sadaqah') : 
-                             pledgeCategory === 'masjid' ? (isUrdu ? 'تعمیرِ مسجد' : 'Masjid Construction') : 
-                             pledgeCategory === 'food' ? (isUrdu ? 'راشن تقسیم' : 'Food Support') : 
-                             pledgeCategory === 'education' ? (isUrdu ? 'تعلیمِ اطفال' : 'Orphan Education') : 
-                             (isUrdu ? 'آر او پلانٹ' : 'Clean Water')}
+                        <div>
+                          <span className="block text-slate-400 text-[9px] uppercase font-bold">{isUrdu ? 'مخصوص فنڈ' : 'Cause'}</span>
+                          <span className={`font-black text-slate-900 truncate block ${isUrdu ? 'font-urdu text-[11px]' : ''}`}>
+                            {formatPurpose(receipt?.purpose)}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center text-[8px] text-slate-400 border-t border-slate-200 pt-3 font-mono">
-                        <span>ID: HF-2026-{Math.floor(Math.random() * 89999 + 10000)}</span>
-                        <span>DATE: 2026-07-16</span>
+                      <div className="grid grid-cols-2 gap-4 relative z-10 text-[11px] text-left border-t border-slate-100 pt-3">
+                        <div>
+                          <span className="block text-slate-400 text-[9px] uppercase font-bold">{isUrdu ? 'ٹرانزیکشن نمبر' : 'Transaction Ref'}</span>
+                          <span className="font-extrabold text-slate-800 font-mono text-[10px] truncate block">{receipt?.transactionId}</span>
+                        </div>
+                        <div>
+                          <span className="block text-slate-400 text-[9px] uppercase font-bold">{isUrdu ? 'حالت' : 'Verification State'}</span>
+                          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded">
+                            {isUrdu ? 'آڈٹ جاری ہے' : 'PENDING AUDIT'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* QR verification scannable wrapper */}
+                      <div className="border-t border-slate-100 pt-4 flex flex-col items-center justify-center relative z-10">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(window.location.origin + '/?verify=' + receipt?.id)}`}
+                          alt="Verification QR Code"
+                          className="w-24 h-24 border border-slate-200 p-1.5 bg-white rounded-lg mb-2"
+                          referrerPolicy="no-referrer"
+                        />
+                        <p className="text-[9px] text-slate-400 uppercase tracking-wider font-mono">
+                          {isUrdu ? 'رسید کی تصدیق کے لیے اسکین کریں' : 'Scan to Verify Authenticity'}
+                        </p>
                       </div>
                     </div>
 
-                    <button
-                      onClick={handleResetPledge}
-                      className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold cursor-pointer bg-white"
-                    >
-                      {isUrdu ? 'ایک اور عطیہ درج کریں' : 'Make Another Mock Pledge'}
-                    </button>
+                    {/* Action Export Buttons Grid */}
+                    <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
+                      {/* Download PDF */}
+                      <button
+                        onClick={triggerDownload}
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>{isUrdu ? 'پی ڈی ایف رسید' : 'Download PDF'}</span>
+                      </button>
+
+                      {/* Print */}
+                      <button
+                        onClick={triggerPrint}
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>{isUrdu ? 'پرنٹ رسید' : 'Print Receipt'}</span>
+                      </button>
+
+                      {/* Share WhatsApp */}
+                      <button
+                        onClick={triggerWhatsAppShare}
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer col-span-2 mt-1"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        <span>{isUrdu ? 'واٹس ایپ پر شیئر کریں' : 'Share on WhatsApp'}</span>
+                      </button>
+
+                      {/* Share Email */}
+                      {receipt?.email && (
+                        <button
+                          onClick={triggerEmailShare}
+                          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold transition-colors cursor-pointer col-span-2 mt-1"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{isUrdu ? 'ای میل پر بھیجیں' : 'Email to Donor'}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        onClick={handleResetForm}
+                        className="text-xs text-slate-500 hover:text-emerald-700 font-bold transition-colors flex items-center gap-1.5 mx-auto py-1 px-3.5 bg-slate-100 rounded-lg"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>{isUrdu ? 'نیا عطیہ فارم درج کریں' : 'Submit Another Receipt'}</span>
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

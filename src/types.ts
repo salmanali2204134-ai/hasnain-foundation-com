@@ -156,4 +156,18 @@ export interface SocialPost {
   isAiGenerated?: boolean;
 }
 
+export interface DailyActivity {
+  id?: any;
+  title: string;
+  urdu_description: string;
+  category: string;
+  images: string[];
+  video_url?: string;
+  date: string;
+  time: string;
+  admin_name: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 

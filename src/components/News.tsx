@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Language, NewsArticle } from '../types';
 import { DICTIONARY, NEWS_DATA } from '../data';
 import { Megaphone, Calendar, ArrowRight, ArrowLeft, Sparkles, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { fetchActivitiesFromSupabase, DailyActivity } from '../lib/supabase';
 
 interface NewsProps {
   lang: Language;
@@ -15,11 +16,65 @@ interface NewsProps {
 
 export default function News({ lang }: NewsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [dbActivities, setDbActivities] = useState<DailyActivity[]>([]);
   const isUrdu = lang === 'ur';
+
+  const loadActivities = async () => {
+    try {
+      const data = await fetchActivitiesFromSupabase();
+      setDbActivities(data || []);
+    } catch (err) {
+      console.error('Error loading news activities:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadActivities();
+    window.addEventListener('activities_updated', loadActivities);
+    return () => window.removeEventListener('activities_updated', loadActivities);
+  }, []);
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
   };
+
+  const mapCategoryToTag = (cat: string) => {
+    const mapping: Record<string, string> = {
+      'راشن تقسیم': 'Ration Distribution',
+      'روحانی علاج': 'Spiritual Therapy',
+      'مسجد': 'Masjid Project',
+      'مدرسہ': 'Madrasah',
+      'میڈیکل کیمپ': 'Medical Camp',
+      'غریب بچیوں کی شادی': 'Marriage Support',
+      'عید کپڑے تقسیم': 'Eid Clothes',
+      'درود بینک': 'Durood Bank',
+      'دیگر': 'Welfare Activity'
+    };
+    return mapping[cat] || cat;
+  };
+
+  const dynamicNewsArticles: NewsArticle[] = dbActivities.map((act) => ({
+    id: `act-news-${act.id}`,
+    title: { en: act.title, ur: act.title },
+    date: act.date,
+    excerpt: { en: act.urdu_description, ur: act.urdu_description },
+    content: {
+      en: [
+        act.urdu_description,
+        `Activity logged by: ${act.admin_name} at ${act.time}`,
+        act.video_url ? `Video Link: ${act.video_url}` : ''
+      ].filter(Boolean),
+      ur: [
+        act.urdu_description,
+        `انتظامیہ نشر کردہ: ${act.admin_name} بوقت ${act.time}`,
+        act.video_url ? `ویڈیو لنک: ${act.video_url}` : ''
+      ].filter(Boolean)
+    },
+    image: act.images && act.images.length > 0 ? act.images[0] : 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=800&q=85',
+    tag: { en: mapCategoryToTag(act.category), ur: act.category }
+  }));
+
+  const combinedNewsData = [...dynamicNewsArticles, ...NEWS_DATA];
 
   return (
     <section id="news-section" className="py-20 sm:py-24 bg-white">
@@ -67,7 +122,7 @@ export default function News({ lang }: NewsProps) {
 
         {/* News layout grid - masonry-like or balanced flex column */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {NEWS_DATA.map((article, index) => {
+          {combinedNewsData.map((article, index) => {
             const isExpanded = expandedId === article.id;
             return (
               <motion.article

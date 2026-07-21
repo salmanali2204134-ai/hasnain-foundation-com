@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Language, GalleryItem } from '../types';
 import { DICTIONARY, GALLERY_DATA } from '../data';
 import { Image as ImageIcon, Play, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { fetchActivitiesFromSupabase, DailyActivity } from '../lib/supabase';
 
 interface GalleryProps {
   lang: Language;
@@ -16,7 +17,23 @@ interface GalleryProps {
 export default function Gallery({ lang }: GalleryProps) {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [dbActivities, setDbActivities] = useState<DailyActivity[]>([]);
   const isUrdu = lang === 'ur';
+
+  const loadActivities = async () => {
+    try {
+      const data = await fetchActivitiesFromSupabase();
+      setDbActivities(data || []);
+    } catch (err) {
+      console.error('Error loading gallery activities:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadActivities();
+    window.addEventListener('activities_updated', loadActivities);
+    return () => window.removeEventListener('activities_updated', loadActivities);
+  }, []);
 
   // Categories mapping
   const categories = [
@@ -29,14 +46,64 @@ export default function Gallery({ lang }: GalleryProps) {
     { id: 'spiritual', label: DICTIONARY.gallery.catSpiritual[lang] }
   ];
 
+  // Map activity category to Gallery category
+  const mapActivityCategoryToGallery = (cat: string): 'welfare' | 'mosque' | 'food' | 'education' | 'events' | 'spiritual' => {
+    switch (cat) {
+      case 'راشن تقسیم': return 'food';
+      case 'روحانی علاج': return 'spiritual';
+      case 'مسجد': return 'mosque';
+      case 'مدرسہ': return 'education';
+      case 'میڈیکل کیمپ': return 'welfare';
+      case 'غریب بچیوں کی شادی': return 'welfare';
+      case 'عید کپڑے تقسیم': return 'welfare';
+      case 'درود بینک': return 'events';
+      default: return 'welfare';
+    }
+  };
+
+  // Convert dbActivities to dynamic Gallery items
+  const dynamicGalleryItems: GalleryItem[] = [];
+  dbActivities.forEach((act) => {
+    const cat = mapActivityCategoryToGallery(act.category);
+    
+    // Add images
+    if (act.images && act.images.length > 0) {
+      act.images.forEach((imgUrl, idx) => {
+        dynamicGalleryItems.push({
+          id: `act-gallery-img-${act.id}-${idx}`,
+          title: { en: act.title, ur: act.title },
+          type: 'photo',
+          category: cat,
+          url: imgUrl,
+          thumbnail: imgUrl
+        });
+      });
+    }
+
+    // Add optional video
+    if (act.video_url) {
+      dynamicGalleryItems.push({
+        id: `act-gallery-vid-${act.id}`,
+        title: { en: act.title, ur: act.title },
+        type: 'video',
+        category: cat,
+        url: act.video_url,
+        thumbnail: act.images && act.images.length > 0 ? act.images[0] : ''
+      });
+    }
+  });
+
+  // Combine dynamic and static gallery items
+  const combinedGalleryData = [...dynamicGalleryItems, ...GALLERY_DATA];
+
   // Filter items
-  const filteredGallery = GALLERY_DATA.filter((item) => {
+  const filteredGallery = combinedGalleryData.filter((item) => {
     if (activeCategory === 'all') return true;
     return item.category === activeCategory;
   });
 
   const openLightbox = (id: string) => {
-    const idx = GALLERY_DATA.findIndex(item => item.id === id);
+    const idx = combinedGalleryData.findIndex(item => item.id === id);
     if (idx !== -1) {
       setLightboxIndex(idx);
     }
@@ -51,8 +118,8 @@ export default function Gallery({ lang }: GalleryProps) {
     let newIdx = direction === 'prev' ? lightboxIndex - 1 : lightboxIndex + 1;
     
     // Cycle wrapping
-    if (newIdx < 0) newIdx = GALLERY_DATA.length - 1;
-    if (newIdx >= GALLERY_DATA.length) newIdx = 0;
+    if (newIdx < 0) newIdx = combinedGalleryData.length - 1;
+    if (newIdx >= combinedGalleryData.length) newIdx = 0;
     
     setLightboxIndex(newIdx);
   };
@@ -193,14 +260,14 @@ export default function Gallery({ lang }: GalleryProps) {
               {/* Top Controls */}
               <div className="flex justify-between items-center w-full max-w-7xl mx-auto py-2">
                 <span className="text-slate-400 text-xs sm:text-sm font-semibold font-mono">
-                  {lightboxIndex + 1} / {GALLERY_DATA.length}
+                  {lightboxIndex + 1} / {combinedGalleryData.length}
                 </span>
                 
                 {/* Title */}
                 <h3 className={`text-white text-base sm:text-lg font-bold truncate max-w-xl hidden md:block ${
                   isUrdu ? 'font-urdu' : 'font-sans'
                 }`}>
-                  {GALLERY_DATA[lightboxIndex].title[lang]}
+                  {combinedGalleryData[lightboxIndex].title[lang]}
                 </h3>
 
                 <button
@@ -226,17 +293,17 @@ export default function Gallery({ lang }: GalleryProps) {
 
                 {/* Media display */}
                 <div className="max-h-[70vh] max-w-full rounded-xl overflow-hidden bg-black/40 flex items-center justify-center shadow-2xl border border-white/5 relative">
-                  {GALLERY_DATA[lightboxIndex].type === 'photo' ? (
+                  {combinedGalleryData[lightboxIndex].type === 'photo' ? (
                     <img
-                      src={GALLERY_DATA[lightboxIndex].url}
-                      alt={GALLERY_DATA[lightboxIndex].title[lang]}
+                      src={combinedGalleryData[lightboxIndex].url}
+                      alt={combinedGalleryData[lightboxIndex].title[lang]}
                       className="max-h-[70vh] max-w-full object-contain"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     // Video render
                     <video
-                      src={GALLERY_DATA[lightboxIndex].url}
+                      src={combinedGalleryData[lightboxIndex].url}
                       controls
                       autoPlay
                       className="max-h-[70vh] max-w-full rounded-xl"
@@ -259,13 +326,13 @@ export default function Gallery({ lang }: GalleryProps) {
                 <h3 className={`text-white text-base font-bold md:hidden mb-2 px-4 ${
                   isUrdu ? 'font-urdu' : 'font-sans'
                 }`}>
-                  {GALLERY_DATA[lightboxIndex].title[lang]}
+                  {combinedGalleryData[lightboxIndex].title[lang]}
                 </h3>
 
                 <span className="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-widest">
-                  {DICTIONARY.gallery[`cat${GALLERY_DATA[lightboxIndex].category.charAt(0).toUpperCase() + GALLERY_DATA[lightboxIndex].category.slice(1)}` as any] ? 
-                    (DICTIONARY.gallery[`cat${GALLERY_DATA[lightboxIndex].category.charAt(0).toUpperCase() + GALLERY_DATA[lightboxIndex].category.slice(1)}` as any][lang]) : 
-                    GALLERY_DATA[lightboxIndex].category}
+                  {DICTIONARY.gallery[`cat${combinedGalleryData[lightboxIndex].category.charAt(0).toUpperCase() + combinedGalleryData[lightboxIndex].category.slice(1)}` as any] ? 
+                    (DICTIONARY.gallery[`cat${combinedGalleryData[lightboxIndex].category.charAt(0).toUpperCase() + combinedGalleryData[lightboxIndex].category.slice(1)}` as any][lang]) : 
+                    combinedGalleryData[lightboxIndex].category}
                 </span>
               </div>
             </motion.div>

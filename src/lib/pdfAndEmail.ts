@@ -7,12 +7,15 @@ export interface DonationReceipt {
   id: string;
   donorName: string;
   email: string;
-  whatsapp: string;
+  mobile: string;
+  whatsapp?: string;
   amount: number;
   paymentMethod: string;
+  purpose: string;
   transactionId: string;
   receiptUrl?: string;
   donationDate: string;
+  donationTime?: string;
   status: 'pending' | 'verified' | 'rejected';
 }
 
@@ -74,7 +77,7 @@ export function generateReceiptPdf(donation: DonationReceipt): Promise<Buffer> {
       doc.font('Helvetica-Bold').fontSize(24).fillColor('#064e3b').text('HASNAIN FOUNDATION', { align: 'center' });
       doc.font('Helvetica-Bold').fontSize(8).fillColor('#d97706').text('WELFARE & CONSTRUCTION TRUST', { align: 'center', characterSpacing: 2 });
       doc.moveDown(0.4);
-      doc.font('Helvetica').fontSize(9).fillColor('#64748b').text('Mahmoodabad, Karachi, Pakistan  |  info@hasnainfoundation.org', { align: 'center' });
+      doc.font('Helvetica').fontSize(9).fillColor('#64748b').text('Mahmoodabad, Karachi, Pakistan  |  hasnainfoundation225@gmail.com', { align: 'center' });
 
       // Horizontal separator line
       doc.save().moveTo(50, 155).lineTo(pageWidth - 50, 155).lineWidth(0.5).stroke('#cbd5e1');
@@ -112,17 +115,16 @@ export function generateReceiptPdf(donation: DonationReceipt): Promise<Buffer> {
          .text(amountText, boxX, boxY + 12, { width: boxWidth, align: 'center' });
       doc.restore();
 
-      doc.moveDown(3);
+      doc.moveDown(3.2);
 
       // 7. TRANSACTION INFORMATION DETAILS TABLE
       const tableY = doc.y;
       const col1X = 60;
       const col2X = pageWidth / 2 + 20;
-      const colWidth = pageWidth / 2 - 80;
 
-      // Draw table background card
+      // Draw table background card (expanded to 180 height to fit 5 clean rows)
       doc.save()
-         .roundedRect(50, tableY - 10, pageWidth - 100, 130, 8)
+         .roundedRect(50, tableY - 10, pageWidth - 100, 180, 8)
          .fillColor('#f8fafc')
          .strokeColor('#e2e8f0')
          .fillAndStroke();
@@ -130,33 +132,41 @@ export function generateReceiptPdf(donation: DonationReceipt): Promise<Buffer> {
 
       const drawDetailRow = (label: string, value: string, yPos: number, isCol2 = false) => {
         const xPos = isCol2 ? col2X : col1X;
-        doc.font('Helvetica-Bold').fontSize(9).fillColor('#64748b').text(label, xPos, yPos);
-        doc.font('Helvetica-Bold').fontSize(10).fillColor('#0f172a').text(value, xPos, yPos + 14);
+        doc.font('Helvetica-Bold').fontSize(8).fillColor('#64748b').text(label, xPos, yPos);
+        doc.font('Helvetica-Bold').fontSize(9).fillColor('#0f172a').text(value || 'N/A', xPos, yPos + 12);
       };
 
+      // Row 1
       drawDetailRow('RECEIPT NUMBER', donation.id, tableY);
       drawDetailRow('TRANSACTION ID', donation.transactionId, tableY, true);
 
-      const nextRowY = tableY + 40;
-      drawDetailRow('DATE OF TRANSACTION', donation.donationDate, nextRowY);
-      drawDetailRow('PAYMENT CHANNEL', donation.paymentMethod.toUpperCase(), nextRowY, true);
+      // Row 2
+      const row2Y = tableY + 34;
+      drawDetailRow('DATE OF TRANSACTION', donation.donationDate, row2Y);
+      drawDetailRow('TIME OF TRANSACTION', donation.donationTime || '12:00:00 PM', row2Y, true);
 
-      const statusRowY = tableY + 80;
-      drawDetailRow('RECEIPT STATUS', 'VERIFIED & SUCCESSFUL', statusRowY);
-      
-      // Green shield indicator for verification status
-      doc.save()
-         .fillColor('#10b981')
-         .circle(col2X + 6, statusRowY + 18, 5)
-         .fill();
-      doc.font('Helvetica-Bold').fontSize(10).fillColor('#047857').text('OFFICIALLY RECORDED', col2X + 16, statusRowY + 14);
+      // Row 3
+      const row3Y = tableY + 68;
+      drawDetailRow('DONOR MOBILE / WHATSAPP', donation.mobile || donation.whatsapp || 'N/A', row3Y);
+      drawDetailRow('DONOR EMAIL', donation.email || 'N/A', row3Y, true);
 
-      doc.moveDown(5);
+      // Row 4
+      const row4Y = tableY + 102;
+      drawDetailRow('DONATION PURPOSE', (donation.purpose || 'General Sadqah / Zakat').toUpperCase(), row4Y);
+      drawDetailRow('PAYMENT CHANNEL', donation.paymentMethod.toUpperCase(), row4Y, true);
+
+      // Row 5
+      const row5Y = tableY + 136;
+      const verifiedLabel = donation.status === 'verified' ? 'VERIFIED & SUCCESSFUL' : donation.status === 'rejected' ? 'REJECTED / INVALID' : 'PENDING AUDIT & VERIFICATION';
+      drawDetailRow('RECEIPT STATUS', verifiedLabel, row5Y);
+      drawDetailRow('OFFICIAL EMAIL', 'hasnainfoundation225@gmail.com', row5Y, true);
+
+      doc.moveDown(11.5);
 
       // 8. PROPHET'S HADITH (Soft Quote block)
-      const quoteY = doc.y + 40;
+      const quoteY = doc.y;
       doc.save()
-         .rect(50, quoteY, pageWidth - 100, 55)
+         .rect(50, quoteY, pageWidth - 100, 50)
          .fillColor('#fffbeb') // Warm sand/gold background
          .strokeColor('#f59e0b')
          .lineWidth(0.5)
@@ -164,35 +174,42 @@ export function generateReceiptPdf(donation: DonationReceipt): Promise<Buffer> {
       doc.restore();
 
       doc.font('Helvetica-Oblique')
-         .fontSize(10)
+         .fontSize(9.5)
          .fillColor('#92400e')
          .text(
            '"The Prophet Muhammad (PBUH) said: \'Sadaqah extinguishes sin as water extinguishes fire.\'" (Tirmidhi)',
            60,
-           quoteY + 15,
+           quoteY + 14,
            { width: pageWidth - 120, align: 'center', lineGap: 3 }
          );
 
-      doc.moveDown(5.5);
+      doc.moveDown(5);
 
       // 9. SIGNATURE & STAMP STATIONS
-      const footerY = pageHeight - 150;
+      const footerY = pageHeight - 145;
       
       // Signature lines
       doc.moveTo(60, footerY).lineTo(200, footerY).lineWidth(0.8).stroke('#cbd5e1');
       doc.moveTo(pageWidth - 200, footerY).lineTo(pageWidth - 60, footerY).lineWidth(0.8).stroke('#cbd5e1');
 
-      doc.font('Helvetica-Bold').fontSize(9).fillColor('#334155').text('Verified Registrar', 60, footerY + 8, { width: 140, align: 'center' });
-      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Hasnain Foundation', 60, footerY + 20, { width: 140, align: 'center' });
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#334155').text('Verified Registrar', 60, footerY + 8, { width: 140, align: 'center' });
+      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Hasnain Foundation', 60, footerY + 18, { width: 140, align: 'center' });
 
-      doc.font('Helvetica-Bold').fontSize(9).fillColor('#334155').text('Board of Trustees', pageWidth - 200, footerY + 8, { width: 140, align: 'center' });
-      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Authorized Authority', pageWidth - 200, footerY + 20, { width: 140, align: 'center' });
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#334155').text('Board of Trustees', pageWidth - 200, footerY + 8, { width: 140, align: 'center' });
+      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Authorized Authority', pageWidth - 200, footerY + 18, { width: 140, align: 'center' });
 
       // 10. FOOTER NOTE
+      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text(
+        'Official Contacts: +92 315 2204134, +92 320 2628645  |  Email: hasnainfoundation225@gmail.com',
+        40,
+        pageHeight - 88,
+        { align: 'center', width: pageWidth - 80 }
+      );
+
       doc.font('Helvetica').fontSize(8).fillColor('#94a3b8').text(
         'This is a secure, digitally verified receipt issued by the Hasnain Foundation Trust (Reg. No. Karachi-W544).\nYour generous donations support education, clean water, and mosque construction initiatives in underprivileged areas.',
         40,
-        pageHeight - 75,
+        pageHeight - 74,
         { align: 'center', width: pageWidth - 80, lineGap: 3 }
       );
 
@@ -212,7 +229,7 @@ export async function sendReceiptEmail(donation: DonationReceipt, pdfBuffer: Buf
   const smtpPort = process.env.SMTP_PORT;
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
-  const smtpFrom = process.env.SMTP_FROM || '"Hasnain Foundation" <noreply@hasnainfoundation.org>';
+  const smtpFrom = process.env.SMTP_FROM || '"Hasnain Foundation" <hasnainfoundation225@gmail.com>';
 
   // Ensure local receipts directory exists for both archiving and testing
   const receiptsDir = path.join(process.cwd(), 'receipts');
@@ -279,7 +296,7 @@ With deepest respect,
 Board of Trustees
 Hasnain Foundation Trust
 Karachi, Pakistan
-info@hasnainfoundation.org
+hasnainfoundation225@gmail.com
     `;
 
     // Send email with PDF attachment

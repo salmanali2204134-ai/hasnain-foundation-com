@@ -28,6 +28,7 @@ import AdminPanel from './components/AdminPanel';
 import ComplaintModal from './components/ComplaintModal';
 import PatientPortal from './components/PatientPortal';
 import DuroodBank from './components/DuroodBank';
+import VerifyReceipt from './components/VerifyReceipt';
 import SocialFollowers from './components/SocialFollowers';
 import FacebookReels from './components/FacebookReels';
 import useMetaTags from './hooks/useMetaTags';
@@ -68,6 +69,15 @@ export default function App() {
       htmlElement.setAttribute('lang', 'en');
     }
   }, [lang]);
+
+  // Detect if there's a receipt parameter in the URL on page load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const hasVerify = params.get('verify') || params.get('receiptId') || params.get('verify-receipt');
+    if (hasVerify) {
+      setActiveSectionState('verify-receipt');
+    }
+  }, []);
 
   // Handle scroll trigger for Scroll-to-Top visibility
   useEffect(() => {
@@ -171,6 +181,20 @@ export default function App() {
               transition={{ duration: 0.35 }}
             >
               <Donate lang={lang} selectedProjectId={targetProjectId} />
+            </motion.div>
+          ) : activeSection === 'verify-receipt' ? (
+            <motion.div
+              key="verify-receipt-page"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+            >
+              <VerifyReceipt lang={lang} onBackToHome={() => {
+                // Clear URL search parameters when returning to homepage
+                window.history.pushState({}, '', window.location.pathname);
+                setActiveSection('home');
+              }} />
             </motion.div>
           ) : activeSection === 'transparency' ? (
             <motion.div
