@@ -286,11 +286,21 @@ export const DICTIONARY = {
 
 export const SERVICES_DATA: Service[] = [
   {
+    id: "spiritual-healing",
+    iconName: "Sparkles",
+    title: { en: "Spiritual Healing (روحانی علاج)", ur: "روحانی علاج و استخارہ (Spiritual Healing)" },
+    description: {
+      en: "Authentic Quranic Ruqyah, Istikhara, and Spiritual Healing for black magic, evil eye, and spiritual ailments strictly under Shariah methods (100% Free).",
+      ur: "قرآن و سنت کی روشنی میں جادو، جنات، بندش، نظرِ بد اور دیگر روحانی و جسمانی امراض کا شرعی طریقہ کار کے مطابق مکمل اور مفت علاج۔"
+    },
+    isPremium: true
+  },
+  {
     id: "food-dist",
     iconName: "Soup",
     title: { en: "Food Distribution", ur: "راشن اور کھانا تقسیم" },
     description: {
-      en: "Providing daily cooked meals and monthly dry ration bags ( आटा, چاول, دالیں, گھی ) to thousands of underprivileged and daily-wage families across Karachi.",
+      en: "Providing daily cooked meals and monthly dry ration bags (wheat flour, rice, pulses, cooking oil) to thousands of underprivileged and daily-wage families across Karachi.",
       ur: "کراچی بھر میں ہزاروں مستحق اور دیہاڑی دار خاندانوں کو روزانہ پکا ہوا کھانا اور ماہانہ خشک راشن بیگز (آٹا، چاول، دالیں، گھی) کی فراہمی۔"
     }
   },

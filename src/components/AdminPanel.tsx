@@ -306,6 +306,20 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
   useEffect(() => {
     if (isAuthenticated && isOpen) {
       loadDashboardData();
+
+      const handleLiveUpdates = () => {
+        loadDashboardData();
+      };
+
+      window.addEventListener('members_updated', handleLiveUpdates);
+      window.addEventListener('volunteers_updated', handleLiveUpdates);
+      window.addEventListener('storage', handleLiveUpdates);
+
+      return () => {
+        window.removeEventListener('members_updated', handleLiveUpdates);
+        window.removeEventListener('volunteers_updated', handleLiveUpdates);
+        window.removeEventListener('storage', handleLiveUpdates);
+      };
     }
   }, [isAuthenticated, isOpen]);
 

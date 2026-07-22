@@ -11,7 +11,7 @@ import {
   Search, ExternalLink, ArrowLeft, RefreshCw, Send, Check, DollarSign, BookOpen, Star, Plus, ThumbsUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { supabase } from '../lib/supabase';
+import { supabase, submitMemberRecordToSupabase } from '../lib/supabase';
 import Logo from './Logo';
 
 interface PortalSystemProps {
@@ -214,14 +214,7 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
     };
 
     try {
-      // Insert to Supabase members
-      const { data, error } = await supabase.from('members').insert([newMember]).select();
-      if (error) throw error;
-
-      // Sync local copy
-      const stored = JSON.parse(localStorage.getItem('hasnain_members_local') || '[]');
-      stored.unshift(newMember);
-      localStorage.setItem('hasnain_members_local', JSON.stringify(stored));
+      await submitMemberRecordToSupabase(newMember);
 
       setFormSuccess(true);
       setTimeout(() => {
@@ -229,32 +222,8 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
         setView('login-member');
       }, 3500);
     } catch (err: any) {
-      console.warn("Supabase insertion error, trying contact_submissions fallback", err);
-      try {
-        const fallbackPayload = {
-          name: newMember.full_name,
-          email: newMember.email,
-          phone: newMember.mobile,
-          subject: 'MEMBER_SIGNUP',
-          message: JSON.stringify(newMember)
-        };
-        const { error: fbErr } = await supabase.from('contact_submissions').insert([fallbackPayload]);
-        if (fbErr) throw fbErr;
-        console.log("Member registered via fallback contact_submissions table successfully.");
-      } catch (fbErr) {
-        console.warn("Both primary and secondary insertion failed, using pure local storage", fbErr);
-      }
-
-      // Local storage fallback so the application ALWAYS works
-      const stored = JSON.parse(localStorage.getItem('hasnain_members_local') || '[]');
-      stored.unshift(newMember);
-      localStorage.setItem('hasnain_members_local', JSON.stringify(stored));
-
-      setFormSuccess(true);
-      setTimeout(() => {
-        setFormSuccess(false);
-        setView('login-member');
-      }, 3500);
+      console.error("Error registering member:", err);
+      setFormError(isUrdu ? "رجسٹریشن کے دوران کوئی مسئلہ پیش آیا۔" : "An error occurred during registration.");
     } finally {
       setFormLoading(false);
     }
@@ -317,6 +286,8 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
       const stored = JSON.parse(localStorage.getItem('hasnain_volunteers_local') || '[]');
       stored.unshift(newVolunteer);
       localStorage.setItem('hasnain_volunteers_local', JSON.stringify(stored));
+      localStorage.setItem('hasnain_volunteers', JSON.stringify(stored));
+      window.dispatchEvent(new Event('volunteers_updated'));
 
       setFormSuccess(true);
       setTimeout(() => {
@@ -344,6 +315,8 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
       const stored = JSON.parse(localStorage.getItem('hasnain_volunteers_local') || '[]');
       stored.unshift(newVolunteer);
       localStorage.setItem('hasnain_volunteers_local', JSON.stringify(stored));
+      localStorage.setItem('hasnain_volunteers', JSON.stringify(stored));
+      window.dispatchEvent(new Event('volunteers_updated'));
 
       setFormSuccess(true);
       setTimeout(() => {
@@ -1519,7 +1492,7 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
                       </div>
                       <div className="text-right">
                         <span className="block font-mono">hasnainfoundation225@gmail.com</span>
-                        <span className="text-slate-300 font-mono">www.hasnainfoundation.org</span>
+                        <span className="text-slate-300 font-mono">hasnain-foundation-com.ai.studio</span>
                       </div>
                     </div>
                   </div>

@@ -42,13 +42,13 @@ export default function MobileQuickNavigation({
       action: () => setActiveSection('donate')
     },
     {
-      id: 'appointment',
-      labelEn: 'Spiritual Clinic',
-      labelUr: 'روحانی معائنہ',
+      id: 'durood-bank',
+      labelEn: 'Durood Bank',
+      labelUr: 'درود بینک',
       icon: Sparkles,
-      color: 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-100',
-      iconColor: 'text-amber-500',
-      action: onOpenSpiritual
+      color: 'bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200',
+      iconColor: 'text-amber-600',
+      action: () => setActiveSection('durood-bank')
     },
     {
       id: 'projects',
@@ -62,6 +62,15 @@ export default function MobileQuickNavigation({
   ];
 
   const rightSideItems = [
+    {
+      id: 'spiritual',
+      labelEn: 'Spiritual Healing',
+      labelUr: 'روحانی علاج',
+      icon: Sparkles,
+      color: 'bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-300',
+      iconColor: 'text-amber-600',
+      action: onOpenSpiritual
+    },
     {
       id: 'patient-portal',
       labelEn: 'Patient Portal',

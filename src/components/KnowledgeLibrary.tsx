@@ -772,7 +772,7 @@ function getPrintableHtml(topic: LibraryTopic) {
           <div class="footer">
             Hasnain Foundation Spiritual Healing Center - Free of charge for the sake of Allah.<br />
             Khalifa Salman Ali Qadri: 0315-2204134 | Allama Shayan Ali Qadri: 0313-3830370<br />
-            Official Web: www.hasnainfoundation.org
+            Official Web: https://hasnain-foundation-com.ai.studio
           </div>
         </div>
         <script>
@@ -954,7 +954,7 @@ export default function KnowledgeLibrary({ lang }: { lang: Language }) {
         ctx.textAlign = 'center';
         ctx.fillText('Hasnain Foundation Spiritual Healing Center - Free of charge for the sake of Allah.', canvas.width / 2, 1445);
         ctx.fillText('Khalifa Salman Ali Qadri: 0315-2204134 | Allama Shayan Ali Qadri: 0313-3830370', canvas.width / 2, 1475);
-        ctx.fillText('Official Portal: www.hasnainfoundation.org', canvas.width / 2, 1505);
+        ctx.fillText('Official Portal: https://hasnain-foundation-com.ai.studio', canvas.width / 2, 1505);
 
         // Trigger real download
         try {

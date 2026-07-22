@@ -163,7 +163,7 @@ export default function Footer({ lang, setActiveSection, onOpenAdmin, onOpenComp
               </li>
               <li className={`flex gap-2.5 items-center ${isUrdu ? 'flex-row-reverse text-right' : 'text-left'}`}>
                 <Mail className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                <span className="font-mono text-xs">info@hasnainfoundation.org</span>
+                <span className="font-mono text-xs break-all">hasnainfoundation225@gmail.com</span>
               </li>
             </ul>
           </div>

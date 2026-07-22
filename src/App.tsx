@@ -283,8 +283,17 @@ export default function App() {
                 }}
               />
 
+              {/* 3. Services Section (Our Services - placed prominently near the top with Spiritual Healing card) */}
+              <Services 
+                lang={lang} 
+                onOpenSpiritual={() => {
+                  setSpiritualTab('appointment');
+                  setIsSpiritualOpen(true);
+                }} 
+              />
+
               {/* 3.5 Dynamic Donation Goal Tracker */}
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 -mb-6">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 -mb-6">
                 <DonationTracker lang={lang} onOpenAdmin={() => setIsAdminOpen(true)} />
               </div>
 
@@ -317,9 +326,6 @@ export default function App() {
 
               {/* 2. About Section (Core Values) */}
               <About lang={lang} />
-
-              {/* 3. Services Section (Our Services) */}
-              <Services lang={lang} />
 
               {/* 8. Contact Section */}
               <Contact lang={lang} onOpenComplaint={() => setIsComplaintOpen(true)} />
@@ -381,24 +387,6 @@ export default function App() {
           </motion.button>
         )}
 
-        {/* Floating Spiritual Care / Healing Portal Button */}
-        <motion.button
-          id="floating-spiritual-btn"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => {
-            setSpiritualTab('appointment');
-            setIsSpiritualOpen(true);
-          }}
-          className="flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-slate-950/20 cursor-pointer border border-slate-700/60"
-        >
-          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse fill-amber-400/20" />
-          <span className={isUrdu ? 'font-urdu' : ''}>
-            {isUrdu ? 'روحانی شفا خانہ' : 'Spiritual Clinic'}
-          </span>
-        </motion.button>
 
         {/* Floating WhatsApp Chat Help Button */}
         <motion.a

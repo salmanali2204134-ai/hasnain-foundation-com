@@ -414,7 +414,7 @@ You MUST return a JSON object with the following fields:
     {
       id: "COMP-302",
       name: "Anonymous Citizen",
-      email: "anonymous@hasnainfoundation.org",
+      email: "hasnainfoundation225@gmail.com",
       whatsapp: "N/A",
       subject: "Fake Facebook Page using Hasnain Foundation Logo",
       wrongdoingType: "Brand Impersonation",
@@ -790,7 +790,7 @@ You MUST return a JSON object with the following fields:
       const newComplaint: ComplaintRecord = {
         id: nextId,
         name: name || "Anonymous Citizen",
-        email: email || "anonymous@hasnainfoundation.org",
+        email: email || "hasnainfoundation225@gmail.com",
         whatsapp: whatsapp || "N/A",
         subject,
         wrongdoingType,

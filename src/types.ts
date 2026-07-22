@@ -16,6 +16,7 @@ export interface Service {
     en: string;
     ur: string;
   };
+  isPremium?: boolean;
 }
 
 export interface Project {

@@ -267,27 +267,130 @@ export async function submitVolunteerToSupabase(data: {
   interests: string[];
   availability: string;
 }) {
-  try {
-    const { data: result, error } = await supabase
-      .from('volunteer_registrations')
-      .insert([
-        {
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          interests: data.interests,
-          availability: data.availability,
-          created_at: new Date().toISOString()
-        }
-      ]);
+  const now = new Date().toISOString();
+  const today = now.split('T')[0];
 
-    if (error) throw error;
-    return { success: true, result };
+  const fullRecord = {
+    id: data.id,
+    profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+    cnic_front: 'https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?auto=format&fit=crop&q=80&w=300',
+    cnic_back: 'https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?auto=format&fit=crop&q=80&w=300',
+    full_name: data.name,
+    father_name: 'N/A',
+    cnic: 'Pending',
+    mobile: data.phone,
+    whatsapp: data.phone,
+    email: data.email,
+    date_of_birth: 'N/A',
+    gender: 'Male',
+    address: 'Karachi, Pakistan',
+    city: 'Karachi',
+    blood_group: 'N/A',
+    skills: data.interests ? data.interests.join(', ') : 'General Volunteer Support',
+    availability: data.availability || 'Flexible',
+    emergency_contact: data.phone,
+    experience: 'Registered via Home Page Volunteer Form',
+    assigned_department: 'Community Welfare Support',
+    status: 'pending',
+    internal_notes: `Interests: ${data.interests ? data.interests.join(', ') : 'None'}`,
+    issue_date: today,
+    expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+    assigned_duties: ['Welcome Orientation Session'],
+    attendance_count: 0,
+    events_count: 0,
+    performance_rating: 5,
+    created_at: now
+  };
+
+  try {
+    // 1. Insert into volunteer_registrations
+    await supabase.from('volunteer_registrations').insert([
+      {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        interests: data.interests,
+        availability: data.availability,
+        created_at: now
+      }
+    ]);
+
+    // 2. Insert into volunteers table
+    await supabase.from('volunteers').insert([fullRecord]);
   } catch (error: any) {
-    console.warn('Failed to insert volunteer registration to Supabase. Saving locally instead.', error);
-    return { success: false, error: error.message || error };
+    console.warn('Failed to insert volunteer registration to Supabase primary tables. Fallback to contact_submissions.', error);
+    try {
+      await supabase.from('contact_submissions').insert([{
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        subject: 'VOLUNTEER_SIGNUP',
+        message: JSON.stringify(fullRecord)
+      }]);
+    } catch (fbErr) {
+      console.warn('Failed contact_submissions fallback as well.', fbErr);
+    }
   }
+
+  // Always save locally so the registration is NEVER lost
+  try {
+    const local1 = JSON.parse(localStorage.getItem('hasnain_volunteers_local') || '[]');
+    local1.unshift(fullRecord);
+    localStorage.setItem('hasnain_volunteers_local', JSON.stringify(local1));
+
+    const local2 = JSON.parse(localStorage.getItem('hasnain_volunteers') || '[]');
+    local2.unshift(fullRecord);
+    localStorage.setItem('hasnain_volunteers', JSON.stringify(local2));
+
+    window.dispatchEvent(new Event('volunteers_updated'));
+  } catch (err) {
+    console.error('Failed saving volunteer registration locally:', err);
+  }
+
+  return { success: true };
+}
+
+/**
+ * Helper to submit member registrations to Supabase with automatic fallbacks
+ */
+export async function submitMemberRecordToSupabase(newMember: any) {
+  try {
+    // 1. Try primary 'members' table
+    const { error } = await supabase.from('members').insert([newMember]);
+    if (error) throw error;
+  } catch (error: any) {
+    console.warn('Failed to insert member to Supabase primary members table. Falling back to contact_submissions.', error);
+    try {
+      const fallbackPayload = {
+        name: newMember.full_name,
+        email: newMember.email,
+        phone: newMember.mobile,
+        subject: 'MEMBER_SIGNUP',
+        message: JSON.stringify(newMember)
+      };
+      await supabase.from('contact_submissions').insert([fallbackPayload]);
+    } catch (fbErr) {
+      console.warn('Fallback to contact_submissions failed as well.', fbErr);
+    }
+  }
+
+  // Always sync local storage and trigger event so registration is NEVER lost
+  try {
+    const local1 = JSON.parse(localStorage.getItem('hasnain_members_local') || '[]');
+    local1.unshift(newMember);
+    localStorage.setItem('hasnain_members_local', JSON.stringify(local1));
+
+    const local2 = JSON.parse(localStorage.getItem('hasnain_members') || '[]');
+    local2.unshift(newMember);
+    localStorage.setItem('hasnain_members', JSON.stringify(local2));
+
+    window.dispatchEvent(new Event('members_updated'));
+  } catch (err) {
+    console.error('Failed saving member locally:', err);
+  }
+
+  return { success: true };
 }
 
 /**
@@ -331,46 +434,108 @@ export async function fetchVolunteerRegistrations() {
 // ==========================================
 
 export async function fetchMembersFromSupabase(): Promise<any[]> {
+  const allMembersMap = new Map<string, any>();
+
+  const addMember = (m: any) => {
+    if (!m) return;
+    const email = (m.email || '').toLowerCase().trim();
+    const cnic = (m.cnic || '').trim();
+    const phone = (m.mobile || m.phone || '').trim();
+    const id = m.id || m.member_id || (email ? `HF-M-${email.substring(0, 5)}` : `HF-M-${Math.floor(10000 + Math.random() * 90000)}`);
+    
+    // Key for deduplication
+    const key = (id && id !== 'N/A') ? id : (email || cnic || phone || id);
+
+    const existing = allMembersMap.get(key);
+    const normalizedMember = {
+      id: id,
+      profile_photo: m.profile_photo || existing?.profile_photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+      cnic_front: m.cnic_front || existing?.cnic_front || 'https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?auto=format&fit=crop&q=80&w=300',
+      cnic_back: m.cnic_back || existing?.cnic_back || 'https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?auto=format&fit=crop&q=80&w=300',
+      full_name: m.full_name || m.fullName || m.name || 'Registered Member',
+      father_name: m.father_name || m.fatherName || 'N/A',
+      cnic: cnic || 'N/A',
+      mobile: phone || 'N/A',
+      whatsapp: m.whatsapp || phone || 'N/A',
+      email: m.email || '',
+      password: m.password || '',
+      date_of_birth: m.date_of_birth || m.dob || 'N/A',
+      gender: m.gender || 'Male',
+      address: m.address || 'Karachi, Pakistan',
+      city: m.city || 'Karachi',
+      occupation: m.occupation || 'N/A',
+      blood_group: m.blood_group || m.bloodGroup || 'N/A',
+      membership_type: m.membership_type || m.membershipType || 'Regular',
+      registration_date: m.registration_date || m.created_at || new Date().toISOString().split('T')[0],
+      status: m.status || existing?.status || 'pending',
+      internal_notes: m.internal_notes || existing?.internal_notes || 'Online Member Application',
+      issue_date: m.issue_date || new Date().toISOString().split('T')[0],
+      expiry_date: m.expiry_date || new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+      donations_count: m.donations_count ?? 0,
+      durood_count: m.durood_count ?? 0,
+      events_count: m.events_count ?? 0,
+      certificates: m.certificates || []
+    };
+
+    allMembersMap.set(key, normalizedMember);
+  };
+
+  // 1. Fetch from primary 'members' table
   try {
     const { data, error } = await supabase
       .from('members')
       .select('*')
       .order('registration_date', { ascending: false });
 
-    if (error) throw error;
-    if (data && data.length > 0) {
-      localStorage.setItem('hasnain_members_local', JSON.stringify(data));
-      return data;
+    if (!error && data && Array.isArray(data)) {
+      data.forEach(m => addMember(m));
     }
-    // If table exists but is empty, check if we have fallback submissions too
-    throw new Error('Table empty or query fall-through');
   } catch (err) {
-    console.warn('fetchMembersFromSupabase primary query fell back, trying contact_submissions fallback:', err);
-    try {
-      const { data, error } = await supabase
-        .from('contact_submissions')
-        .select('*')
-        .eq('subject', 'MEMBER_SIGNUP');
-      
-      if (!error && data) {
-        const parsed = data.map(row => {
-          try {
-            const obj = JSON.parse(row.message);
-            obj._contact_id = row.id;
-            return obj;
-          } catch {
-            return null;
-          }
-        }).filter(Boolean);
-        localStorage.setItem('hasnain_members_local', JSON.stringify(parsed));
-        return parsed;
-      }
-    } catch (e2) {
-      console.error('Failed contact_submissions fallback for members:', e2);
-    }
-    const cached = localStorage.getItem('hasnain_members_local');
-    return cached ? JSON.parse(cached) : [];
+    console.warn('Primary members table fetch failed:', err);
   }
+
+  // 2. Fetch from 'contact_submissions' fallback table
+  try {
+    const { data, error } = await supabase
+      .from('contact_submissions')
+      .select('*')
+      .eq('subject', 'MEMBER_SIGNUP');
+
+    if (!error && data && Array.isArray(data)) {
+      data.forEach(row => {
+        try {
+          const parsed = JSON.parse(row.message);
+          parsed._contact_id = row.id;
+          addMember(parsed);
+        } catch {}
+      });
+    }
+  } catch (err) {
+    console.warn('Contact submissions fallback fetch failed for members:', err);
+  }
+
+  // 3. Merge from local storage
+  try {
+    const local1 = localStorage.getItem('hasnain_members_local');
+    if (local1) {
+      const arr = JSON.parse(local1);
+      if (Array.isArray(arr)) arr.forEach(m => addMember(m));
+    }
+    const local2 = localStorage.getItem('hasnain_members');
+    if (local2) {
+      const arr = JSON.parse(local2);
+      if (Array.isArray(arr)) arr.forEach(m => addMember(m));
+    }
+  } catch (err) {
+    console.warn('Local storage read failed for members:', err);
+  }
+
+  const finalMembersList = Array.from(allMembersMap.values());
+  try {
+    localStorage.setItem('hasnain_members_local', JSON.stringify(finalMembersList));
+  } catch {}
+
+  return finalMembersList;
 }
 
 export async function updateMemberInSupabase(id: string, payload: any) {
@@ -491,45 +656,133 @@ export async function deleteMemberFromSupabase(id: string) {
 }
 
 export async function fetchVolunteersFromSupabase(): Promise<any[]> {
+  const allVolunteersMap = new Map<string, any>();
+
+  const addVolunteer = (v: any) => {
+    if (!v) return;
+    const email = (v.email || '').toLowerCase().trim();
+    const phone = (v.mobile || v.phone || '').trim();
+    const cnic = (v.cnic || '').trim();
+    const id = v.id || (email ? `HF-V-${email.substring(0, 5)}` : `HF-V-${Math.floor(10000 + Math.random() * 90000)}`);
+
+    const key = (id && id !== 'N/A') ? id : (email || phone || id);
+
+    const existing = allVolunteersMap.get(key);
+
+    let skills = v.skills;
+    if (!skills && Array.isArray(v.interests)) {
+      skills = v.interests.join(', ');
+    } else if (!skills && typeof v.interests === 'string') {
+      skills = v.interests;
+    }
+
+    const normalizedVolunteer = {
+      id: id,
+      profile_photo: v.profile_photo || existing?.profile_photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+      cnic_front: v.cnic_front || existing?.cnic_front || 'https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?auto=format&fit=crop&q=80&w=300',
+      cnic_back: v.cnic_back || existing?.cnic_back || 'https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?auto=format&fit=crop&q=80&w=300',
+      full_name: v.full_name || v.fullName || v.name || 'Registered Volunteer',
+      father_name: v.father_name || v.fatherName || 'N/A',
+      cnic: cnic || 'Pending',
+      mobile: phone || 'N/A',
+      whatsapp: v.whatsapp || phone || 'N/A',
+      email: v.email || '',
+      password: v.password || '',
+      date_of_birth: v.date_of_birth || v.dob || 'N/A',
+      gender: v.gender || 'Male',
+      address: v.address || 'Karachi, Pakistan',
+      city: v.city || 'Karachi',
+      blood_group: v.blood_group || v.bloodGroup || 'N/A',
+      skills: skills || 'General Support & Event Management',
+      availability: v.availability || 'Flexible',
+      emergency_contact: v.emergency_contact || phone || 'N/A',
+      experience: v.experience || 'Online Volunteer Applicant',
+      assigned_department: v.assigned_department || v.assignedDepartment || 'Welfare Support',
+      status: v.status || existing?.status || 'pending',
+      internal_notes: v.internal_notes || existing?.internal_notes || (v.timestamp ? `Registered on ${v.timestamp}` : 'Online Volunteer Registration'),
+      issue_date: v.issue_date || v.timestamp || new Date().toISOString().split('T')[0],
+      expiry_date: v.expiry_date || new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+      assigned_duties: v.assigned_duties || ['Welcome Orientation Session'],
+      attendance_count: v.attendance_count ?? 0,
+      events_count: v.events_count ?? 0,
+      performance_rating: v.performance_rating ?? 5
+    };
+
+    allVolunteersMap.set(key, normalizedVolunteer);
+  };
+
+  // 1. Primary 'volunteers' table
   try {
     const { data, error } = await supabase
       .from('volunteers')
       .select('*')
       .order('id', { ascending: false });
 
-    if (error) throw error;
-    if (data && data.length > 0) {
-      localStorage.setItem('hasnain_volunteers_local', JSON.stringify(data));
-      return data;
+    if (!error && data && Array.isArray(data)) {
+      data.forEach(v => addVolunteer(v));
     }
-    throw new Error('Table empty or query fall-through');
   } catch (err) {
-    console.warn('fetchVolunteersFromSupabase primary query fell back, trying contact_submissions fallback:', err);
-    try {
-      const { data, error } = await supabase
-        .from('contact_submissions')
-        .select('*')
-        .eq('subject', 'VOLUNTEER_SIGNUP');
-      
-      if (!error && data) {
-        const parsed = data.map(row => {
-          try {
-            const obj = JSON.parse(row.message);
-            obj._contact_id = row.id;
-            return obj;
-          } catch {
-            return null;
-          }
-        }).filter(Boolean);
-        localStorage.setItem('hasnain_volunteers_local', JSON.stringify(parsed));
-        return parsed;
-      }
-    } catch (e2) {
-      console.error('Failed contact_submissions fallback for volunteers:', e2);
-    }
-    const cached = localStorage.getItem('hasnain_volunteers_local');
-    return cached ? JSON.parse(cached) : [];
+    console.warn('Primary volunteers table fetch failed:', err);
   }
+
+  // 2. 'volunteer_registrations' table
+  try {
+    const { data, error } = await supabase
+      .from('volunteer_registrations')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data && Array.isArray(data)) {
+      data.forEach(v => addVolunteer(v));
+    }
+  } catch (err) {
+    console.warn('Volunteer registrations table fetch failed:', err);
+  }
+
+  // 3. 'contact_submissions' table (VOLUNTEER_SIGNUP)
+  try {
+    const { data, error } = await supabase
+      .from('contact_submissions')
+      .select('*')
+      .eq('subject', 'VOLUNTEER_SIGNUP');
+
+    if (!error && data && Array.isArray(data)) {
+      data.forEach(row => {
+        try {
+          const parsed = JSON.parse(row.message);
+          parsed._contact_id = row.id;
+          addVolunteer(parsed);
+        } catch {}
+      });
+    }
+  } catch (err) {
+    console.warn('Contact submissions fallback fetch failed for volunteers:', err);
+  }
+
+  // 4. Local storage keys
+  try {
+    const local1 = localStorage.getItem('hasnain_volunteers_local');
+    if (local1) {
+      const arr = JSON.parse(local1);
+      if (Array.isArray(arr)) arr.forEach(v => addVolunteer(v));
+    }
+    const local2 = localStorage.getItem('hasnain_volunteers');
+    if (local2) {
+      const arr = JSON.parse(local2);
+      if (Array.isArray(arr)) arr.forEach(v => addVolunteer(v));
+    }
+  } catch (err) {
+    console.warn('Local storage read failed for volunteers:', err);
+  }
+
+  const finalVolunteersList = Array.from(allVolunteersMap.values());
+
+  try {
+    localStorage.setItem('hasnain_volunteers_local', JSON.stringify(finalVolunteersList));
+    localStorage.setItem('hasnain_volunteers', JSON.stringify(finalVolunteersList));
+  } catch {}
+
+  return finalVolunteersList;
 }
 
 export async function updateVolunteerInSupabase(id: string, payload: any) {

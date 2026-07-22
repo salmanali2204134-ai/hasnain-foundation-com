@@ -148,7 +148,7 @@ export default function useMetaTags({ lang, activeSection }: UseMetaTagsProps) {
       document.head.appendChild(canonicalLink);
     }
     const sectionSlug = sectionKey === 'home' ? '' : `#${sectionKey}`;
-    canonicalLink.setAttribute('href', `https://hasnainfoundation.org/${sectionSlug}`);
+    canonicalLink.setAttribute('href', `https://hasnain-foundation-com.ai.studio/${sectionSlug}`);
 
   }, [lang, activeSection]);
 }

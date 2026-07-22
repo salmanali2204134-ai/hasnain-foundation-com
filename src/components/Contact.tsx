@@ -36,7 +36,7 @@ export default function Contact({ lang, onOpenComplaint }: ContactProps) {
     },
     phone: "03180202424",
     whatsapp: "03180202424",
-    email: "info@hasnainfoundation.org"
+    email: "hasnainfoundation225@gmail.com"
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -177,7 +177,7 @@ export default function Contact({ lang, onOpenComplaint }: ContactProps) {
                   <span className={`block text-[10px] font-bold text-slate-400 uppercase tracking-widest ${isUrdu ? 'font-urdu' : ''}`}>
                     {DICTIONARY.contact.emailLabel[lang]}
                   </span>
-                  <a href={`mailto:${contactInfo.email}`} className="block font-mono font-semibold text-slate-700 text-sm hover:text-emerald-700 transition-colors">
+                  <a href={`mailto:${contactInfo.email}`} className="block font-mono font-semibold text-slate-700 text-xs sm:text-sm break-all hover:text-emerald-700 transition-colors">
                     {contactInfo.email}
                   </a>
                 </div>

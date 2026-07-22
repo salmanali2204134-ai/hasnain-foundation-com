@@ -85,7 +85,7 @@ export default function ComplaintModal({ lang, isOpen, onClose }: ComplaintModal
     setErrorMessage(null);
 
     const submissionName = formData.isAnonymous ? "Anonymous Citizen" : (formData.name || "Anonymous Citizen");
-    const submissionEmail = formData.isAnonymous ? "anonymous@hasnainfoundation.org" : (formData.email || "anonymous@hasnainfoundation.org");
+    const submissionEmail = formData.isAnonymous ? "hasnainfoundation225@gmail.com" : (formData.email || "hasnainfoundation225@gmail.com");
     const submissionWhatsapp = formData.isAnonymous ? "N/A" : (formData.whatsapp || "N/A");
 
     try {

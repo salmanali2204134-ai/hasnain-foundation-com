@@ -349,7 +349,7 @@ export default function Volunteer({ lang }: VolunteerProps) {
                         required
                         value={formData.email}
                         onChange={handleInputChange}
-                        placeholder="e.g. volunteer@hasnainfoundation.org"
+                        placeholder="e.g. hasnainfoundation225@gmail.com"
                         className={`w-full px-3 py-2 pl-9 rounded-lg border border-slate-200 bg-white text-slate-955 focus:outline-none focus:border-emerald-700 text-xs font-mono ${
                           isUrdu ? 'text-right pr-9 pl-3' : ''
                         }`}
