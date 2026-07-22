@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
 import { DICTIONARY, TRANSPARENCY_REPORTS, IMAGES } from '../data';
-import { FileText, Download, CheckCircle, PieChart, ShieldCheck, Heart, Sparkles } from 'lucide-react';
+import { FileText, Download, CheckCircle, PieChart, ShieldCheck, Heart, Sparkles, Lock, ShieldAlert } from 'lucide-react';
 import { motion } from 'motion/react';
 import GoogleDriveExplorer from './GoogleDriveExplorer';
 
@@ -148,48 +148,34 @@ export default function Transparency({ lang }: TransparencyProps) {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Document list (lg:col-span-5) */}
+          {/* RIGHT COLUMN: Private Documents Notice & Photo Evidence (lg:col-span-5) */}
           <div className="lg:col-span-5 space-y-6">
             
-            {/* Download block */}
-            <div className="bg-white rounded-xl border border-slate-200 p-6 sm:p-8 shadow-none">
-              <h3 className={`text-base font-bold text-slate-900 pb-4 border-b border-slate-200 flex items-center gap-2 mb-4 ${
+            {/* Private Audit Documents Notice */}
+            <div className="bg-white rounded-xl border border-amber-200/80 p-6 sm:p-8 shadow-none relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1 bg-amber-500" />
+              <h3 className={`text-base font-bold text-slate-900 pb-4 border-b border-slate-100 flex items-center gap-2 mb-4 ${
                 isUrdu ? 'flex-row-reverse text-right font-urdu' : 'font-sans'
               }`}>
-                <FileText className="w-5 h-5 text-emerald-700" />
-                <span>{DICTIONARY.transparency.reportsTitle[lang]}</span>
+                <Lock className="w-5 h-5 text-amber-600" />
+                <span>{isUrdu ? 'محفوظ مالیاتی و آڈٹ دستاویزات' : 'Protected Audit & Financial Records'}</span>
               </h3>
 
-              <div className="space-y-4">
-                {TRANSPARENCY_REPORTS.map((rep) => (
-                  <div
-                    key={rep.id}
-                    className={`p-4 rounded-xl border border-slate-200 hover:border-emerald-600 bg-white transition-all duration-150 flex items-center justify-between gap-4 ${
-                      isUrdu ? 'flex-row-reverse' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-lg">
-                        <FileText className="w-4 h-4" />
-                      </div>
-                      <div className={isUrdu ? 'text-right' : 'text-left'}>
-                        <h4 className={`text-xs sm:text-xs font-bold text-slate-950 leading-tight ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
-                          {rep.title[lang]}
-                        </h4>
-                        <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
-                          {rep.month[lang]} - {rep.year}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleDownload(rep.title[lang])}
-                      className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-emerald-600 hover:text-emerald-700 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+              <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200/60 space-y-3">
+                <div className="flex items-start gap-3">
+                  <ShieldAlert className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
+                  <p className={`text-xs text-amber-900 leading-relaxed ${isUrdu ? 'font-urdu text-right leading-loose' : 'font-sans'}`}>
+                    {isUrdu 
+                      ? "زکوٰۃ تقسیم کے رجسٹرز، حسن فاؤنڈیشن کی آڈٹ رپورٹس، بینک ٹرانزیکشنز، اور تفصیلی مالیاتی فائلز عوام الناس کے لیے ڈاؤن لوڈ کے لیے کھولنا بدسلوکی کا باعث بن سکتا ہے۔ اس لیے تمام حساس آڈٹ فائلز کو مکمل طور پر پرائیویٹ اور محفوظ کر دیا گیا ہے۔"
+                      : "Detailed Zakat distribution ledgers, Hassan Foundation audit reports, transaction statements, and audit spreadsheets are strictly confidential to prevent document misuse. Public access to raw financial files is restricted."}
+                  </p>
+                </div>
+                
+                <p className={`text-[11px] text-slate-500 pt-2 border-t border-amber-200/50 ${isUrdu ? 'font-urdu text-right' : 'font-sans'}`}>
+                  {isUrdu
+                    ? "🔒 صرف مجاز ٹرسٹیز اور ایڈمنز 'ایڈمن پورٹل' میں لاگ ان ہو کر تفصیلی مالیاتی ریکارڈز کا معائنہ کر سکتے ہیں۔ عمومی وزٹرز کے لیے صرف تصویری ثبوت اور خلاصہ جات دستیاب ہیں۔"
+                    : "🔒 Authorized trustees can access complete financial ledgers inside the secure Admin Management Portal. General visitors can view verified on-ground activity photos below."}
+                </p>
               </div>
             </div>
 

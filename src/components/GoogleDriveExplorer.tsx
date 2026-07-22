@@ -53,45 +53,34 @@ interface BreadcrumbItem {
   name: string;
 }
 
-// Beautiful Demo Data for Public View
+// Beautiful Photo-Only Demo Data for Public View
 const DEMO_FILES: DriveFile[] = [
   {
     id: 'demo-1',
-    name: 'Hasnain_Foundation_Audit_Report_2025.pdf',
-    mimeType: 'application/pdf',
-    size: '2411720',
-    modifiedTime: '2026-06-15T10:30:00.000Z',
+    name: 'Emergency_Relief_Photo_Gallery',
+    mimeType: 'application/vnd.google-apps.folder',
+    modifiedTime: '2026-07-18T12:00:00.000Z',
     webViewLink: '#'
   },
   {
     id: 'demo-2',
-    name: 'Zakat_Distribution_Ledger_Ramzan.xlsx',
-    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    size: '1458200',
-    modifiedTime: '2026-05-18T14:45:00.000Z',
+    name: 'Jamia_Masjid_Construction_Photo_Archive',
+    mimeType: 'application/vnd.google-apps.folder',
+    modifiedTime: '2026-07-15T14:30:00.000Z',
     webViewLink: '#'
   },
   {
     id: 'demo-3',
-    name: 'Mosque_Development_Receipts_Jilani.pdf',
-    mimeType: 'application/pdf',
-    size: '4822000',
-    modifiedTime: '2026-07-02T11:15:00.000Z',
+    name: 'Food_Ration_Drive_On_Ground_Pictures',
+    mimeType: 'application/vnd.google-apps.folder',
+    modifiedTime: '2026-07-10T09:15:00.000Z',
     webViewLink: '#'
   },
   {
     id: 'demo-4',
-    name: 'Karachi_Food_Drive_Volunteers_Roster.csv',
-    mimeType: 'text/csv',
-    size: '85200',
-    modifiedTime: '2026-07-10T09:00:00.000Z',
-    webViewLink: '#'
-  },
-  {
-    id: 'demo-5',
-    name: 'Emergency_Relief_Photo_Gallery',
+    name: 'RO_Water_Plant_Installation_Photos',
     mimeType: 'application/vnd.google-apps.folder',
-    modifiedTime: '2026-07-14T17:22:00.000Z',
+    modifiedTime: '2026-07-05T11:00:00.000Z',
     webViewLink: '#'
   }
 ];
@@ -147,12 +136,12 @@ export default function GoogleDriveExplorer({ lang }: GoogleDriveExplorerProps) 
       ur: 'علیحدہ کریں'
     },
     publicDemo: {
-      en: 'Viewing Public Archive (Demo)',
-      ur: 'عوامی آرکائیو کا ڈیمو منظر'
+      en: 'Public Photo Archive (Private Documents Protected)',
+      ur: 'عوامی تصویری آرکائیو (حساس دستاویزات محفوظ)'
     },
     demoNotice: {
-      en: 'Connect your own Google Drive to upload, create folders, and manage files in real-time.',
-      ur: 'حقیقی وقت میں فائلیں اپ لوڈ کرنے اور نئے فولڈرز بنانے کے لیے اپنی گوگل ڈرائیو منسلک کریں۔'
+      en: 'Financial audit reports, Zakat ledgers, and transaction files are private to prevent misuse. Public storage displays on-ground activity photos only. Login as Admin for authorized document access.',
+      ur: 'زکوٰۃ تقسیم، حسن فاؤنڈیشن کی آڈٹ رپورٹس، اور مالیاتی ٹرانزیکشنز کی حفاظت کی خاطر انہیں پرائیویٹ رکھا گیا ہے۔ عام منظر میں صرف امدادی کام کی تصاویر دکھائی دیتی ہیں۔'
     },
     searchPlaceholder: {
       en: 'Search files and reports...',
