@@ -200,7 +200,7 @@ export default function Contact({ lang, onOpenComplaint }: ContactProps) {
               <a 
                 href="https://maps.app.goo.gl/WAH1sv76pVNsSQiHA"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
               >
                 <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />

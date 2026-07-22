@@ -32,6 +32,7 @@ import VerifyReceipt from './components/VerifyReceipt';
 import PortalSystem from './components/PortalSystem';
 import SocialFollowers from './components/SocialFollowers';
 import FacebookReels from './components/FacebookReels';
+import PrayerTimes from './components/PrayerTimes';
 import useMetaTags from './hooks/useMetaTags';
 import RightSidebar from './components/RightSidebar';
 import { Phone, Heart, ArrowUp, Sparkles } from 'lucide-react';
@@ -238,6 +239,16 @@ export default function App() {
             >
               <DuroodBank lang={lang} />
             </motion.div>
+          ) : activeSection === 'prayer-times' ? (
+            <motion.div
+              key="prayer-times-page"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+            >
+              <PrayerTimes lang={lang} onOpenDonate={() => setActiveSection('donate')} />
+            </motion.div>
           ) : activeSection === 'portal-system' ? (
             <motion.div
               key="portal-system-page"
@@ -282,6 +293,9 @@ export default function App() {
                   setIsSpiritualOpen(true);
                 }}
               />
+
+              {/* Prayer Timings & Hanafi Fiqh Salah Schedule */}
+              <PrayerTimes lang={lang} onOpenDonate={() => setActiveSection('donate')} />
 
               {/* 3. Services Section (Our Services - placed prominently near the top with Spiritual Healing card) */}
               <Services 

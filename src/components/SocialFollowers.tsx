@@ -86,14 +86,16 @@ export default function SocialFollowers({ lang }: SocialFollowersProps) {
     }
   ];
 
+  const [subStatusMsg, setSubStatusMsg] = useState('');
+
   // Fetch the count of registered newsletter subscribers from Express API
   const fetchSubscribersCount = async () => {
     try {
-      const res = await fetch('/api/subscriptions');
+      const res = await fetch('/api/subscriptions/count');
       const data = await res.json();
-      if (data.success && data.subscribers) {
+      if (data.success && typeof data.count === 'number') {
         // Base count + database count to make it feel vibrant and active
-        setSubscribersCount(842 + data.subscribers.length);
+        setSubscribersCount(842 + data.count);
       }
     } catch (err) {
       console.error("Failed to load subscribers count from backend API:", err);
@@ -128,10 +130,16 @@ export default function SocialFollowers({ lang }: SocialFollowersProps) {
 
       if (data.success) {
         setIsSubscribed(true);
+        if (data.alreadyExists) {
+          setSubStatusMsg(isUrdu ? 'آپ پہلے سے ہی ویب سائٹ سبسکرائبر لسٹ میں موجود ہیں۔ ریکارڈ اپ ڈیٹ کر دیا گیا ہے۔' : 'You are already registered! Your subscription active status is confirmed.');
+        } else {
+          setSubStatusMsg(isUrdu ? 'شکریہ! آپ کامیابی سے ویب سائٹ پر سبسکرائب ہو گئے ہیں۔ کاؤنٹر میں اضافہ ہو گیا ہے۔' : 'Success! Your website subscription is registered and saved.');
+          setSubscribersCount(prev => prev + 1);
+        }
         setEmail('');
         setName('');
         setWhatsapp('');
-        fetchSubscribersCount(); // Instantly update counter on frontend
+        fetchSubscribersCount(); // Instantly sync counter from backend
       } else {
         setErrorMsg(data.error || (isUrdu ? 'سبسکرپشن میں خرابی پیش آئی۔' : 'Failed to subscribe. Please try again.'));
       }
@@ -272,17 +280,33 @@ export default function SocialFollowers({ lang }: SocialFollowersProps) {
                       key="sub-success"
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="text-center py-4 text-emerald-400 flex flex-col items-center gap-2"
+                      className="text-center py-4 text-emerald-400 flex flex-col items-center gap-3 bg-emerald-950/40 p-4 rounded-xl border border-emerald-800/40"
                     >
-                      <CheckCircle className="w-8 h-8 text-emerald-500" />
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+                        <span className="text-xs font-mono font-bold text-emerald-300 bg-emerald-900/60 px-2.5 py-0.5 rounded-full border border-emerald-700/50">
+                          {isUrdu ? `کل ممبرز: ${subscribersCount}` : `Total Subscribers: ${subscribersCount}`}
+                        </span>
+                      </div>
                       <div>
-                        <h4 className={`text-sm font-bold ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
-                          {isUrdu ? 'شکریہ! آپ کامیابی سے سبسکرائب ہو گئے ہیں۔' : 'Success! Subscription Completed.'}
+                        <h4 className={`text-xs sm:text-sm font-bold ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                          {subStatusMsg || (isUrdu ? 'شکریہ! آپ کامیابی سے سبسکرائب ہو گئے ہیں۔' : 'Success! Subscription Completed.')}
                         </h4>
-                        <p className="text-[10px] text-slate-400 mt-1">
-                          {isUrdu ? 'ہم جلد ہی آپ کے واٹس ایپ اور ای میل پر معلومات بھیجیں گے۔' : 'We have synced your record in our database.'}
+                        <p className="text-[10px] text-slate-300 mt-1">
+                          {isUrdu ? 'ہم جلد ہی آپ کے واٹس ایپ اور ای میل پر معلومات بھیجیں گے۔' : 'We have synced your record in our database live.'}
                         </p>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSubscribed(false);
+                          setErrorMsg('');
+                        }}
+                        className="mt-1 bg-emerald-800/60 hover:bg-emerald-700 text-emerald-100 font-bold px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer border border-emerald-600/50 flex items-center gap-1"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{isUrdu ? 'مزید نیا سبسکرائبر شامل کریں' : 'Subscribe Another Email'}</span>
+                      </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -303,12 +327,6 @@ export default function SocialFollowers({ lang }: SocialFollowersProps) {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={(e) => {
-                      if (social.url) {
-                        window.open(social.url, '_blank', 'noopener,noreferrer');
-                        e.preventDefault();
-                      }
-                    }}
                     className={`p-6 rounded-2xl border border-slate-200 bg-white transition-all duration-200 flex flex-col justify-between h-40 ${social.hoverColor} hover:shadow-sm cursor-pointer ${
                       isFullWidth ? 'col-span-2' : ''
                     }`}

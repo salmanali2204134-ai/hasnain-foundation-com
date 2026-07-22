@@ -9,6 +9,7 @@ import { DICTIONARY } from '../data';
 import { motion } from 'motion/react';
 import { 
   Home, 
+  Clock,
   Info, 
   HeartHandshake, 
   Calendar, 
@@ -37,6 +38,7 @@ export default function RightSidebar({ lang, activeSection, setActiveSection }: 
 
   const navItems = [
     { id: 'home', label: DICTIONARY.nav.home[lang], icon: Home },
+    { id: 'prayer-times', label: isUrdu ? 'اوقاتِ نماز (حنفی)' : 'Prayer Times', icon: Clock },
     { id: 'about', label: DICTIONARY.nav.about[lang], icon: Info },
     { id: 'services', label: DICTIONARY.nav.services[lang], icon: HeartHandshake },
     { id: 'portal-system', label: isUrdu ? 'ممبر و رضاکار پورٹل' : 'Membership & Volunteer', icon: Users },

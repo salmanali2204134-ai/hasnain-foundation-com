@@ -165,7 +165,7 @@ export default function FacebookReels({ lang }: FacebookReelsProps) {
             <a 
               href="https://www.facebook.com/share/17mpuehs9b/"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-900/30 transition-all cursor-pointer group"
             >
               <Facebook className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
@@ -273,7 +273,7 @@ export default function FacebookReels({ lang }: FacebookReelsProps) {
             <a
               href="https://www.facebook.com/share/17mpuehs9b/"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-extrabold text-xs rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Facebook className="w-4 h-4 shrink-0 text-blue-400" />
@@ -403,7 +403,7 @@ export default function FacebookReels({ lang }: FacebookReelsProps) {
                   <a
                     href={selectedReel.reelUrl}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="w-2/3 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold text-xs rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Facebook className="w-4 h-4 text-white fill-white" />

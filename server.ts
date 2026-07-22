@@ -609,6 +609,11 @@ You MUST return a JSON object with the following fields:
     }
   });
 
+  // Get public subscribers count for website monitor
+  app.get("/api/subscriptions/count", (req, res) => {
+    res.json({ success: true, count: subscribers.length });
+  });
+
   // Get subscribers list (Secure Admin Only)
   app.get("/api/subscriptions", verifyAdmin, (req, res) => {
     res.json({ success: true, subscribers });

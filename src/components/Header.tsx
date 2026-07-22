@@ -33,6 +33,7 @@ export default function Header({ lang, setLang, activeSection, setActiveSection,
 
   const navItems = [
     { id: 'home', label: DICTIONARY.nav.home[lang] },
+    { id: 'prayer-times', label: isUrdu ? 'اوقاتِ نماز' : 'Prayer Times' },
     { id: 'about', label: DICTIONARY.nav.about[lang] },
     { id: 'services', label: DICTIONARY.nav.services[lang] },
     { id: 'portal-system', label: isUrdu ? 'رکنیت و رضاکار پورٹل' : 'Membership & Volunteer Portal' },
@@ -72,9 +73,15 @@ export default function Header({ lang, setLang, activeSection, setActiveSection,
               {isUrdu ? "رجسٹرڈ غیر منافع بخش فلاحی ادارہ" : "Registered Non-Profit Welfare Organization"}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="opacity-90">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleNavClick('prayer-times')}
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700/80 text-emerald-400 hover:text-emerald-300 text-[10px] font-extrabold cursor-pointer transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>{isUrdu ? "اوقاتِ نماز (حنفی)" : "Hanafi Prayer Times"}</span>
+            </button>
+            <span className="hidden md:inline opacity-90">
               {isUrdu ? "جامع مسجد عبدالقادر جیلانی، کراچی" : "Jamia Masjid Abdul Qadir Jilani, Surjani Town, Karachi"}
             </span>
           </div>

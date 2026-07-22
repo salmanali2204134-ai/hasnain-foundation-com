@@ -12,7 +12,8 @@ import {
   Sparkles, 
   CreditCard, 
   Target, 
-  PhoneCall 
+  PhoneCall,
+  Clock 
 } from 'lucide-react';
 
 interface MobileQuickNavigationProps {
@@ -33,6 +34,15 @@ export default function MobileQuickNavigation({
   // Navigation Items with 3 buttons on the left side and 3 buttons on the right side
   const leftSideItems = [
     {
+      id: 'prayer-times',
+      labelEn: 'Prayer Times',
+      labelUr: 'اوقاتِ نماز',
+      icon: Clock,
+      color: 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-200',
+      iconColor: 'text-emerald-600',
+      action: () => setActiveSection('prayer-times')
+    },
+    {
       id: 'donate',
       labelEn: 'Quick Donate',
       labelUr: 'فوری عطیہ',
@@ -49,15 +59,6 @@ export default function MobileQuickNavigation({
       color: 'bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200',
       iconColor: 'text-amber-600',
       action: () => setActiveSection('durood-bank')
-    },
-    {
-      id: 'projects',
-      labelEn: 'Welfare Projects',
-      labelUr: 'فلاحی منصوبے',
-      icon: Target,
-      color: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100',
-      iconColor: 'text-emerald-500',
-      action: () => setActiveSection('projects')
     }
   ];
 

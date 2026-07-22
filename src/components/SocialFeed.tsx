@@ -247,15 +247,6 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
               }
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => {
-                const url = activeTab === 'facebook'
-                  ? 'https://facebook.com/hasnainfoundation'
-                  : activeTab === 'youtube'
-                    ? 'https://www.youtube.com/@HasnainFoundation-t8n'
-                    : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp';
-                window.open(url, '_blank', 'noopener,noreferrer');
-                e.preventDefault();
-              }}
               className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-bold hover:underline transition-colors cursor-pointer"
             >
               <span>{isUrdu ? `آفیشل ${activeTab} پر جائیں` : `Visit official ${activeTab}`}</span>
@@ -328,15 +319,6 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(e) => {
-                        const url = post.platform === 'facebook' 
-                          ? 'https://facebook.com/hasnainfoundation' 
-                          : post.platform === 'youtube' 
-                            ? 'https://www.youtube.com/@HasnainFoundation-t8n' 
-                            : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp';
-                        window.open(url, '_blank', 'noopener,noreferrer');
-                        e.preventDefault();
-                      }}
                       className="group flex items-center gap-2.5 cursor-pointer"
                       title={isUrdu ? "آفیشل اکاؤنٹ پر جائیں" : "Visit official account"}
                     >
@@ -362,15 +344,6 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(e) => {
-                        const url = post.platform === 'facebook' 
-                          ? 'https://facebook.com/hasnainfoundation' 
-                          : post.platform === 'youtube' 
-                            ? 'https://www.youtube.com/@HasnainFoundation-t8n' 
-                            : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp';
-                        window.open(url, '_blank', 'noopener,noreferrer');
-                        e.preventDefault();
-                      }}
                       className="p-1.5 rounded-lg bg-white border border-slate-200/70 shadow-2xs hover:border-emerald-500 hover:bg-emerald-50/10 transition-all cursor-pointer block"
                       title={isUrdu ? `${post.platform} آفیشل پیج` : `Open official ${post.platform}`}
                     >
@@ -441,11 +414,6 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
                     href={post.platform === 'facebook' ? 'https://facebook.com/hasnainfoundation' : post.platform === 'youtube' ? 'https://www.youtube.com/@HasnainFoundation-t8n' : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp'} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    onClick={(e) => {
-                      const url = post.platform === 'facebook' ? 'https://facebook.com/hasnainfoundation' : post.platform === 'youtube' ? 'https://www.youtube.com/@HasnainFoundation-t8n' : 'https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp';
-                      window.open(url, '_blank', 'noopener,noreferrer');
-                      e.preventDefault();
-                    }}
                     className="p-1 hover:text-blue-600 transition-colors animate-pulse"
                     title="View Original"
                   >
@@ -473,10 +441,6 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
           href="https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp"
           target="_blank"
           rel="noopener noreferrer"
-          onClick={(e) => {
-            window.open("https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp", '_blank', 'noopener,noreferrer');
-            e.preventDefault();
-          }}
           className="mt-12 p-5 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-amber-500/5 rounded-2xl border border-pink-500/10 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-xs relative overflow-hidden group block hover:shadow-md cursor-pointer transition-all duration-300"
         >
           <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/5 rounded-full blur-2xl pointer-events-none translate-x-10 -translate-y-10 group-hover:bg-pink-500/10 transition-colors duration-300" />
