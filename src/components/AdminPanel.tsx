@@ -13,6 +13,7 @@ import {
   Sparkles, LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getHasnainFoundationLink } from '../lib/utils';
 import DuroodBank from './DuroodBank';
 import MemberVolunteerCRM from './MemberVolunteerCRM';
 import { 
@@ -133,19 +134,19 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
         'x-admin-passcode': passcode.trim() 
       };
       const [aptRes, donRes, subRes, compRes, actRes, membersRes, volunteersRes] = await Promise.all([
-        fetch('/api/appointments', { headers }).then(r => r.json()),
-        fetch('/api/donations', { headers }).then(r => r.json()),
-        fetch('/api/subscriptions', { headers }).then(r => r.json()),
+        fetch('/api/appointments', { headers }).then(r => r.json()).catch(() => ({ success: false, appointments: [] })),
+        fetch('/api/donations', { headers }).then(r => r.json()).catch(() => ({ success: false, donations: [] })),
+        fetch('/api/subscriptions', { headers }).then(r => r.json()).catch(() => ({ success: false, subscribers: [] })),
         fetch('/api/complaints', { headers }).then(r => r.json()).catch(() => ({ success: false, complaints: [] })),
-        fetchActivitiesFromSupabase(),
-        fetchMembersFromSupabase(),
-        fetchVolunteersFromSupabase()
+        fetchActivitiesFromSupabase().catch(() => []),
+        fetchMembersFromSupabase().catch(() => []),
+        fetchVolunteersFromSupabase().catch(() => [])
       ]);
 
-      if (aptRes.success) setAppointments(aptRes.appointments);
-      if (donRes.success) setDonations(donRes.donations);
-      if (subRes.success) setSubscribers(subRes.subscribers);
-      if (compRes.success) setComplaints(compRes.complaints);
+      if (aptRes && aptRes.success) setAppointments(aptRes.appointments || []);
+      if (donRes && donRes.success) setDonations(donRes.donations || []);
+      if (subRes && subRes.success) setSubscribers(subRes.subscribers || []);
+      if (compRes && compRes.success) setComplaints(compRes.complaints || []);
       if (actRes) setActivitiesList(actRes);
       if (membersRes) setMembers(membersRes);
       if (volunteersRes) setVolunteers(volunteersRes);
@@ -1438,14 +1439,25 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                                   )}
                                 </div>
 
-                                {/* Simulated scannable QR Code */}
-                                <div className="border border-slate-150 rounded-xl p-3 flex items-center gap-3 bg-slate-50/50">
-                                  <div className="w-12 h-12 bg-white border border-slate-200 rounded flex items-center justify-center shrink-0 font-mono text-[6px] font-bold text-center leading-tight select-none">
-                                    [QR CODE] <br /> VERIFIED <br /> HF-REC-{selectedDonation.id}
-                                  </div>
+                                {/* Real scannable QR Code */}
+                                <div className="border border-slate-200 rounded-xl p-3 flex items-center gap-3 bg-white shadow-sm">
+                                  <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(selectedDonation.id, 'receipt'))}`}
+                                    alt="Audit QR Code"
+                                    className="w-14 h-14 p-1 border border-slate-200 bg-white rounded-lg shrink-0"
+                                    referrerPolicy="no-referrer"
+                                  />
                                   <div className="text-[11px] text-slate-500 leading-relaxed">
-                                    <p className="font-extrabold text-slate-700">Audit Reference QR Code</p>
-                                    <p className="text-[10px]">Scannable by public. Verifies that this receipt is signed off on the blockchain ledger of Hasnain Foundation.</p>
+                                    <p className="font-extrabold text-slate-800">Hasnain Foundation Scannable Audit QR</p>
+                                    <p className="text-[10px] text-slate-500">Scannable by public. Verifies that this receipt is signed off on the official ledger of Hasnain Foundation.</p>
+                                    <a
+                                      href={getHasnainFoundationLink(selectedDonation.id, 'receipt')}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[10px] text-emerald-700 font-mono font-bold hover:underline flex items-center gap-1 mt-0.5"
+                                    >
+                                      <span>Verify: {selectedDonation.id}</span>
+                                    </a>
                                   </div>
                                 </div>
 

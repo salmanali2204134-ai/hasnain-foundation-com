@@ -24,7 +24,11 @@ import {
   CreditCard, 
   PhoneCall,
   Heart,
-  Sparkles
+  Sparkles,
+  Facebook,
+  Youtube,
+  Instagram,
+  MessageCircle
 } from 'lucide-react';
 
 interface RightSidebarProps {
@@ -111,19 +115,60 @@ export default function RightSidebar({ lang, activeSection, setActiveSection }: 
         </nav>
       </div>
 
-      {/* Decorative footer inside sidebar */}
-      <div className={`mt-8 pt-4 border-t border-slate-100 flex flex-col gap-3 px-2 ${isUrdu ? 'text-right' : 'text-left'}`}>
+      {/* Decorative footer & Social Media links inside sidebar */}
+      <div className={`mt-6 pt-4 border-t border-slate-100 flex flex-col gap-3 px-2 ${isUrdu ? 'text-right' : 'text-left'}`}>
+        
+        {/* Social media icons strip */}
+        <div>
+          <span className={`text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-1.5 ${isUrdu ? 'font-urdu' : ''}`}>
+            {isUrdu ? 'رابطہ و سوشل میڈیا:' : 'Official Socials:'}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <a
+              href="https://facebook.com/hasnainfoundation"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors border border-blue-100"
+              title="Facebook"
+            >
+              <Facebook className="w-3.5 h-3.5" />
+            </a>
+            <a
+              href="https://wa.me/923180202424"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors border border-emerald-100"
+              title="WhatsApp"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+            </a>
+            <a
+              href="https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg bg-pink-50 hover:bg-pink-100 text-pink-600 transition-colors border border-pink-100"
+              title="Instagram"
+            >
+              <Instagram className="w-3.5 h-3.5" />
+            </a>
+            <a
+              href="https://www.youtube.com/@HasnainFoundation-t8n"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors border border-red-100"
+              title="YouTube"
+            >
+              <Youtube className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
+
         <div className={`flex items-center gap-2 ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
           <span className="text-[11px] font-bold text-slate-500">
             {isUrdu ? 'سسٹم فعال ہے' : 'All Services Active'}
           </span>
         </div>
-        <p className={`text-[10px] text-slate-400 font-medium leading-relaxed ${isUrdu ? 'font-urdu' : ''}`}>
-          {isUrdu 
-            ? 'حسنین فاؤنڈیشن دکھی انسانیت کی خدمت کے لیے ہمہ وقت کوشاں ہے۔'
-            : 'Striving for excellence in healthcare, education, and spiritual well-being.'}
-        </p>
       </div>
     </aside>
   );

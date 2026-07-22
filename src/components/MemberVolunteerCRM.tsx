@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Users, UserCheck, Search, RefreshCw, Shield, Sparkles } from 'lucide-react';
 import Logo from './Logo';
+import { getHasnainFoundationLink } from '../lib/utils';
 
 interface MemberVolunteerCRMProps {
   lang: 'en' | 'ur';
@@ -13,7 +14,7 @@ interface MemberVolunteerCRMProps {
   onUpdateVolunteer: (volunteerId: string, updatedFields: any) => Promise<void>;
   onDeleteVolunteer: (volunteerId: string) => Promise<void>;
   setSelectedDocument: (doc: { name: string; url: string; type: string } | null) => void;
-  loadDashboardData: () => void;
+  loadDashboardData: () => Promise<void> | void;
 }
 
 export default function MemberVolunteerCRM({
@@ -44,8 +45,45 @@ export default function MemberVolunteerCRM({
   const [volunteerNotes, setVolunteerNotes] = useState('');
   const [volunteerStatusState, setVolunteerStatusState] = useState('pending');
 
+  // Reload States
+  const [isReloading, setIsReloading] = useState(false);
+  const [reloadMessage, setReloadMessage] = useState<string | null>(null);
+
+  const handleReload = async () => {
+    setIsReloading(true);
+    setReloadMessage(null);
+    try {
+      if (loadDashboardData) {
+        await loadDashboardData();
+      }
+      setReloadMessage(
+        isUrdu 
+          ? 'ڈیٹا بیس کامیابی سے ریفریش کر دیا گیا ہے۔' 
+          : 'CRM database reloaded successfully from server & local cache.'
+      );
+      setTimeout(() => setReloadMessage(null), 3500);
+    } catch (err) {
+      console.error('Reload failed:', err);
+      setReloadMessage(
+        isUrdu 
+          ? 'ریفریش کرنے میں ناکامی۔ دوبارہ کوشش کریں۔' 
+          : 'Failed to reload CRM database.'
+      );
+      setTimeout(() => setReloadMessage(null), 3500);
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
+      {reloadMessage && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm animate-fade-in">
+          <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{reloadMessage}</span>
+        </div>
+      )}
+
       {/* ==========================================
           TAB: MEMBERS PANEL & CRM
           ========================================== */}
@@ -62,11 +100,16 @@ export default function MemberVolunteerCRM({
               </p>
             </div>
             <button
-              onClick={loadDashboardData}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+              onClick={handleReload}
+              disabled={isReloading}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>{isUrdu ? 'ریفریش' : 'Reload'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${isReloading ? 'animate-spin text-emerald-700' : ''}`} />
+              <span>
+                {isReloading 
+                  ? (isUrdu ? 'ریفریش ہو رہا ہے...' : 'Reloading...') 
+                  : (isUrdu ? 'ریفریش ڈیٹا' : 'Reload')}
+              </span>
             </button>
           </div>
 
@@ -604,7 +647,7 @@ export default function MemberVolunteerCRM({
                             </div>
                             <div className="bg-white p-0.5 rounded border border-slate-200">
                               <img
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '?verifyMember=' + selectedMember.id)}`}
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(selectedMember.id, 'member'))}`}
                                 alt="QR"
                                 className="w-6 h-6 object-contain"
                               />
@@ -663,11 +706,16 @@ export default function MemberVolunteerCRM({
               </p>
             </div>
             <button
-              onClick={loadDashboardData}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+              onClick={handleReload}
+              disabled={isReloading}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>{isUrdu ? 'ریفریش' : 'Reload'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${isReloading ? 'animate-spin text-emerald-700' : ''}`} />
+              <span>
+                {isReloading 
+                  ? (isUrdu ? 'ریفریش ہو رہا ہے...' : 'Reloading...') 
+                  : (isUrdu ? 'ریفریش ڈیٹا' : 'Reload')}
+              </span>
             </button>
           </div>
 
@@ -1192,7 +1240,7 @@ export default function MemberVolunteerCRM({
                             </div>
                             <div className="bg-white p-0.5 rounded border border-slate-200">
                               <img
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '?verifyMember=' + selectedVolunteer.id)}`}
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(selectedVolunteer.id, 'member'))}`}
                                 alt="QR"
                                 className="w-6 h-6 object-contain"
                               />

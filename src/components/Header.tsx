@@ -7,7 +7,21 @@ import React, { useState, useEffect } from 'react';
 import { Language } from '../types';
 import { DICTIONARY } from '../data';
 import Logo from './Logo';
-import { Menu, X, Globe, Heart, Phone, Lock } from 'lucide-react';
+import { Menu, X, Globe, Heart, Phone, Lock, Facebook, Youtube, Instagram, MessageCircle } from 'lucide-react';
+
+const TiktokIcon = ({ className }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
 import { motion, AnimatePresence } from 'motion/react';
 
 interface HeaderProps {
@@ -61,10 +75,12 @@ export default function Header({ lang, setLang, activeSection, setActiveSection,
 
   return (
     <>
-      {/* Top micro-bar for direct emergency/volunteer support */}
+      {/* Top micro-bar for direct emergency/volunteer support & top-corner social links */}
       <div className="bg-slate-900 text-slate-300 text-[11px] py-1.5 px-4 font-sans border-b border-slate-800">
-        <div className={`max-w-7xl mx-auto flex justify-between items-center ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
-          <div className={`flex gap-4 items-center ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div className={`max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2 ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
+          
+          {/* Phone & Helpline */}
+          <div className={`flex gap-3 sm:gap-4 items-center ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
             <span className="flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-emerald-500" />
               <span className="font-mono">03180202424</span>
@@ -73,18 +89,73 @@ export default function Header({ lang, setLang, activeSection, setActiveSection,
               {isUrdu ? "رجسٹرڈ غیر منافع بخش فلاحی ادارہ" : "Registered Non-Profit Welfare Organization"}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* TOP CORNER DIRECT SOCIAL MEDIA LINKS */}
+          <div className={`flex items-center gap-1.5 sm:gap-2 ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden lg:inline mr-1">
+              {isUrdu ? 'سوشل میڈیا:' : 'Official Socials:'}
+            </span>
+
+            {/* Facebook */}
+            <a
+              href="https://facebook.com/hasnainfoundation"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1 sm:px-2 sm:py-0.5 rounded bg-slate-800 hover:bg-blue-600/30 text-slate-300 hover:text-blue-400 border border-slate-700/80 hover:border-blue-500/60 transition-all flex items-center gap-1 text-[10px] font-bold cursor-pointer"
+              title="Facebook Page"
+            >
+              <Facebook className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <span className="hidden md:inline">Facebook</span>
+            </a>
+
+            {/* WhatsApp */}
+            <a
+              href="https://wa.me/923180202424"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1 sm:px-2 sm:py-0.5 rounded bg-slate-800 hover:bg-emerald-600/30 text-slate-300 hover:text-emerald-400 border border-slate-700/80 hover:border-emerald-500/60 transition-all flex items-center gap-1 text-[10px] font-bold cursor-pointer"
+              title="WhatsApp Channel & Helpline"
+            >
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span className="hidden md:inline">WhatsApp</span>
+            </a>
+
+            {/* Instagram */}
+            <a
+              href="https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1 sm:px-2 sm:py-0.5 rounded bg-slate-800 hover:bg-pink-600/30 text-slate-300 hover:text-pink-400 border border-slate-700/80 hover:border-pink-500/60 transition-all flex items-center gap-1 text-[10px] font-bold cursor-pointer"
+              title="Instagram"
+            >
+              <Instagram className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+              <span className="hidden md:inline">Instagram</span>
+            </a>
+
+            {/* YouTube */}
+            <a
+              href="https://www.youtube.com/@HasnainFoundation-t8n"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1 sm:px-2 sm:py-0.5 rounded bg-slate-800 hover:bg-red-600/30 text-slate-300 hover:text-red-400 border border-slate-700/80 hover:border-red-500/60 transition-all flex items-center gap-1 text-[10px] font-bold cursor-pointer"
+              title="YouTube Channel"
+            >
+              <Youtube className="w-3.5 h-3.5 text-red-400 shrink-0" />
+              <span className="hidden md:inline">YouTube</span>
+            </a>
+          </div>
+
+          {/* Hanafi Prayer Times quick link */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => handleNavClick('prayer-times')}
               className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700/80 text-emerald-400 hover:text-emerald-300 text-[10px] font-extrabold cursor-pointer transition-colors"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>{isUrdu ? "اوقاتِ نماز (حنفی)" : "Hanafi Prayer Times"}</span>
+              <span>{isUrdu ? "اوقاتِ نماز" : "Prayer Times"}</span>
             </button>
-            <span className="hidden md:inline opacity-90">
-              {isUrdu ? "جامع مسجد عبدالقادر جیلانی، کراچی" : "Jamia Masjid Abdul Qadir Jilani, Surjani Town, Karachi"}
-            </span>
           </div>
+
         </div>
       </div>
 
@@ -170,6 +241,51 @@ export default function Header({ lang, setLang, activeSection, setActiveSection,
               className="lg:hidden bg-white border-t border-slate-100 overflow-hidden shadow-sm"
             >
               <div className="px-4 py-4 space-y-1">
+                {/* Mobile Top Social Bar */}
+                <div className="mb-3 pb-3 border-b border-slate-100">
+                  <span className={`block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-2 ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                    {isUrdu ? 'سوشل میڈیا لنکس (براہ راست وزٹ کریں)' : 'Official Social Media Channels'}
+                  </span>
+                  <div className="grid grid-cols-4 gap-2">
+                    <a
+                      href="https://facebook.com/hasnainfoundation"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors border border-blue-200"
+                    >
+                      <Facebook className="w-5 h-5 text-blue-600 mb-0.5" />
+                      <span className="text-[10px] font-bold">Facebook</span>
+                    </a>
+                    <a
+                      href="https://wa.me/923180202424"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition-colors border border-emerald-200"
+                    >
+                      <MessageCircle className="w-5 h-5 text-emerald-600 mb-0.5" />
+                      <span className="text-[10px] font-bold">WhatsApp</span>
+                    </a>
+                    <a
+                      href="https://www.instagram.com/hasnainfoundation?igsh=ZWtrdHA3a3I1Mndp"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 transition-colors border border-pink-200"
+                    >
+                      <Instagram className="w-5 h-5 text-pink-600 mb-0.5" />
+                      <span className="text-[10px] font-bold">Instagram</span>
+                    </a>
+                    <a
+                      href="https://www.youtube.com/@HasnainFoundation-t8n"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 transition-colors border border-red-200"
+                    >
+                      <Youtube className="w-5 h-5 text-red-600 mb-0.5" />
+                      <span className="text-[10px] font-bold">YouTube</span>
+                    </a>
+                  </div>
+                </div>
+
                 {navItems.map((item) => (
                   <button
                     key={item.id}

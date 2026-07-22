@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, submitMemberRecordToSupabase } from '../lib/supabase';
+import { getHasnainFoundationLink } from '../lib/utils';
 import Logo from './Logo';
 
 interface PortalSystemProps {
@@ -1466,7 +1467,7 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
                       {/* Secure QR Code simulation */}
                       <div className="bg-white p-0.5 rounded-lg border border-slate-200">
                         <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '?verifyMember=' + currentMember.id)}`} 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(currentMember.id, 'member'))}`} 
                           alt="QR Verification" 
                           className="w-8 h-8 object-contain" 
                         />
@@ -1774,7 +1775,7 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
                       
                       <div className="bg-white p-0.5 rounded-lg border border-slate-200">
                         <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '?verifyMember=' + currentVolunteer.id)}`} 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(currentVolunteer.id, 'member'))}`} 
                           alt="QR Verification" 
                           className="w-8 h-8 object-contain" 
                         />

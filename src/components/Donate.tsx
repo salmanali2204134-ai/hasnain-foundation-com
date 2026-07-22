@@ -9,6 +9,7 @@ import { DICTIONARY } from '../data';
 import DonationTracker from './DonationTracker';
 import { Landmark, Smartphone, Copy, Check, Send, Award, Heart, Sparkles, AlertCircle, Printer, Download, Share2, ExternalLink, QrCode, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getHasnainFoundationLink } from '../lib/utils';
 
 interface DonateProps {
   lang: Language;
@@ -147,14 +148,14 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
 
   const triggerWhatsAppShare = () => {
     if (!receipt) return;
-    const verifyUrl = `${window.location.origin}/?verify=${receipt.id}`;
+    const verifyUrl = getHasnainFoundationLink(receipt.id, 'receipt');
     const textMsg = `*Hasnain Foundation - Official Donation Receipt* 🌟\n\nDear *${receipt.donorName}*,\nThank you for your generous contribution of *PKR ${receipt.amount.toLocaleString()}* towards *${formatPurpose(receipt.purpose)}*.\n\n*Receipt details:*\n- *Receipt No:* ${receipt.id}\n- *Transaction ID:* ${receipt.transactionId}\n- *Date:* ${receipt.donationDate} (${receipt.donationTime || ''})\n- *Status:* ${receipt.status.toUpperCase()}\n\n*Verify authenticity online:*\n${verifyUrl}\n\nMay Allah reward you abundantly. Ameen.\nOfficial Email: hasnainfoundation225@gmail.com`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textMsg)}`, '_blank');
   };
 
   const triggerEmailShare = () => {
     if (!receipt) return;
-    const verifyUrl = `${window.location.origin}/?verify=${receipt.id}`;
+    const verifyUrl = getHasnainFoundationLink(receipt.id, 'receipt');
     const subject = `Official Donation Receipt - Hasnain Foundation (${receipt.id})`;
     const bodyText = `Dear ${receipt.donorName},\n\nAssalam-o-Alaikum,\n\nThank you for your generous donation to the Hasnain Foundation.\n\nReceipt Details:\n-------------------------------\nReceipt ID: ${receipt.id}\nAmount: PKR ${receipt.amount.toLocaleString()}\nCause: ${formatPurpose(receipt.purpose)}\nDate: ${receipt.donationDate}\nTransaction Ref: ${receipt.transactionId}\n-------------------------------\n\nVerify this receipt online here:\n${verifyUrl}\n\nOfficial Email: hasnainfoundation225@gmail.com\nHasnain Foundation Trust\nKarachi, Pakistan`;
     window.open(`mailto:${receipt.email || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`, '_blank');
@@ -777,14 +778,23 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
                       {/* QR verification scannable wrapper */}
                       <div className="border-t border-slate-100 pt-4 flex flex-col items-center justify-center relative z-10">
                         <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(window.location.origin + '/?verify=' + receipt?.id)}`}
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(receipt?.id, 'receipt'))}`}
                           alt="Verification QR Code"
-                          className="w-24 h-24 border border-slate-200 p-1.5 bg-white rounded-lg mb-2"
+                          className="w-28 h-28 border-2 border-emerald-600/30 p-1.5 bg-white rounded-xl mb-2 shadow-sm"
                           referrerPolicy="no-referrer"
                         />
-                        <p className="text-[9px] text-slate-400 uppercase tracking-wider font-mono">
-                          {isUrdu ? 'رسید کی تصدیق کے لیے اسکین کریں' : 'Scan to Verify Authenticity'}
+                        <p className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider font-mono">
+                          {isUrdu ? 'رسید کی تصدیق کے لیے اسکین کریں' : 'Hasnain Foundation Scannable QR'}
                         </p>
+                        <a
+                          href={getHasnainFoundationLink(receipt?.id, 'receipt')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 text-[10px] text-emerald-700 hover:underline font-mono flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>{getHasnainFoundationLink(receipt?.id, 'receipt')}</span>
+                        </a>
                       </div>
                     </div>
 

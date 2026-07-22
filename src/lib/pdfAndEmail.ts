@@ -189,14 +189,14 @@ export function generateReceiptPdf(donation: DonationReceipt): Promise<Buffer> {
       const footerY = pageHeight - 145;
       
       // Signature lines
-      doc.moveTo(60, footerY).lineTo(200, footerY).lineWidth(0.8).stroke('#cbd5e1');
-      doc.moveTo(pageWidth - 200, footerY).lineTo(pageWidth - 60, footerY).lineWidth(0.8).stroke('#cbd5e1');
+      doc.moveTo(60, footerY).lineTo(180, footerY).lineWidth(0.8).stroke('#cbd5e1');
+      doc.moveTo(pageWidth - 180, footerY).lineTo(pageWidth - 60, footerY).lineWidth(0.8).stroke('#cbd5e1');
 
-      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#334155').text('Verified Registrar', 60, footerY + 8, { width: 140, align: 'center' });
-      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Hasnain Foundation', 60, footerY + 18, { width: 140, align: 'center' });
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#334155').text('Verified Registrar', 60, footerY + 8, { width: 120, align: 'center' });
+      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Hasnain Foundation', 60, footerY + 18, { width: 120, align: 'center' });
 
-      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#334155').text('Board of Trustees', pageWidth - 200, footerY + 8, { width: 140, align: 'center' });
-      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Authorized Authority', pageWidth - 200, footerY + 18, { width: 140, align: 'center' });
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#334155').text('Board of Trustees', pageWidth - 180, footerY + 8, { width: 120, align: 'center' });
+      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Authorized Authority', pageWidth - 180, footerY + 18, { width: 120, align: 'center' });
 
       // 10. FOOTER NOTE
       doc.font('Helvetica').fontSize(8).fillColor('#64748b').text(
@@ -213,7 +213,26 @@ export function generateReceiptPdf(donation: DonationReceipt): Promise<Buffer> {
         { align: 'center', width: pageWidth - 80, lineGap: 3 }
       );
 
-      doc.end();
+      // Embed Official Hasnain Foundation QR Code in center of footer
+      const verifyLink = `https://hasnain-foundation-com.ai.studio/?verify=${encodeURIComponent(donation.id)}`;
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyLink)}`;
+
+      fetch(qrApiUrl)
+        .then((r) => r.arrayBuffer())
+        .then((buf) => {
+          try {
+            const imageBuffer = Buffer.from(buf);
+            doc.image(imageBuffer, (pageWidth / 2) - 30, footerY - 45, { width: 60, height: 60 });
+            doc.font('Helvetica-Bold').fontSize(6.5).fillColor('#059669').text('SCAN TO VERIFY', (pageWidth / 2) - 45, footerY + 18, { width: 90, align: 'center' });
+          } catch (e) {
+            console.warn('QR image render error:', e);
+          }
+          doc.end();
+        })
+        .catch((err) => {
+          console.warn('QR code fetch failed for PDF:', err);
+          doc.end();
+        });
     } catch (err) {
       reject(err);
     }
