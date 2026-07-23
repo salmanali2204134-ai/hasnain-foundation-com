@@ -13,7 +13,7 @@ import educationProjectImg from './assets/images/school_children_1784344168521.j
 import communityProjectImg from './assets/images/orphanage_children_1784344188831.jpg';
 import futureProjectImg from './assets/images/clinic_children_1784344209945.jpg';
 import aboutVolunteersImg from './assets/images/about_volunteers_1784228540277.jpg';
-import waterProjectImg from './assets/images/water_filtration_plant_1784481328361.jpg';
+import waterProjectImg from './assets/images/clean_water_ro_plant_1784810459997.jpg';
 
 // Events and assemblies
 import karbalaEventImg from './assets/images/karbala_conference_1784228487695.jpg';
