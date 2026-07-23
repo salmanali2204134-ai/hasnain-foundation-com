@@ -147,7 +147,26 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
       ]);
 
       if (aptRes && aptRes.success) setAppointments(aptRes.appointments || []);
-      if (donRes && donRes.success) setDonations(donRes.donations || []);
+      if (donRes && donRes.success) {
+        let serverDons = donRes.donations || [];
+        try {
+          const localStr = localStorage.getItem('hf_local_donations');
+          if (localStr) {
+            const localDons = JSON.parse(localStr);
+            if (Array.isArray(localDons)) {
+              const existingIds = new Set(serverDons.map((d: any) => d.id));
+              localDons.forEach((ld: any) => {
+                if (!existingIds.has(ld.id)) {
+                  serverDons.unshift(ld);
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Local storage merge error:', e);
+        }
+        setDonations(serverDons);
+      }
       if (subRes && subRes.success) setSubscribers(subRes.subscribers || []);
       if (compRes && compRes.success) setComplaints(compRes.complaints || []);
       if (actRes) setActivitiesList(actRes);
@@ -1412,7 +1431,7 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                             <table className="w-full text-xs text-left">
                               <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold text-[10px] uppercase tracking-wider">
                                 <tr>
-                                  <th className="p-3 px-4">Benefactor / Account</th>
+                                  <th className="p-3 px-4">Receipt # & Benefactor</th>
                                   <th className="p-3">Amount</th>
                                   <th className="p-3 font-mono">TXN ID</th>
                                   <th className="p-3 text-center">Audit</th>
@@ -1453,7 +1472,12 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                                         }`}
                                       >
                                         <td className="p-3 px-4">
-                                          <div className="font-extrabold text-slate-900">{don.donorName}</div>
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                             <span className="text-[10px] font-mono font-black text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200">
+                                               {don.id}
+                                             </span>
+                                             <span className="font-extrabold text-slate-900">{don.donorName}</span>
+                                           </div>
                                           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                                             {/* Category Badge */}
                                             {donCat === 'zakat' && (

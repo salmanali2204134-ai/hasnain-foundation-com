@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Language } from '../types';
 import { 
   CITIES_LIST, 
@@ -31,7 +31,11 @@ import {
   ChevronDown,
   ChevronUp,
   Layers,
-  Check
+  Check,
+  Play,
+  Pause,
+  Radio,
+  Music
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -54,8 +58,53 @@ export default function PrayerTimes({ lang, onOpenDonate }: PrayerTimesProps) {
   const [lastNotifiedPrayer, setLastNotifiedPrayer] = useState<string>('');
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
   
+  // Show only current active prayer by default, expand to all when requested
+  const [showAllPrayers, setShowAllPrayers] = useState<boolean>(false);
+
+  // Live Azan sound playback state
+  const [isPlayingAzan, setIsPlayingAzan] = useState<boolean>(false);
+  const azanAudioRef = useRef<HTMLAudioElement | null>(null);
+
   // Space-saving toggle for general Quranic Verses & Hadith Warnings block
   const [showGeneralVerses, setShowGeneralVerses] = useState<boolean>(false);
+
+  // Toggle Azan audio playback safely
+  const toggleAzanPlayback = () => {
+    if (isPlayingAzan) {
+      if (azanAudioRef.current) {
+        azanAudioRef.current.pause();
+        azanAudioRef.current.currentTime = 0;
+      }
+      setIsPlayingAzan(false);
+    } else {
+      if (!azanAudioRef.current) {
+        // High quality authentic Azan sound stream
+        const audio = new Audio('https://cdn.islamicfinder.org/audio/adhan/makkah.mp3');
+        audio.onended = () => setIsPlayingAzan(false);
+        audio.onerror = () => {
+          playPrayerChime();
+          setIsPlayingAzan(false);
+        };
+        azanAudioRef.current = audio;
+      }
+      azanAudioRef.current.play().then(() => {
+        setIsPlayingAzan(true);
+      }).catch((e) => {
+        console.log('Azan audio play blocked or failed, using chime fallback:', e);
+        playPrayerChime();
+        setIsPlayingAzan(false);
+      });
+    }
+  };
+
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      if (azanAudioRef.current) {
+        azanAudioRef.current.pause();
+      }
+    };
+  }, []);
 
   // Live timer tick every second
   useEffect(() => {
@@ -299,25 +348,44 @@ export default function PrayerTimes({ lang, onOpenDonate }: PrayerTimesProps) {
               </div>
             </div>
 
-            {/* Countdown Box */}
-            <div className="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-center min-w-[200px] w-full md:w-auto">
-              <span className="text-[10px] font-mono text-slate-400 uppercase block">
-                {isUrdu ? `اگلی نماز (${nextPrayer.nameUr}) میں باقی وقت:` : `Next Prayer (${nextPrayer.nameEn}) in:`}
-              </span>
-              <span className="text-base sm:text-lg font-mono font-black text-amber-400 tracking-wider">
-                {timeRemainingStr}
-              </span>
+            {/* Right Side: Azan Audio Play Button & Countdown Box */}
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+              {/* Play Azan Audio Button */}
+              <button
+                onClick={toggleAzanPlayback}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer border shadow-md shrink-0 active:scale-95 ${
+                  isPlayingAzan
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold animate-pulse'
+                    : 'bg-emerald-900/90 hover:bg-emerald-800 text-emerald-200 border-emerald-600/80'
+                }`}
+                title={isUrdu ? 'اذانِ پاک سنیں' : 'Listen to Azan'}
+              >
+                {isPlayingAzan ? <Pause className="w-4 h-4 fill-current text-slate-950" /> : <Play className="w-4 h-4 fill-current text-amber-400" />}
+                <span>{isPlayingAzan ? (isUrdu ? 'اذان روکے' : 'Stop Azan') : (isUrdu ? 'اذانِ پاک سنیں 🔊' : 'Listen Azan 🔊')}</span>
+              </button>
+
+              {/* Countdown Box */}
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-center min-w-[180px] grow md:grow-0">
+                <span className="text-[10px] font-mono text-slate-400 uppercase block">
+                  {isUrdu ? `اگلی نماز (${nextPrayer.nameUr}) میں باقی وقت:` : `Next Prayer (${nextPrayer.nameEn}) in:`}
+                </span>
+                <span className="text-base sm:text-lg font-mono font-black text-amber-400 tracking-wider">
+                  {timeRemainingStr}
+                </span>
+              </div>
             </div>
 
           </div>
         </div>
 
-        {/* 5 PRAYER BUTTONS GRID (Fajr, Dhuhr, Asr, Maghrib, Isha) */}
+        {/* 5 PRAYER BUTTONS GRID (Showing current active prayer by default, expandable to all 5) */}
         <div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
             <div>
               <h3 className={`text-sm font-extrabold uppercase tracking-wider text-slate-300 ${isUrdu ? 'font-urdu text-right' : 'font-sans'}`}>
-                {isUrdu ? 'پنجگانہ نماز کے اوقا ت' : '5 Daily Prayer Timings'}
+                {showAllPrayers 
+                  ? (isUrdu ? 'پنجگانہ نماز کے تمام اوقات (5 اوقات)' : 'All 5 Daily Prayer Timings') 
+                  : (isUrdu ? 'موجودہ نماز کا وقت (باقیا تمام اوقات دیکھنے کے لیے نیچے بٹن دبا ئیں)' : 'Current Active Prayer Timing')}
               </h3>
               <p className={`text-xs text-amber-300 font-bold mt-0.5 flex items-center gap-1 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
                 <span>✨ {isUrdu ? 'کسی بھی نماز پر کلک کریں: متعلقہ قرآنی آیات، احادیث، اور رکعات کی تفصیلات دیکھنے کے لیے 👆' : 'Tap any prayer card below to view Quranic Verses, Ahadith & Rakats 👆'}</span>
@@ -329,8 +397,8 @@ export default function PrayerTimes({ lang, onOpenDonate }: PrayerTimesProps) {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-            {prayers.map((prayer) => {
+          <div className={`grid gap-3.5 ${showAllPrayers ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5' : 'grid-cols-1 max-w-xl mx-auto'}`}>
+            {(showAllPrayers ? prayers : prayers.filter(p => p.id === currentActivePrayerId)).map((prayer) => {
               const isActive = prayer.id === currentActivePrayerId;
 
               return (
@@ -417,6 +485,22 @@ export default function PrayerTimes({ lang, onOpenDonate }: PrayerTimesProps) {
                 </motion.button>
               );
             })}
+          </div>
+
+          {/* Toggle All Prayer Times Button */}
+          <div className="mt-5 text-center">
+            <button
+              onClick={() => setShowAllPrayers(!showAllPrayers)}
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-800 to-teal-800 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs sm:text-sm border border-emerald-500/60 shadow-xl cursor-pointer transition-all active:scale-95"
+            >
+              <Layers className="w-4 h-4 text-amber-400" />
+              <span>
+                {showAllPrayers
+                  ? (isUrdu ? 'صرف موجودہ نماز کا وقت دیکھیں 👆' : 'Show Current Prayer Only 👆')
+                  : (isUrdu ? 'تمام 5 نمازوں کے اوقات دیکھیں (فجر، ظہر، عصر، مغرب، عشاء) 👇' : 'Show All 5 Prayer Times (Fajr, Dhuhr, Asr, Maghrib, Isha) 👇')}
+              </span>
+              {showAllPrayers ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4 animate-bounce" />}
+            </button>
           </div>
         </div>
 

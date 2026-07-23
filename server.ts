@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
@@ -389,6 +390,37 @@ You MUST return a JSON object with the following fields:
     { id: "HF-2026-000003", donorName: "Siddique Shah", email: "siddique@live.com", mobile: "03152204134", whatsapp: "03152204134", amount: 50000, paymentMethod: "SadaPay", purpose: "water", category: "fitrat", transactionId: "SP-8832910", donationDate: "2026-07-17", donationTime: "05:20:12 PM", status: "pending" }
   ];
 
+  const donationsStorePath = path.join(process.cwd(), 'receipts', 'donations_store.json');
+  const saveDonationsToDisk = () => {
+    try {
+      const receiptsDir = path.join(process.cwd(), 'receipts');
+      if (!fs.existsSync(receiptsDir)) {
+        fs.mkdirSync(receiptsDir, { recursive: true });
+      }
+      fs.writeFileSync(donationsStorePath, JSON.stringify(donations, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('Failed to save donations_store.json:', err);
+    }
+  };
+
+  const loadDonationsFromDisk = () => {
+    try {
+      if (fs.existsSync(donationsStorePath)) {
+        const raw = fs.readFileSync(donationsStorePath, 'utf-8');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            donations = parsed;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load donations_store.json:', err);
+    }
+  };
+
+  loadDonationsFromDisk();
+
   interface ComplaintRecord {
     id: string;
     name: string;
@@ -740,6 +772,7 @@ You MUST return a JSON object with the following fields:
       }
 
       donations.unshift(newDonation);
+      saveDonationsToDisk();
       res.status(201).json({ success: true, donation: newDonation, message: "Donation receipt submitted successfully!" });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
@@ -778,6 +811,7 @@ You MUST return a JSON object with the following fields:
       }
 
       donations[idx].status = status;
+      saveDonationsToDisk();
 
       // Re-generate and overwrite PDF to reflect audited status changes (e.g. Verified vs Rejected)
       try {

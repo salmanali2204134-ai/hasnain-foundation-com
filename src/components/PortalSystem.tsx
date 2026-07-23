@@ -1359,11 +1359,11 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
 
             {/* STATUS BOX */}
             {currentMember.status !== 'approved' && currentMember.status !== 'active' && (
-              <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-bold flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 shrink-0" />
+              <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-bold flex items-center gap-3 shadow-sm">
+                <AlertTriangle className="w-6 h-6 text-amber-400 shrink-0" />
                 <div>
-                  <span className="block font-black uppercase text-xs text-amber-500">{isUrdu ? 'درخواست پینڈنگ ہے' : 'Account Status: Pending Approval'}</span>
-                  <span className="opacity-80 font-normal">{isUrdu ? 'انتظامیہ آپ کا شناختی کارڈ اور ممبرشپ منظور کر رہی ہے۔ جلد مطلع کیا جائے گا۔' : 'The admin team is reviewing your documentation. The premium ID Card will activate instantly on approval.'}</span>
+                  <span className="block font-black uppercase text-xs text-amber-400">{isUrdu ? 'درخواست پینڈنگ ہے — کارڈ جاری نہیں ہوا' : 'Membership Status: Awaiting Admin Approval'}</span>
+                  <span className="opacity-90 font-normal leading-relaxed text-xs sm:text-sm">{isUrdu ? 'آپ کی ممبرشپ فارم کی درخواست مل گئی ہے۔ انتظامیہ سے منظوری ملنے کے بعد آپ کا آفیشل ممبرشپ کارڈ فعال اور ڈاون لوڈ کے لیے دستیاب ہوگا۔' : 'Your registration form has been submitted and is currently pending review by the Hasnain Foundation Admin. Your printable ID card will be unlocked as soon as the Admin approves your application.'}</span>
                 </div>
               </div>
             )}
@@ -1378,112 +1378,136 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
                   <span>{isUrdu ? 'ڈیجیٹل ممبرشپ کارڈ' : 'Premium Identity Card'}</span>
                 </h4>
 
-                {/* 4. PREMIUM FRONT & BACK ID CARD */}
-                <div className="space-y-4 max-w-sm mx-auto">
-                  {/* FRONT DESIGN */}
-                  <div id="print-area-id" className="relative w-full aspect-[1.58/1] rounded-3xl p-5 text-white overflow-hidden shadow-2xl border border-amber-500/20 select-none bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 flex flex-col justify-between">
-                    {/* Watermarks & Seals */}
-                    <div className="absolute top-0 right-0 w-44 h-44 bg-amber-500/[0.04] rounded-full blur-3xl" />
-                    <div className="absolute bottom-4 right-4 opacity-10">
-                      <Logo lang={lang} variant="emblem" className="w-24 h-24" />
+                {/* Lock Card View if Status is NOT approved or active */}
+                {currentMember.status !== 'approved' && currentMember.status !== 'active' ? (
+                  <div className="p-8 rounded-3xl bg-slate-900 border-2 border-dashed border-amber-500/40 text-center space-y-4 max-w-sm mx-auto shadow-lg">
+                    <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+                      <Lock className="w-8 h-8" />
                     </div>
-
-                    {/* Card Header */}
-                    <div className="flex justify-between items-center relative z-10 border-b border-amber-500/10 pb-2">
-                      <div className="flex items-center gap-2">
-                        <Logo lang={lang} variant="emblem" className="w-8 h-8" />
-                        <div>
-                          <h5 className="text-[10px] font-black tracking-wider text-amber-300">HASNAIN FOUNDATION</h5>
-                          <p className="text-[7px] font-bold text-slate-300 -mt-0.5">SERVICE TO HUMANITY</p>
-                        </div>
-                      </div>
-                      <span className="text-[7px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        {currentMember.membership_type.toUpperCase()} MEMBER
-                      </span>
+                    <div>
+                      <h5 className="text-base font-black text-amber-300 uppercase tracking-wide">
+                        {isUrdu ? 'کارڈ مقفل ہے (منظوری کا انتظار)' : 'Identity Card Locked'}
+                      </h5>
+                      <p className="text-xs text-slate-300 mt-2 font-medium leading-relaxed">
+                        {isUrdu 
+                          ? 'ایڈمن پینل سے منظوری کے بعد یہاں آپ کا آفیشل ڈیجیٹل شناختی کارڈ ظاہر ہو جائے گا۔' 
+                          : 'This identity card will not be issued or sent until approved by the Admin in the Admin Panel.'}
+                      </p>
                     </div>
-
-                    {/* Card Content Body */}
-                    <div className="flex gap-4 items-center my-2 relative z-10">
-                      <img 
-                        src={currentMember.profile_photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'} 
-                        alt="Face" 
-                        className="w-16 h-16 object-cover rounded-xl border border-amber-500/30 shrink-0 shadow-md bg-emerald-950" 
-                      />
-                      <div className="text-left leading-tight text-xs space-y-0.5 font-bold">
-                        <p className="text-[8px] text-slate-400 font-normal">{isUrdu ? 'نام' : 'Name'}</p>
-                        <p className="text-white text-sm font-black tracking-tight">{currentMember.full_name}</p>
-                        
-                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 font-semibold text-[8px]">
-                          <div>
-                            <span className="block text-slate-400 font-normal">{isUrdu ? 'رکنیت آئی ڈی' : 'ID Number'}</span>
-                            <span className="text-amber-300 font-mono">{currentMember.id}</span>
-                          </div>
-                          <div>
-                            <span className="block text-slate-400 font-normal">{isUrdu ? 'بلڈ گروپ' : 'Blood'}</span>
-                            <span className="text-white">{currentMember.blood_group}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Card Footer */}
-                    <div className="flex justify-between items-end relative z-10 border-t border-amber-500/10 pt-2 text-[7px] font-bold">
-                      <div className="text-left space-y-0.5">
-                        <span className="block text-[6px] text-slate-400 font-normal">{isUrdu ? 'تاریخِ تنسیخ' : 'Expiry Date'}</span>
-                        <span className="text-white font-mono">{currentMember.expiry_date}</span>
-                      </div>
-                      
-                      {/* Secure QR Code simulation */}
-                      <div className="bg-white p-0.5 rounded-lg border border-slate-200">
-                        <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(currentMember.id, 'member'))}`} 
-                          alt="QR Verification" 
-                          className="w-8 h-8 object-contain" 
-                        />
-                      </div>
+                    <div className="pt-2 border-t border-slate-800 text-[11px] font-bold text-amber-400/80">
+                      {isUrdu ? 'حسنیین فاؤنڈیشن ایڈمن سیل' : 'Status: Pending Admin Approval'}
                     </div>
                   </div>
+                ) : (
+                  <>
+                    {/* 4. PREMIUM FRONT & BACK ID CARD */}
+                    <div className="space-y-4 max-w-sm mx-auto">
+                      {/* FRONT DESIGN */}
+                      <div id="print-area-id" className="relative w-full aspect-[1.58/1] rounded-3xl p-5 text-white overflow-hidden shadow-2xl border border-amber-500/20 select-none bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 flex flex-col justify-between">
+                        {/* Watermarks & Seals */}
+                        <div className="absolute top-0 right-0 w-44 h-44 bg-amber-500/[0.04] rounded-full blur-3xl" />
+                        <div className="absolute bottom-4 right-4 opacity-10">
+                          <Logo lang={lang} variant="emblem" className="w-24 h-24" />
+                        </div>
 
-                  {/* BACK DESIGN */}
-                  <div className="relative w-full aspect-[1.58/1] rounded-3xl p-5 text-white overflow-hidden shadow-2xl border border-slate-700 bg-slate-900 flex flex-col justify-between">
-                    <div className="text-left text-[8px] space-y-2 relative z-10 font-bold leading-relaxed">
-                      <h5 className="text-amber-300 font-black tracking-wide border-b border-slate-800 pb-1.5 uppercase">{isUrdu ? 'شرائط و ضوابط' : 'Terms & Conditions'}</h5>
-                      <ul className="list-disc pl-3 text-slate-400 space-y-0.5 text-[7px]">
-                        <li>This card is non-transferable and remains the property of Hasnain Foundation.</li>
-                        <li>Spiritual treatment and guidance at our center is completely free.</li>
-                        <li>Report any financial anomalies instantly via our central integrity cell.</li>
-                      </ul>
+                        {/* Card Header */}
+                        <div className="flex justify-between items-center relative z-10 border-b border-amber-500/10 pb-2">
+                          <div className="flex items-center gap-2">
+                            <Logo lang={lang} variant="emblem" className="w-8 h-8" />
+                            <div>
+                              <h5 className="text-[10px] font-black tracking-wider text-amber-300">HASNAIN FOUNDATION</h5>
+                              <p className="text-[7px] font-bold text-slate-300 -mt-0.5">SERVICE TO HUMANITY</p>
+                            </div>
+                          </div>
+                          <span className="text-[7px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            {currentMember.membership_type.toUpperCase()} MEMBER
+                          </span>
+                        </div>
+
+                        {/* Card Content Body */}
+                        <div className="flex gap-4 items-center my-2 relative z-10">
+                          <img 
+                            src={currentMember.profile_photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'} 
+                            alt="Face" 
+                            className="w-16 h-16 object-cover rounded-xl border border-amber-500/30 shrink-0 shadow-md bg-emerald-950" 
+                          />
+                          <div className="text-left leading-tight text-xs space-y-0.5 font-bold">
+                            <p className="text-[8px] text-slate-400 font-normal">{isUrdu ? 'نام' : 'Name'}</p>
+                            <p className="text-white text-sm font-black tracking-tight">{currentMember.full_name}</p>
+                            
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 font-semibold text-[8px]">
+                              <div>
+                                <span className="block text-slate-400 font-normal">{isUrdu ? 'رکنیت آئی ڈی' : 'ID Number'}</span>
+                                <span className="text-amber-300 font-mono">{currentMember.id}</span>
+                              </div>
+                              <div>
+                                <span className="block text-slate-400 font-normal">{isUrdu ? 'بلڈ گروپ' : 'Blood'}</span>
+                                <span className="text-white">{currentMember.blood_group}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card Footer */}
+                        <div className="flex justify-between items-end relative z-10 border-t border-amber-500/10 pt-2 text-[7px] font-bold">
+                          <div className="text-left space-y-0.5">
+                            <span className="block text-[6px] text-slate-400 font-normal">{isUrdu ? 'تاریخِ تنسیخ' : 'Expiry Date'}</span>
+                            <span className="text-white font-mono">{currentMember.expiry_date}</span>
+                          </div>
+                          
+                          {/* Secure QR Code simulation */}
+                          <div className="bg-white p-0.5 rounded-lg border border-slate-200">
+                            <img 
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(currentMember.id, 'member'))}`} 
+                              alt="QR Verification" 
+                              className="w-8 h-8 object-contain" 
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* BACK DESIGN */}
+                      <div className="relative w-full aspect-[1.58/1] rounded-3xl p-5 text-white overflow-hidden shadow-2xl border border-slate-700 bg-slate-900 flex flex-col justify-between">
+                        <div className="text-left text-[8px] space-y-2 relative z-10 font-bold leading-relaxed">
+                          <h5 className="text-amber-300 font-black tracking-wide border-b border-slate-800 pb-1.5 uppercase">{isUrdu ? 'شرائط و ضوابط' : 'Terms & Conditions'}</h5>
+                          <ul className="list-disc pl-3 text-slate-400 space-y-0.5 text-[7px]">
+                            <li>This card is non-transferable and remains the property of Hasnain Foundation.</li>
+                            <li>Spiritual treatment and guidance at our center is completely free.</li>
+                            <li>Report any financial anomalies instantly via our central integrity cell.</li>
+                          </ul>
+                        </div>
+
+                        <div className="border-t border-slate-800 pt-2 flex justify-between items-center text-[7px] font-medium text-slate-400">
+                          <div>
+                            <span className="block">{isUrdu ? 'مرکزی دفتر' : 'Headquarters'}</span>
+                            <span className="text-slate-300">Surjani Town, Sector 4-B, Karachi</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="block font-mono">hasnainfoundation225@gmail.com</span>
+                            <span className="text-slate-300 font-mono">hasnain-foundation-com.ai.studio</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="border-t border-slate-800 pt-2 flex justify-between items-center text-[7px] font-medium text-slate-400">
-                      <div>
-                        <span className="block">{isUrdu ? 'مرکزی دفتر' : 'Headquarters'}</span>
-                        <span className="text-slate-300">Surjani Town, Sector 4-B, Karachi</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="block font-mono">hasnainfoundation225@gmail.com</span>
-                        <span className="text-slate-300 font-mono">hasnain-foundation-com.ai.studio</span>
-                      </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={handlePrintIDCard}
+                        className="flex-1 py-3 px-4 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Printer className="w-4 h-4" />
+                        <span>{isUrdu ? 'پرنٹ شناختی کارڈ' : 'Print ID Card'}</span>
+                      </button>
+                      <button 
+                        onClick={handleRenewalRequest}
+                        className="py-3 px-4 rounded-xl border border-slate-200 hover:border-amber-500 hover:text-amber-800 text-slate-700 font-bold text-xs bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        <span>{isUrdu ? 'درخواستِ تجدید' : 'Renew request'}</span>
+                      </button>
                     </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <button 
-                    onClick={handlePrintIDCard}
-                    className="flex-1 py-3 px-4 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>{isUrdu ? 'پرنٹ شناختی کارڈ' : 'Print ID Card'}</span>
-                  </button>
-                  <button 
-                    onClick={handleRenewalRequest}
-                    className="py-3 px-4 rounded-xl border border-slate-200 hover:border-amber-500 hover:text-amber-800 text-slate-700 font-bold text-xs bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    <span>{isUrdu ? 'درخواستِ تجدید' : 'Renew request'}</span>
-                  </button>
-                </div>
+                  </>
+                )}
               </div>
 
               {/* COL 2: LIVE METRICS & DUROOD/DONATIONS FORM */}
@@ -1692,66 +1716,87 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
                 </h4>
 
                 {/* PREMIUM ID CARD */}
-                <div className="space-y-4 max-w-sm mx-auto">
-                  {/* FRONT */}
-                  <div className="relative w-full aspect-[1.58/1] rounded-3xl p-5 text-white overflow-hidden shadow-2xl border border-amber-500/20 select-none bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 flex flex-col justify-between">
-                    <div className="absolute top-0 right-0 w-44 h-44 bg-amber-500/[0.04] rounded-full blur-3xl" />
-                    <div className="absolute bottom-4 right-4 opacity-10">
-                      <Logo lang={lang} variant="emblem" className="w-24 h-24" />
+                {currentVolunteer.status !== 'approved' && currentVolunteer.status !== 'active' ? (
+                  <div className="p-8 rounded-3xl bg-slate-900 border-2 border-dashed border-amber-500/40 text-center space-y-4 max-w-sm mx-auto shadow-lg">
+                    <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+                      <Lock className="w-8 h-8" />
                     </div>
-
-                    <div className="flex justify-between items-center relative z-10 border-b border-amber-500/10 pb-2">
-                      <div className="flex items-center gap-2">
-                        <Logo lang={lang} variant="emblem" className="w-8 h-8" />
-                        <div>
-                          <h5 className="text-[10px] font-black tracking-wider text-amber-300">HASNAIN FOUNDATION</h5>
-                          <p className="text-[7px] font-bold text-slate-300 -mt-0.5">VOLUNTEER CELL</p>
-                        </div>
+                    <div>
+                      <h5 className="text-base font-black text-amber-300 uppercase tracking-wide">
+                        {isUrdu ? 'رضاکار کارڈ مقفل ہے' : 'Volunteer Card Locked'}
+                      </h5>
+                      <p className="text-xs text-slate-300 mt-2 font-medium leading-relaxed">
+                        {isUrdu 
+                          ? 'ایڈمن سیل سے آپ کی پروفائل منظور ہونے کے بعد شناختی کارڈ کا منظر اور ڈاون لوڈ کا آپشن فعال ہو جائے گا۔' 
+                          : 'Your Volunteer Card will remain locked until your verification is approved by the Admin.'}
+                      </p>
+                    </div>
+                    <div className="pt-2 border-t border-slate-800 text-[11px] font-bold text-amber-400/80">
+                      {isUrdu ? 'حیثیت: انتظامیہ کی تصدیق کا انتظار' : 'Status: Pending Verification'}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-w-sm mx-auto">
+                    {/* FRONT */}
+                    <div className="relative w-full aspect-[1.58/1] rounded-3xl p-5 text-white overflow-hidden shadow-2xl border border-amber-500/20 select-none bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 flex flex-col justify-between">
+                      <div className="absolute top-0 right-0 w-44 h-44 bg-amber-500/[0.04] rounded-full blur-3xl" />
+                      <div className="absolute bottom-4 right-4 opacity-10">
+                        <Logo lang={lang} variant="emblem" className="w-24 h-24" />
                       </div>
-                      <span className="text-[7px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        VOLUNTEER
-                      </span>
-                    </div>
 
-                    <div className="flex gap-4 items-center my-2 relative z-10">
-                      <img 
-                        src={currentVolunteer.profile_photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'} 
-                        alt="Face" 
-                        className="w-16 h-16 object-cover rounded-xl border border-amber-500/30 shrink-0 shadow-md bg-emerald-950" 
-                      />
-                      <div className="text-left leading-tight text-xs space-y-0.5 font-bold">
-                        <p className="text-[8px] text-slate-400 font-normal">{isUrdu ? 'نام' : 'Name'}</p>
-                        <p className="text-white text-sm font-black tracking-tight">{currentVolunteer.full_name}</p>
-                        
-                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 font-semibold text-[8px]">
+                      <div className="flex justify-between items-center relative z-10 border-b border-amber-500/10 pb-2">
+                        <div className="flex items-center gap-2">
+                          <Logo lang={lang} variant="emblem" className="w-8 h-8" />
                           <div>
-                            <span className="block text-slate-400 font-normal">{isUrdu ? 'شناختی نمبر' : 'Volunteer ID'}</span>
-                            <span className="text-amber-300 font-mono">{currentVolunteer.id}</span>
-                          </div>
-                          <div>
-                            <span className="block text-slate-400 font-normal">{isUrdu ? 'بلڈ گروپ' : 'Blood'}</span>
-                            <span className="text-white">{currentVolunteer.blood_group}</span>
+                            <h5 className="text-[10px] font-black tracking-wider text-amber-300">HASNAIN FOUNDATION</h5>
+                            <p className="text-[7px] font-bold text-slate-300 -mt-0.5">VOLUNTEER CELL</p>
                           </div>
                         </div>
+                        <span className="text-[7px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          VOLUNTEER
+                        </span>
                       </div>
-                    </div>
 
-                    <div className="flex justify-between items-end relative z-10 border-t border-amber-500/10 pt-2 text-[7px] font-bold">
-                      <div className="text-left space-y-0.5">
-                        <span className="block text-[6px] text-slate-400 font-normal">{isUrdu ? 'شعبہ' : 'Department'}</span>
-                        <span className="text-white capitalize">{currentVolunteer.assigned_department}</span>
-                      </div>
-                      
-                      <div className="bg-white p-0.5 rounded-lg border border-slate-200">
+                      <div className="flex gap-4 items-center my-2 relative z-10">
                         <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(currentVolunteer.id, 'member'))}`} 
-                          alt="QR Verification" 
-                          className="w-8 h-8 object-contain" 
+                          src={currentVolunteer.profile_photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'} 
+                          alt="Face" 
+                          className="w-16 h-16 object-cover rounded-xl border border-amber-500/30 shrink-0 shadow-md bg-emerald-950" 
                         />
+                        <div className="text-left leading-tight text-xs space-y-0.5 font-bold">
+                          <p className="text-[8px] text-slate-400 font-normal">{isUrdu ? 'نام' : 'Name'}</p>
+                          <p className="text-white text-sm font-black tracking-tight">{currentVolunteer.full_name}</p>
+                          
+                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 font-semibold text-[8px]">
+                            <div>
+                              <span className="block text-slate-400 font-normal">{isUrdu ? 'شناختی نمبر' : 'Volunteer ID'}</span>
+                              <span className="text-amber-300 font-mono">{currentVolunteer.id}</span>
+                            </div>
+                            <div>
+                              <span className="block text-slate-400 font-normal">{isUrdu ? 'بلڈ گروپ' : 'Blood'}</span>
+                              <span className="text-white">{currentVolunteer.blood_group}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-end relative z-10 border-t border-amber-500/10 pt-2 text-[7px] font-bold">
+                        <div className="text-left space-y-0.5">
+                          <span className="block text-[6px] text-slate-400 font-normal">{isUrdu ? 'شعبہ' : 'Department'}</span>
+                          <span className="text-white capitalize">{currentVolunteer.assigned_department}</span>
+                        </div>
+                        
+                        <div className="bg-white p-0.5 rounded-lg border border-slate-200">
+                          <img 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getHasnainFoundationLink(currentVolunteer.id, 'member'))}`} 
+                            alt="QR Verification" 
+                            className="w-8 h-8 object-contain" 
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 <button 
                   onClick={handlePrintIDCard}

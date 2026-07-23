@@ -18,6 +18,7 @@ export default function Gallery({ lang }: GalleryProps) {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [dbActivities, setDbActivities] = useState<DailyActivity[]>([]);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const isUrdu = lang === 'ur';
 
   const loadActivities = async () => {
@@ -173,7 +174,10 @@ export default function Gallery({ lang }: GalleryProps) {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => {
+                setActiveCategory(cat.id);
+                setIsExpanded(false);
+              }}
               className={`flex-shrink-0 px-5 py-2 rounded-xl font-bold text-xs transition-colors duration-150 cursor-pointer border ${
                 activeCategory === cat.id
                   ? 'bg-emerald-700 text-white border-emerald-700'
@@ -191,61 +195,102 @@ export default function Gallery({ lang }: GalleryProps) {
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
         >
           <AnimatePresence mode="popLayout">
-            {filteredGallery.map((item) => (
-              <motion.div
-                layout
-                key={item.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4 }}
-                onClick={() => openLightbox(item.id)}
-                className="group relative h-64 rounded-xl overflow-hidden bg-slate-200 transition-all duration-200 cursor-pointer border border-slate-200 shadow-none"
-              >
-                {/* Thumbnail Image */}
-                <img
-                  src={item.thumbnail}
-                  alt={item.title[lang]}
-                  className="w-full h-full object-cover object-center"
-                  referrerPolicy="no-referrer"
-                />
+            {(isExpanded ? filteredGallery : filteredGallery.slice(0, 4)).map((item, idx) => {
+              const isFourthItemInCollapsed = !isExpanded && idx === 3 && filteredGallery.length > 4;
+              return (
+                <motion.div
+                  layout
+                  key={item.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.4 }}
+                  onClick={() => {
+                    if (isFourthItemInCollapsed) {
+                      setIsExpanded(true);
+                    } else {
+                      openLightbox(item.id);
+                    }
+                  }}
+                  className="group relative h-64 rounded-xl overflow-hidden bg-slate-200 transition-all duration-200 cursor-pointer border border-slate-200 shadow-none"
+                >
+                  {/* Thumbnail Image */}
+                  <img
+                    src={item.thumbnail}
+                    alt={item.title[lang]}
+                    className="w-full h-full object-cover object-center"
+                    referrerPolicy="no-referrer"
+                  />
 
-                {/* Dark Hover Overlay */}
-                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-5" />
+                  {/* Dark Hover Overlay */}
+                  <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-5" />
 
-                {/* Always visible category tag / video indicator */}
-                <div className={`absolute top-4 ${
-                  isUrdu ? 'right-4 flex-row-reverse' : 'left-4'
-                } flex gap-2 items-center z-10`}>
-                  <span className="px-2 py-0.5 rounded-lg bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider">
-                    {item.type === 'photo' 
-                      ? (isUrdu ? 'تصویر' : 'Photo') 
-                      : (isUrdu ? 'ویڈیو' : 'Video')}
-                  </span>
-                  {item.type === 'video' && (
-                    <div className="p-1.5 rounded-lg bg-amber-500 text-slate-950 animate-pulse">
-                      <Play className="w-3 h-3 fill-current" />
+                  {/* Always visible category tag / video indicator */}
+                  <div className={`absolute top-4 ${
+                    isUrdu ? 'right-4 flex-row-reverse' : 'left-4'
+                  } flex gap-2 items-center z-10`}>
+                    <span className="px-2 py-0.5 rounded-lg bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider">
+                      {item.type === 'photo' 
+                        ? (isUrdu ? 'تصویر' : 'Photo') 
+                        : (isUrdu ? 'ویڈیو' : 'Video')}
+                    </span>
+                    {item.type === 'video' && (
+                      <div className="p-1.5 rounded-lg bg-amber-500 text-slate-950 animate-pulse">
+                        <Play className="w-3 h-3 fill-current" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 4th Item Overlay when Collapsed */}
+                  {isFourthItemInCollapsed ? (
+                    <div className="absolute inset-0 bg-emerald-950/80 backdrop-blur-xs flex flex-col items-center justify-center text-center p-4 z-20 text-white space-y-2">
+                      <div className="p-3 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        <Eye className="w-6 h-6" />
+                      </div>
+                      <span className="text-xl font-black text-amber-300">
+                        +{filteredGallery.length - 3} {isUrdu ? 'مزید تصاویر' : 'More Photos'}
+                      </span>
+                      <span className="text-xs font-bold text-slate-200 opacity-90">
+                        {isUrdu ? 'گلیری کھولنے کے لیے کلک کریں' : 'Click to view full gallery'}
+                      </span>
+                    </div>
+                  ) : (
+                    /* Hover Content */
+                    <div className="absolute inset-x-0 bottom-0 p-5 transform translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 flex flex-col justify-end text-white">
+                      <div className={`p-1.5 bg-black/60 rounded-lg w-8 h-8 flex items-center justify-center mb-2 ${
+                        isUrdu ? 'mr-auto' : ''
+                      }`}>
+                        <Eye className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className={`text-sm font-bold leading-tight ${
+                        isUrdu ? 'font-urdu text-right' : 'text-left'
+                      }`}>
+                        {item.title[lang]}
+                      </h3>
                     </div>
                   )}
-                </div>
-
-                {/* Hover Content */}
-                <div className="absolute inset-x-0 bottom-0 p-5 transform translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 flex flex-col justify-end text-white">
-                  <div className={`p-1.5 bg-black/60 rounded-lg w-8 h-8 flex items-center justify-center mb-2 ${
-                    isUrdu ? 'mr-auto' : ''
-                  }`}>
-                    <Eye className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className={`text-sm font-bold leading-tight ${
-                    isUrdu ? 'font-urdu text-right' : 'text-left'
-                  }`}>
-                    {item.title[lang]}
-                  </h3>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </motion.div>
+
+        {/* View All / Expand Toggle Button */}
+        {filteredGallery.length > 4 && (
+          <div className="mt-10 text-center">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all cursor-pointer border border-emerald-700/50"
+            >
+              <Eye className="w-5 h-5 text-amber-400" />
+              <span>
+                {isExpanded
+                  ? (isUrdu ? 'کم تصاویر دیکھیں' : 'Show Fewer Images')
+                  : (isUrdu ? `گیلری کی تمام تصاویر دیکھیں (${filteredGallery.length})` : `View All Gallery Photos & Videos (${filteredGallery.length})`)}
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* Fullscreen Responsive Lightbox Modal */}
         <AnimatePresence>

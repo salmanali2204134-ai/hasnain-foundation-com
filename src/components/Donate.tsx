@@ -106,6 +106,15 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
       if (data.success && data.donation) {
         setReceipt(data.donation);
         setShowThankYou(true);
+        // Save to client-side localStorage backup so donation receipt is never lost
+        try {
+          const existingStr = localStorage.getItem('hf_local_donations');
+          const existing: any[] = existingStr ? JSON.parse(existingStr) : [];
+          const updated = [data.donation, ...existing.filter((d: any) => d.id !== data.donation.id)];
+          localStorage.setItem('hf_local_donations', JSON.stringify(updated));
+        } catch (e) {
+          console.error('Error saving local donation backup:', e);
+        }
       } else {
         setError(data.error || (isUrdu ? 'جمع کرانے میں خرابی پیش آئی۔' : 'Failed to submit donation receipt.'));
       }
