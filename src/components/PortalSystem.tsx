@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { supabase, submitMemberRecordToSupabase } from '../lib/supabase';
 import { getHasnainFoundationLink } from '../lib/utils';
 import Logo from './Logo';
+import SmartCameraUpload from './SmartCameraUpload';
 
 interface PortalSystemProps {
   lang: Language;
@@ -751,55 +752,39 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
             ) : (
               <form onSubmit={handleMemberSignup} className="space-y-6">
                 
-                {/* File Upload fields */}
+                {/* File & Direct Camera Upload fields */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Photo Upload */}
-                  <div className="flex flex-col items-center p-4 border-2 border-dashed border-slate-200 rounded-2xl relative group hover:border-emerald-500 transition-colors bg-slate-50/50">
-                    {mPhoto ? (
-                      <img src={mPhoto} alt="Profile Preview" className="w-24 h-24 object-cover rounded-full border border-slate-200" />
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
-                        <User className="w-10 h-10" />
-                      </div>
-                    )}
-                    <label className="mt-3 text-xs font-extrabold text-emerald-700 cursor-pointer hover:underline flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{isUrdu ? 'پروفائل تصویر' : 'Upload Profile Photo'}</span>
-                      <input type="file" accept="image/*" onChange={(e) => handleBase64Upload(e, setMPhoto)} className="hidden" />
-                    </label>
-                  </div>
+                  <SmartCameraUpload
+                    lang={lang}
+                    label={isUrdu ? 'پروفائل تصویر' : 'Profile Photo'}
+                    type="profile"
+                    value={mPhoto}
+                    onChange={setMPhoto}
+                    accentColor="emerald"
+                  />
 
                   {/* CNIC Front */}
-                  <div className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-200 rounded-2xl relative group hover:border-emerald-500 transition-colors bg-slate-50/50 text-center">
-                    {mCnicFront ? (
-                      <img src={mCnicFront} alt="CNIC Front" className="w-full h-16 object-cover rounded-lg border border-slate-200" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                        <FileText className="w-6 h-6" />
-                      </div>
-                    )}
-                    <label className="mt-3 text-xs font-extrabold text-emerald-700 cursor-pointer hover:underline flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{isUrdu ? 'شناختی کارڈ سامنے' : 'CNIC Front Page'}</span>
-                      <input type="file" accept="image/*" onChange={(e) => handleBase64Upload(e, setMCnicFront)} className="hidden" />
-                    </label>
-                  </div>
+                  <SmartCameraUpload
+                    lang={lang}
+                    label={isUrdu ? 'شناختی کارڈ (سامنے)' : 'CNIC Front Side'}
+                    type="card"
+                    cardSide="front"
+                    value={mCnicFront}
+                    onChange={setMCnicFront}
+                    accentColor="emerald"
+                  />
 
                   {/* CNIC Back */}
-                  <div className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-200 rounded-2xl relative group hover:border-emerald-500 transition-colors bg-slate-50/50 text-center">
-                    {mCnicBack ? (
-                      <img src={mCnicBack} alt="CNIC Back" className="w-full h-16 object-cover rounded-lg border border-slate-200" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                        <FileText className="w-6 h-6" />
-                      </div>
-                    )}
-                    <label className="mt-3 text-xs font-extrabold text-emerald-700 cursor-pointer hover:underline flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{isUrdu ? 'شناختی کارڈ پیچھے' : 'CNIC Back Page'}</span>
-                      <input type="file" accept="image/*" onChange={(e) => handleBase64Upload(e, setMCnicBack)} className="hidden" />
-                    </label>
-                  </div>
+                  <SmartCameraUpload
+                    lang={lang}
+                    label={isUrdu ? 'شناختی کارڈ (پیچھے)' : 'CNIC Back Side'}
+                    type="card"
+                    cardSide="back"
+                    value={mCnicBack}
+                    onChange={setMCnicBack}
+                    accentColor="emerald"
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -996,55 +981,39 @@ export default function PortalSystem({ lang, onBackToHome, verifyMemberId }: Por
             ) : (
               <form onSubmit={handleVolunteerSignup} className="space-y-6">
                 
-                {/* File Upload fields */}
+                {/* File & Direct Camera Upload fields */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Photo Upload */}
-                  <div className="flex flex-col items-center p-4 border-2 border-dashed border-slate-200 rounded-2xl relative group hover:border-amber-500 transition-colors bg-slate-50/50">
-                    {vPhoto ? (
-                      <img src={vPhoto} alt="Profile Preview" className="w-24 h-24 object-cover rounded-full border border-slate-200" />
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
-                        <User className="w-10 h-10" />
-                      </div>
-                    )}
-                    <label className="mt-3 text-xs font-extrabold text-amber-700 cursor-pointer hover:underline flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{isUrdu ? 'پروفائل تصویر' : 'Upload Photo'}</span>
-                      <input type="file" accept="image/*" onChange={(e) => handleBase64Upload(e, setVPhoto)} className="hidden" />
-                    </label>
-                  </div>
+                  <SmartCameraUpload
+                    lang={lang}
+                    label={isUrdu ? 'پروفائل تصویر' : 'Profile Photo'}
+                    type="profile"
+                    value={vPhoto}
+                    onChange={setVPhoto}
+                    accentColor="amber"
+                  />
 
                   {/* CNIC Front */}
-                  <div className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-200 rounded-2xl relative group hover:border-amber-500 transition-colors bg-slate-50/50 text-center">
-                    {vCnicFront ? (
-                      <img src={vCnicFront} alt="CNIC Front" className="w-full h-16 object-cover rounded-lg border border-slate-200" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                        <FileText className="w-6 h-6" />
-                      </div>
-                    )}
-                    <label className="mt-3 text-xs font-extrabold text-amber-700 cursor-pointer hover:underline flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{isUrdu ? 'شناختی کارڈ سامنے' : 'CNIC Front'}</span>
-                      <input type="file" accept="image/*" onChange={(e) => handleBase64Upload(e, setVCnicFront)} className="hidden" />
-                    </label>
-                  </div>
+                  <SmartCameraUpload
+                    lang={lang}
+                    label={isUrdu ? 'شناختی کارڈ (سامنے)' : 'CNIC Front Side'}
+                    type="card"
+                    cardSide="front"
+                    value={vCnicFront}
+                    onChange={setVCnicFront}
+                    accentColor="amber"
+                  />
 
                   {/* CNIC Back */}
-                  <div className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-200 rounded-2xl relative group hover:border-amber-500 transition-colors bg-slate-50/50 text-center">
-                    {vCnicBack ? (
-                      <img src={vCnicBack} alt="CNIC Back" className="w-full h-16 object-cover rounded-lg border border-slate-200" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                        <FileText className="w-6 h-6" />
-                      </div>
-                    )}
-                    <label className="mt-3 text-xs font-extrabold text-amber-700 cursor-pointer hover:underline flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{isUrdu ? 'شناختی کارڈ پیچھے' : 'CNIC Back'}</span>
-                      <input type="file" accept="image/*" onChange={(e) => handleBase64Upload(e, setVCnicBack)} className="hidden" />
-                    </label>
-                  </div>
+                  <SmartCameraUpload
+                    lang={lang}
+                    label={isUrdu ? 'شناختی کارڈ (پیچھے)' : 'CNIC Back Side'}
+                    type="card"
+                    cardSide="back"
+                    value={vCnicBack}
+                    onChange={setVCnicBack}
+                    accentColor="amber"
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

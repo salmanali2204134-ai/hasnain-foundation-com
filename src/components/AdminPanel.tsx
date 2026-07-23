@@ -10,7 +10,7 @@ import {
   Trash2, Download, Search, Plus, Coins, ShieldAlert, CheckCircle,
   Database, Activity, Terminal, Copy, Check, ShieldCheck, AlertCircle, RefreshCw,
   UserCheck, FileText, Mail, Phone, MapPin, Calendar, Clock, Printer, Eye, Smartphone, Send, Shield,
-  Sparkles, LogOut
+  Sparkles, LogOut, Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getHasnainFoundationLink } from '../lib/utils';
@@ -90,6 +90,9 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
   const [donationSearch, setDonationSearch] = useState('');
   const [donationFilterPurpose, setDonationFilterPurpose] = useState('all');
   const [donationFilterStatus, setDonationFilterStatus] = useState('all');
+  const [donationFilterCategory, setDonationFilterCategory] = useState<'all' | 'zakat' | 'fitrat' | 'sadaqat' | 'general'>('all');
+  const [reminderSearch, setReminderSearch] = useState('');
+  const [reminderFilterStatus, setReminderFilterStatus] = useState<'all' | 'due' | 'sent'>('all');
   const [selectedDonation, setSelectedDonation] = useState<any | null>(null);
   const [aiDraftAppreciation, setAiDraftAppreciation] = useState('');
   const [aiDraftLoading, setAiDraftLoading] = useState(false);
@@ -831,6 +834,7 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                       { id: 'volunteers', label: { en: 'Volunteers Panel', ur: 'رضاکار انتظامیہ' }, icon: UserCheck },
                       { id: 'donors', label: { en: 'Donor Database', ur: 'ڈونر ڈیٹا بیس' }, icon: UserCheck },
                       { id: 'donations', label: { en: 'Donation Auditor', ur: 'عطیہ آڈیٹر' }, icon: Coins },
+                      { id: 'reminders', label: { en: 'Monthly Reminders', ur: 'ماہانہ یاد دہانیاں' }, icon: Bell },
                       { id: 'auditor', label: { en: 'Auditor Terminal', ur: 'آڈٹ اور تجارتی حسابات' }, icon: TrendingUp },
                       { id: 'complaints', label: { en: 'Complaint Cell', ur: 'شکایات سیل' }, icon: ShieldAlert },
                       { id: 'durood', label: { en: 'Durood Bank CRM', ur: 'درود بینک انتظامیہ' }, icon: Sparkles },
@@ -1232,19 +1236,119 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                       ========================================== */}
                   {activeTab === 'donations' && (
                     <div className="space-y-6 text-left">
-                      {/* Donations Counters */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {[
-                          { title: { en: 'Total Receipts Uploaded', ur: 'کل جمع کردہ رسیدیں' }, count: donations.length, color: 'border-slate-200 bg-white text-slate-800' },
-                          { title: { en: 'Awaiting Audit Review', ur: 'منتظر آڈٹ جائزہ' }, count: donations.filter(d => d.status === 'pending').length, color: 'border-amber-200 bg-amber-50 text-amber-800 animate-pulse' },
-                          { title: { en: 'Verified Donations', ur: 'تصدیق شدہ فنڈز' }, count: donations.filter(d => d.status === 'verified').length, color: 'border-emerald-200 bg-emerald-50 text-emerald-800' },
-                          { title: { en: 'Total PKR Audited', ur: 'کل آڈٹ شدہ رقم' }, count: `₨ ${donations.filter(d => d.status === 'verified').reduce((acc, d) => acc + d.amount, 0).toLocaleString()}`, color: 'border-emerald-800/10 bg-emerald-800/5 text-emerald-800' }
-                        ].map((stat, idx) => (
-                          <div key={idx} className="border p-4 rounded-2xl flex flex-col justify-between shadow-sm">
-                            <span className={`text-[10px] font-black uppercase tracking-wider block ${isUrdu ? 'font-urdu' : ''}`}>{stat.title[lang]}</span>
-                            <span className="text-xl font-black font-mono mt-1">{stat.count}</span>
+                      {/* Separated Sharia Accounts & Donation Summary Counters */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {/* Zakat Account */}
+                        <div className="border border-amber-300 bg-amber-50/80 p-3.5 rounded-2xl flex flex-col justify-between shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[10px] font-black uppercase tracking-wider text-amber-900 ${isUrdu ? 'font-urdu' : ''}`}>
+                              🕋 {isUrdu ? 'زکوۃ فنڈ (علیحدہ اکاؤنٹ)' : 'Zakat Account'}
+                            </span>
+                            <span className="text-[10px] font-bold bg-amber-200/80 text-amber-900 px-1.5 py-0.5 rounded">
+                              Mustahiq Only
+                            </span>
                           </div>
-                        ))}
+                          <div className="mt-2 flex items-baseline justify-between">
+                            <span className="text-lg font-black font-mono text-amber-950">
+                              ₨ {donations
+                                .filter(d => d.status === 'verified' && (d.category === 'zakat' || d.purpose === 'zakat'))
+                                .reduce((acc, d) => acc + d.amount, 0)
+                                .toLocaleString()}
+                            </span>
+                            <span className="text-[10px] font-bold text-amber-800">
+                              {donations.filter(d => d.category === 'zakat' || d.purpose === 'zakat').length} receipts
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Fitrat Account */}
+                        <div className="border border-emerald-300 bg-emerald-50/80 p-3.5 rounded-2xl flex flex-col justify-between shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[10px] font-black uppercase tracking-wider text-emerald-900 ${isUrdu ? 'font-urdu' : ''}`}>
+                              🌙 {isUrdu ? 'فطرانہ فنڈ (علیحدہ اکاؤنٹ)' : 'Fitrat Account'}
+                            </span>
+                            <span className="text-[10px] font-bold bg-emerald-200/80 text-emerald-900 px-1.5 py-0.5 rounded">
+                              Eid Relief
+                            </span>
+                          </div>
+                          <div className="mt-2 flex items-baseline justify-between">
+                            <span className="text-lg font-black font-mono text-emerald-950">
+                              ₨ {donations
+                                .filter(d => d.status === 'verified' && (d.category === 'fitrat' || d.purpose === 'fitrat'))
+                                .reduce((acc, d) => acc + d.amount, 0)
+                                .toLocaleString()}
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-800">
+                              {donations.filter(d => d.category === 'fitrat' || d.purpose === 'fitrat').length} receipts
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Sadaqat Account */}
+                        <div className="border border-sky-300 bg-sky-50/80 p-3.5 rounded-2xl flex flex-col justify-between shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[10px] font-black uppercase tracking-wider text-sky-900 ${isUrdu ? 'font-urdu' : ''}`}>
+                              📿 {isUrdu ? 'صدقات فنڈ (نفلی)' : 'Sadaqah Account'}
+                            </span>
+                            <span className="text-[10px] font-bold bg-sky-200/80 text-sky-900 px-1.5 py-0.5 rounded">
+                              Welfare
+                            </span>
+                          </div>
+                          <div className="mt-2 flex items-baseline justify-between">
+                            <span className="text-lg font-black font-mono text-sky-950">
+                              ₨ {donations
+                                .filter(d => d.status === 'verified' && (d.category === 'sadaqat' || d.purpose === 'sadaqat'))
+                                .reduce((acc, d) => acc + d.amount, 0)
+                                .toLocaleString()}
+                            </span>
+                            <span className="text-[10px] font-bold text-sky-800">
+                              {donations.filter(d => d.category === 'sadaqat' || d.purpose === 'sadaqat').length} receipts
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* General / Project Fund */}
+                        <div className="border border-slate-300 bg-slate-100/90 p-3.5 rounded-2xl flex flex-col justify-between shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[10px] font-black uppercase tracking-wider text-slate-900 ${isUrdu ? 'font-urdu' : ''}`}>
+                              🏛️ {isUrdu ? 'عمومی و پروجیکٹ فنڈ' : 'General & Projects'}
+                            </span>
+                            <span className="text-[10px] font-bold bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded">
+                              Mosque/RO
+                            </span>
+                          </div>
+                          <div className="mt-2 flex items-baseline justify-between">
+                            <span className="text-lg font-black font-mono text-slate-950">
+                              ₨ {donations
+                                .filter(d => d.status === 'verified' && (!d.category || d.category === 'general') && d.purpose !== 'zakat' && d.purpose !== 'fitrat' && d.purpose !== 'sadaqat')
+                                .reduce((acc, d) => acc + d.amount, 0)
+                                .toLocaleString()}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-700">
+                              {donations.filter(d => (!d.category || d.category === 'general') && d.purpose !== 'zakat' && d.purpose !== 'fitrat' && d.purpose !== 'sadaqat').length} receipts
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Overall Audit Header Summary */}
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold text-slate-600">
+                            {isUrdu ? 'کل جمع شدہ تصدیق شدہ فنڈ:' : 'Total Verified Treasury:'}
+                          </span>
+                          <span className="text-sm font-black text-emerald-800 font-mono">
+                            ₨ {donations.filter(d => d.status === 'verified').reduce((acc, d) => acc + d.amount, 0).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[11px]">
+                            {donations.filter(d => d.status === 'pending').length} Pending Audit
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[11px]">
+                            {donations.filter(d => d.status === 'verified').length} Verified
+                          </span>
+                        </div>
                       </div>
 
                       {/* Split Layout: Table vs Audit File Detail */}
@@ -1263,7 +1367,20 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                               <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
                             </div>
 
-                            <div className="flex gap-1.5">
+                            <div className="flex flex-wrap gap-1.5">
+                              {/* Category Filter */}
+                              <select
+                                value={donationFilterCategory}
+                                onChange={(e) => setDonationFilterCategory(e.target.value as any)}
+                                className="text-xs p-2 rounded-xl border border-amber-200 bg-amber-50/50 text-amber-950 font-bold cursor-pointer"
+                              >
+                                <option value="all">All Fund Accounts</option>
+                                <option value="zakat">🕋 Zakat Account</option>
+                                <option value="fitrat">🌙 Fitrat Account</option>
+                                <option value="sadaqat">📿 Sadaqah Account</option>
+                                <option value="general">🏛️ General Funds</option>
+                              </select>
+
                               <select
                                 value={donationFilterStatus}
                                 onChange={(e) => setDonationFilterStatus(e.target.value)}
@@ -1295,7 +1412,7 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                             <table className="w-full text-xs text-left">
                               <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold text-[10px] uppercase tracking-wider">
                                 <tr>
-                                  <th className="p-3 px-4">Benefactor / Cause</th>
+                                  <th className="p-3 px-4">Benefactor / Account</th>
                                   <th className="p-3">Amount</th>
                                   <th className="p-3 font-mono">TXN ID</th>
                                   <th className="p-3 text-center">Audit</th>
@@ -1307,7 +1424,9 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                                   const matchSearch = don.donorName.toLowerCase().includes(searchLower) || (don.transactionId || '').toLowerCase().includes(searchLower) || don.id.toLowerCase().includes(searchLower);
                                   const matchStatus = donationFilterStatus === 'all' || don.status === donationFilterStatus;
                                   const matchPurpose = donationFilterPurpose === 'all' || don.purpose === donationFilterPurpose;
-                                  return matchSearch && matchStatus && matchPurpose;
+                                  const donCat = don.category || (don.purpose === 'zakat' ? 'zakat' : don.purpose === 'fitrat' ? 'fitrat' : don.purpose === 'sadaqat' ? 'sadaqat' : 'general');
+                                  const matchCategory = donationFilterCategory === 'all' || donCat === donationFilterCategory;
+                                  return matchSearch && matchStatus && matchPurpose && matchCategory;
                                 }).length === 0 ? (
                                   <tr>
                                     <td colSpan={4} className="p-12 text-center text-slate-400 font-bold">
@@ -1320,38 +1439,65 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                                     const matchSearch = don.donorName.toLowerCase().includes(searchLower) || (don.transactionId || '').toLowerCase().includes(searchLower) || don.id.toLowerCase().includes(searchLower);
                                     const matchStatus = donationFilterStatus === 'all' || don.status === donationFilterStatus;
                                     const matchPurpose = donationFilterPurpose === 'all' || don.purpose === donationFilterPurpose;
-                                    return matchSearch && matchStatus && matchPurpose;
-                                  }).map((don) => (
-                                    <tr 
-                                      key={don.id} 
-                                      onClick={() => setSelectedDonation(don)}
-                                      className={`border-b border-slate-100 hover:bg-slate-50/50 cursor-pointer transition-colors ${
-                                        selectedDonation?.id === don.id ? 'bg-emerald-500/5' : ''
-                                      }`}
-                                    >
-                                      <td className="p-3 px-4">
-                                        <div className="font-extrabold text-slate-900">{don.donorName}</div>
-                                        <div className="text-[10px] text-slate-400 capitalize flex items-center gap-1 font-medium mt-0.5">
-                                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                                          {don.purpose} Welfare
-                                        </div>
-                                      </td>
-                                      <td className="p-3 text-emerald-800 font-extrabold font-mono">
-                                        ₨ {don.amount.toLocaleString()}
-                                      </td>
-                                      <td className="p-3 font-mono text-slate-500 font-bold">
-                                        {don.transactionId || 'Manual-Dep'}
-                                      </td>
-                                      <td className="p-3 text-center">
-                                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                                          don.status === 'verified' ? 'bg-emerald-50 text-emerald-700' :
-                                          don.status === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'
-                                        }`}>
-                                          {don.status}
-                                        </span>
-                                      </td>
-                                    </tr>
-                                  ))
+                                    const donCat = don.category || (don.purpose === 'zakat' ? 'zakat' : don.purpose === 'fitrat' ? 'fitrat' : don.purpose === 'sadaqat' ? 'sadaqat' : 'general');
+                                    const matchCategory = donationFilterCategory === 'all' || donCat === donationFilterCategory;
+                                    return matchSearch && matchStatus && matchPurpose && matchCategory;
+                                  }).map((don) => {
+                                    const donCat = don.category || (don.purpose === 'zakat' ? 'zakat' : don.purpose === 'fitrat' ? 'fitrat' : don.purpose === 'sadaqat' ? 'sadaqat' : 'general');
+                                    return (
+                                      <tr 
+                                        key={don.id} 
+                                        onClick={() => setSelectedDonation(don)}
+                                        className={`border-b border-slate-100 hover:bg-slate-50/50 cursor-pointer transition-colors ${
+                                          selectedDonation?.id === don.id ? 'bg-emerald-500/5' : ''
+                                        }`}
+                                      >
+                                        <td className="p-3 px-4">
+                                          <div className="font-extrabold text-slate-900">{don.donorName}</div>
+                                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                            {/* Category Badge */}
+                                            {donCat === 'zakat' && (
+                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-0.5">
+                                                <span>🕋</span> ZAKAT
+                                              </span>
+                                            )}
+                                            {donCat === 'fitrat' && (
+                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center gap-0.5">
+                                                <span>🌙</span> FITRAT
+                                              </span>
+                                            )}
+                                            {donCat === 'sadaqat' && (
+                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-sky-100 text-sky-900 border border-sky-300 flex items-center gap-0.5">
+                                                <span>📿</span> SADAQAT
+                                              </span>
+                                            )}
+                                            {donCat === 'general' && (
+                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-800 border border-slate-200 flex items-center gap-0.5">
+                                                <span>🏛️</span> GENERAL
+                                              </span>
+                                            )}
+                                            <span className="text-[10px] text-slate-400 capitalize">
+                                              ({don.purpose})
+                                            </span>
+                                          </div>
+                                        </td>
+                                        <td className="p-3 text-emerald-800 font-extrabold font-mono">
+                                          ₨ {don.amount.toLocaleString()}
+                                        </td>
+                                        <td className="p-3 font-mono text-slate-500 font-bold">
+                                          {don.transactionId || 'Manual-Dep'}
+                                        </td>
+                                        <td className="p-3 text-center">
+                                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                                            don.status === 'verified' ? 'bg-emerald-50 text-emerald-700' :
+                                            don.status === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'
+                                          }`}>
+                                            {don.status}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })
                                 )}
                               </tbody>
                             </table>
@@ -1401,6 +1547,16 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                                   <div className="flex justify-between border-b border-slate-200/60 pb-2">
                                     <span className="text-slate-500 font-medium">Payment Gateway:</span>
                                     <strong className="text-slate-800 font-bold">{selectedDonation.paymentMethod}</strong>
+                                  </div>
+                                  <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                                    <span className="text-slate-500 font-medium">Sharia Fund Account:</span>
+                                    {(() => {
+                                      const cat = selectedDonation.category || (selectedDonation.purpose === 'zakat' ? 'zakat' : selectedDonation.purpose === 'fitrat' ? 'fitrat' : selectedDonation.purpose === 'sadaqat' ? 'sadaqat' : 'general');
+                                      if (cat === 'zakat') return <strong className="text-amber-900 font-black bg-amber-100 border border-amber-300 px-2 py-0.5 rounded text-[11px]">🕋 ZAKAT ACCOUNT</strong>;
+                                      if (cat === 'fitrat') return <strong className="text-emerald-900 font-black bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded text-[11px]">🌙 FITRAT ACCOUNT</strong>;
+                                      if (cat === 'sadaqat') return <strong className="text-sky-900 font-black bg-sky-100 border border-sky-300 px-2 py-0.5 rounded text-[11px]">📿 SADAQAH ACCOUNT</strong>;
+                                      return <strong className="text-slate-800 font-black bg-slate-200 border border-slate-300 px-2 py-0.5 rounded text-[11px]">🏛️ GENERAL FUND</strong>;
+                                    })()}
                                   </div>
                                   <div className="flex justify-between border-b border-slate-200/60 pb-2">
                                     <span className="text-slate-500 font-medium">Welfare Purpose:</span>
@@ -1494,6 +1650,242 @@ export default function AdminPanel({ lang, isOpen, onClose }: AdminPanelProps) {
                               </div>
                             )}
                           </AnimatePresence>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ==========================================
+                      TAB 2.2: MONTHLY DONATION REMINDERS CRM
+                      ========================================== */}
+                  {activeTab === 'reminders' && (
+                    <div className="space-y-6 text-left">
+                      {/* Reminders Header Banner */}
+                      <div className="p-6 bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white rounded-2xl shadow-md border border-emerald-800/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Bell className="w-5 h-5 text-amber-400 animate-bounce" />
+                            <h3 className="text-lg font-black tracking-tight text-white font-sans">
+                              {isUrdu ? 'ماہانہ عطیہ کی یاد دہانی ہب' : 'Monthly Donation Reminders Hub'}
+                            </h3>
+                          </div>
+                          <p className={`text-xs text-emerald-200 max-w-xl leading-relaxed ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                            {isUrdu 
+                              ? 'عطیہ دہندگان جن کا عطیہ دیے ہوئے ۱ ماہ یا اس سے زائد کا عرصہ ہو چکا ہے یا جنہوں نے ماہانہ یاد دہانی سروس فعال کی ہوئی ہے، ان کی فہرست ذیل میں موجود ہے۔ ایک کلک میں واٹس ایپ و ای میل یاد دہانی بھیجیں۔'
+                              : 'Manage donors who opted in for monthly reminders or whose last donation was 1 month ago. Send 1-click personalized WhatsApp & Email reminders so donors and the foundation stay connected.'}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-amber-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow-sm">
+                          <Calendar className="w-4 h-4 text-emerald-950" />
+                          <span>{isUrdu ? '۳۰ دن سائیکل سسٹم' : '30-Day Automated Cycle'}</span>
+                        </div>
+                      </div>
+
+                      {/* Reminder Summary Stats */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                          <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100">
+                            <Bell className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">
+                              {isUrdu ? 'کل یاد دہانی سبسکرائبرز' : 'Total Monthly Donors'}
+                            </span>
+                            <span className="text-xl font-black font-mono text-slate-900">
+                              {donations.filter(d => d.monthlyReminder || true).length}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-rose-50 p-4 rounded-2xl border border-rose-200 shadow-sm flex items-center gap-3">
+                          <div className="p-3 bg-rose-100 text-rose-700 rounded-xl border border-rose-200">
+                            <Clock className="w-6 h-6 animate-pulse" />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-rose-800 block tracking-wider">
+                              {isUrdu ? 'واجب الادا (۱ ماہ سے زائد)' : 'Due Now (1 Month Passed)'}
+                            </span>
+                            <span className="text-xl font-black font-mono text-rose-900">
+                              {donations.filter(d => {
+                                const [y, m, day] = d.donationDate ? d.donationDate.split('-').map(Number) : [2026, 1, 1];
+                                const donDate = new Date(y, m - 1, day);
+                                const days = Math.floor((Date.now() - donDate.getTime()) / (1000 * 60 * 60 * 24));
+                                return days >= 30;
+                              }).length}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 shadow-sm flex items-center gap-3">
+                          <div className="p-3 bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200">
+                            <CheckCircle className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-emerald-800 block tracking-wider">
+                              {isUrdu ? 'یاد دہانی بھیجی گئی' : 'Reminders Sent This Month'}
+                            </span>
+                            <span className="text-xl font-black font-mono text-emerald-900">
+                              {donations.filter(d => Boolean(d.reminderSentDate)).length}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Search & Filter Controls */}
+                      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col sm:flex-row gap-3 justify-between items-center">
+                        <div className="relative w-full sm:w-80">
+                          <input
+                            type="text"
+                            value={reminderSearch}
+                            onChange={(e) => setReminderSearch(e.target.value)}
+                            placeholder={isUrdu ? "نام، واٹس ایپ یا مقصد تلاش کریں..." : "Search Donor Name, Phone, Cause..."}
+                            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-emerald-600 focus:bg-white text-slate-800"
+                          />
+                          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <select
+                            value={reminderFilterStatus}
+                            onChange={(e) => setReminderFilterStatus(e.target.value as any)}
+                            className="px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white text-slate-800 cursor-pointer focus:outline-none focus:border-emerald-600"
+                          >
+                            <option value="all">{isUrdu ? 'تمام عطیہ دہندگان' : 'All Donors'}</option>
+                            <option value="due">{isUrdu ? '🔴 صرف واجب الادا (۳۰ دن+)' : '🔴 Due Now (30+ Days Passed)'}</option>
+                            <option value="sent">{isUrdu ? '✓ جنہیں یاد دہانی بھیج دی گئی' : '✓ Reminders Sent'}</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Reminders List Table */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-xs">
+                            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase tracking-wider text-[10px]">
+                              <tr>
+                                <th className="p-3.5">Donor Profile</th>
+                                <th className="p-3.5">Mobile / WhatsApp</th>
+                                <th className="p-3.5">Last Donation</th>
+                                <th className="p-3.5">Days Elapsed</th>
+                                <th className="p-3.5">Cause / Amount</th>
+                                <th className="p-3.5">Status & Action</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                              {donations.filter(d => {
+                                const searchMatch = 
+                                  d.donorName.toLowerCase().includes(reminderSearch.toLowerCase()) ||
+                                  d.mobile.includes(reminderSearch) ||
+                                  (d.purpose && d.purpose.toLowerCase().includes(reminderSearch.toLowerCase()));
+
+                                const [y, m, day] = d.donationDate ? d.donationDate.split('-').map(Number) : [2026, 1, 1];
+                                const donDate = new Date(y, m - 1, day);
+                                const days = Math.floor((Date.now() - donDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                                if (reminderFilterStatus === 'due' && days < 30) return false;
+                                if (reminderFilterStatus === 'sent' && !d.reminderSentDate) return false;
+
+                                return searchMatch;
+                              }).map((don) => {
+                                const [y, m, day] = don.donationDate ? don.donationDate.split('-').map(Number) : [2026, 1, 1];
+                                const donDate = new Date(y, m - 1, day);
+                                const daysElapsed = Math.floor((Date.now() - donDate.getTime()) / (1000 * 60 * 60 * 24));
+                                const isDueNow = daysElapsed >= 30;
+
+                                const sendWhatsAppReminderMsg = () => {
+                                  const text = isUrdu
+                                    ? `السلام علیکم محترم *${don.donorName}*!\n\nٹھیک ایک ماہ قبل *${don.donationDate}* کو آپ نے حسنین فاؤنڈیشن کے لیے *PKR ${don.amount.toLocaleString()}* کا عطیہ پیش کیا تھا۔\n\nاللہ تعالیٰ آپ کا یہ جزبہ قبول فرمائے! یہ ایک دوستانہ یاد دہانی ہے کہ آپ کا اگلا ماہانہ عطیہ واجب الادا ہو چکا ہے۔\n\nماہانہ عطیہ کی تجدید کے لیے ویب سائٹ وزٹ فرمائیں:\nhttps://hasnain-foundation.com/donate\n\nجزاک اللہ خیر!\n*حسنین فاؤنڈیشن ٹرسٹ، کراچی*`
+                                    : `Assalam-o-Alaikum *${don.donorName}*!\n\nExactly one month ago on *${don.donationDate}*, you generously contributed *PKR ${don.amount.toLocaleString()}* for *${don.purpose}* to the Hasnain Foundation.\n\nMay Allah reward you! This is a friendly reminder that your monthly donation is now due.\n\nRenew your monthly Sadaqah online here:\nhttps://hasnain-foundation.com/donate\n\nJazakAllah Khair!\n*Hasnain Foundation Trust*`;
+
+                                  fetch(`/api/donations/${don.id}/send-reminder`, {
+                                    method: 'POST',
+                                    headers: { 'x-admin-passcode': passcode.trim() }
+                                  }).then(() => loadDashboardData());
+
+                                  window.open(`https://api.whatsapp.com/send?phone=${don.mobile.replace(/\D/g, '')}&text=${encodeURIComponent(text)}`, '_blank');
+                                };
+
+                                const sendEmailReminderMsg = () => {
+                                  const subject = `Monthly Donation Reminder - Hasnain Foundation (${don.donorName})`;
+                                  const body = `Dear ${don.donorName},\n\nAssalam-o-Alaikum,\n\nExactly one month ago on ${don.donationDate}, you generously contributed PKR ${don.amount.toLocaleString()} for ${don.purpose} to Hasnain Foundation Trust.\n\nMay Allah reward you abundantly for your noble generosity!\n\nThis is a gentle reminder that your monthly donation is now due. Your ongoing support helps us maintain clean RO water plants, education, and feeding programs.\n\nYou can renew your monthly donation here:\nhttps://hasnain-foundation.com/donate\n\nWith gratitude,\nHasnain Foundation Trust\nKarachi, Pakistan`;
+
+                                  fetch(`/api/donations/${don.id}/send-reminder`, {
+                                    method: 'POST',
+                                    headers: { 'x-admin-passcode': passcode.trim() }
+                                  }).then(() => loadDashboardData());
+
+                                  window.open(`mailto:${don.email || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+                                };
+
+                                return (
+                                  <tr key={don.id} className="hover:bg-slate-50 transition-colors">
+                                    <td className="p-3.5">
+                                      <span className="font-extrabold text-slate-900 block text-xs sm:text-sm">{don.donorName}</span>
+                                      <span className="text-[10px] text-slate-400 font-mono">ID: {don.id}</span>
+                                    </td>
+
+                                    <td className="p-3.5 font-mono text-xs text-slate-800">
+                                      {don.mobile}
+                                      {don.email && <span className="block text-[10px] text-slate-400 font-sans">{don.email}</span>}
+                                    </td>
+
+                                    <td className="p-3.5 text-xs text-slate-700">
+                                      <span className="font-mono font-bold">{don.donationDate}</span>
+                                    </td>
+
+                                    <td className="p-3.5">
+                                      {isDueNow ? (
+                                        <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 font-black text-[10px] border border-rose-200 inline-flex items-center gap-1">
+                                          <Clock className="w-3 h-3 text-rose-600 animate-pulse" />
+                                          <span>{daysElapsed} Days (DUE NOW 🔴)</span>
+                                        </span>
+                                      ) : (
+                                        <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold text-[10px] border border-emerald-200 inline-flex items-center gap-1">
+                                          <span>{daysElapsed} Days (Active)</span>
+                                        </span>
+                                      )}
+                                    </td>
+
+                                    <td className="p-3.5 text-xs">
+                                      <span className="font-mono font-extrabold text-emerald-800 block">PKR {don.amount.toLocaleString()}</span>
+                                      <span className="text-[10px] text-slate-500 uppercase">{don.purpose}</span>
+                                    </td>
+
+                                    <td className="p-3.5 space-y-1">
+                                      <div className="flex flex-wrap items-center gap-1.5">
+                                        <button
+                                          onClick={sendWhatsAppReminderMsg}
+                                          className="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                                          title="Send WhatsApp Reminder"
+                                        >
+                                          <Send className="w-3 h-3 rotate-45" />
+                                          <span>WhatsApp</span>
+                                        </button>
+
+                                        {don.email && (
+                                          <button
+                                            onClick={sendEmailReminderMsg}
+                                            className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                                            title="Send Email Reminder"
+                                          >
+                                            <Mail className="w-3 h-3" />
+                                            <span>Email</span>
+                                          </button>
+                                        )}
+                                      </div>
+
+                                      {don.reminderSentDate && (
+                                        <span className="text-[9px] text-emerald-700 font-extrabold block">
+                                          ✓ Reminder Sent: {don.reminderSentDate}
+                                        </span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                     </div>

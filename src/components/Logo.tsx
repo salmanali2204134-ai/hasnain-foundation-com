@@ -324,22 +324,22 @@ export default function Logo({ lang, variant = 'header', className = '' }: LogoP
     : 'text-slate-400';
 
   return (
-    <div className={`flex items-center gap-3.5 select-none ${className} ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
-      {renderOfficialEmblemSVG(variant === 'header' ? "w-11 h-11 sm:w-12 h-12" : "w-12 h-12 sm:w-14 h-14")}
+    <div className={`flex items-center gap-2 sm:gap-3.5 select-none ${className} ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
+      {renderOfficialEmblemSVG(variant === 'header' ? "w-9 h-9 sm:w-11 sm:h-11 shrink-0" : "w-11 h-11 sm:w-14 sm:h-14 shrink-0")}
       
-      <div className={`flex flex-col ${isUrdu ? 'items-end text-right' : 'items-start text-left'}`}>
-        <h1 className={`font-black tracking-tight leading-none text-base sm:text-lg md:text-xl font-sans ${headerTextStyle}`}>
+      <div className={`flex flex-col min-w-0 ${isUrdu ? 'items-end text-right' : 'items-start text-left'}`}>
+        <h1 className={`font-black tracking-tight leading-none text-xs sm:text-base md:text-lg font-sans ${headerTextStyle}`}>
           {isUrdu ? (
-            <span className="font-urdu text-lg sm:text-xl tracking-normal leading-tight font-semibold text-emerald-800">حسنین فاؤنڈیشن</span>
+            <span className="font-urdu text-base sm:text-xl tracking-normal leading-tight font-semibold text-emerald-800 truncate block">حسنین فاؤنڈیشن</span>
           ) : (
-            <span className="flex items-center gap-1.5 font-sans font-black tracking-wider text-sm sm:text-base">
+            <span className="flex items-center gap-1 font-sans font-black tracking-wider text-xs sm:text-base whitespace-nowrap">
               <span className="text-[#0284c7]">HASNAIN</span> <span className="text-[#ca8a04]">FOUNDATION</span>
             </span>
           )}
         </h1>
-        <p className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mt-1 ${subtitleTextStyle}`}>
+        <p className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-widest mt-0.5 truncate block ${subtitleTextStyle}`}>
           {isUrdu ? (
-            <span className="font-urdu text-xs tracking-normal leading-none text-emerald-600">انسانیت کی خدمت، ہمارا عزم</span>
+            <span className="font-urdu text-[10px] sm:text-xs tracking-normal leading-none text-emerald-600">انسانیت کی خدمت، ہمارا عزم</span>
           ) : (
             "Serving Humanity, Spreading Hope"
           )}

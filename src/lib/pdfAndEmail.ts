@@ -12,11 +12,15 @@ export interface DonationReceipt {
   amount: number;
   paymentMethod: string;
   purpose: string;
+  category?: 'zakat' | 'fitrat' | 'sadaqat' | 'general' | string;
   transactionId: string;
   receiptUrl?: string;
   donationDate: string;
   donationTime?: string;
   status: 'pending' | 'verified' | 'rejected';
+  monthlyReminder?: boolean;
+  nextReminderDate?: string;
+  reminderSentDate?: string;
 }
 
 /**
@@ -152,7 +156,8 @@ export function generateReceiptPdf(donation: DonationReceipt): Promise<Buffer> {
 
       // Row 4
       const row4Y = tableY + 102;
-      drawDetailRow('DONATION PURPOSE', (donation.purpose || 'General Sadqah / Zakat').toUpperCase(), row4Y);
+      const categoryLabel = (donation.category || (donation.purpose === 'zakat' ? 'zakat' : donation.purpose === 'sadaqat' ? 'sadaqat' : donation.purpose === 'fitrat' ? 'fitrat' : 'general')).toUpperCase();
+      drawDetailRow('FUND CATEGORY / ACCOUNT', categoryLabel === 'ZAKAT' ? 'ZAKAT (ISLAMIC WELFARE)' : categoryLabel === 'FITRAT' ? 'FITRA / FITRAT FUND' : categoryLabel === 'SADAQAT' ? 'SADAQAH / NAFLI SADAQAH' : 'GENERAL / PROJECT FUND', row4Y);
       drawDetailRow('PAYMENT CHANNEL', donation.paymentMethod.toUpperCase(), row4Y, true);
 
       // Row 5

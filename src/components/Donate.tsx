@@ -7,9 +7,11 @@ import React, { useState } from 'react';
 import { Language } from '../types';
 import { DICTIONARY } from '../data';
 import DonationTracker from './DonationTracker';
-import { Landmark, Smartphone, Copy, Check, Send, Award, Heart, Sparkles, AlertCircle, Printer, Download, Share2, ExternalLink, QrCode, RefreshCw } from 'lucide-react';
+import MonthlyDonationReminderModal from './MonthlyDonationReminderModal';
+import { Landmark, Smartphone, Copy, Check, Send, Award, Heart, Sparkles, AlertCircle, Printer, Download, Share2, ExternalLink, QrCode, RefreshCw, Bell, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getHasnainFoundationLink } from '../lib/utils';
+import easypaisaQrImg from '../assets/images/easypaisa_qr_code_1784809863512.jpg';
 
 interface DonateProps {
   lang: Language;
@@ -26,7 +28,10 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('EasyPaisa');
   const [purpose, setPurpose] = useState(selectedProjectId || 'general');
+  const [category, setCategory] = useState<'zakat' | 'fitrat' | 'sadaqat' | 'general'>('zakat');
   const [transactionId, setTransactionId] = useState('');
+  const [monthlyReminderOptIn, setMonthlyReminderOptIn] = useState(true);
+  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -91,7 +96,9 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
           amount: Number(amount),
           paymentMethod,
           purpose,
-          transactionId
+          category,
+          transactionId,
+          monthlyReminder: monthlyReminderOptIn
         })
       });
 
@@ -122,9 +129,22 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
     setShowThankYou(false);
   };
 
+  const formatCategory = (cat?: string, pur?: string) => {
+    const finalCat = cat || (pur === 'zakat' ? 'zakat' : pur === 'fitrat' ? 'fitrat' : pur === 'sadaqat' ? 'sadaqat' : 'general');
+    switch (finalCat) {
+      case 'zakat': return isUrdu ? '🕋 زکوۃ (فرض شرعی)' : '🕋 Zakat Fund';
+      case 'fitrat': return isUrdu ? '🌙 فطرانہ (واجب عید)' : '🌙 Fitra / Fitrat';
+      case 'sadaqat': return isUrdu ? '📿 صدقات (نفلی رفاہ)' : '📿 Sadaqat / Sadaqah';
+      default: return isUrdu ? '🏛️ عمومی عطیہ (جنرل فنڈ)' : '🏛️ General Charity';
+    }
+  };
+
   const formatPurpose = (pur: string) => {
     switch (pur) {
-      case 'general': return isUrdu ? 'عمومی عطیہ (جنرل فنڈ)' : 'General Donation';
+      case 'zakat': return isUrdu ? 'زکوۃ فنڈ (مستحقین)' : 'Zakat (Mustahiq Support)';
+      case 'fitrat': return isUrdu ? 'فطرانہ فنڈ (عید الراحت)' : 'Fitra / Fitrat (Eid Relief)';
+      case 'sadaqat': return isUrdu ? 'نفلی صدقہ و خیرات' : 'Sadaqah (General Welfare)';
+      case 'general': return isUrdu ? 'عمومی فنڈ (مسجد و عمومی)' : 'General Charity / Operations';
       case 'masjid': return isUrdu ? 'جامع مسجد تعمیراتی فنڈ' : 'Jamia Masjid Construction';
       case 'food': return isUrdu ? 'راشن اور کھانا فنڈ' : 'Food Security Drive';
       case 'education': return isUrdu ? 'یتیم بچوں کا تعلیمی فنڈ' : 'Orphan Education Support';
@@ -149,15 +169,19 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
   const triggerWhatsAppShare = () => {
     if (!receipt) return;
     const verifyUrl = getHasnainFoundationLink(receipt.id, 'receipt');
-    const textMsg = `*Hasnain Foundation - Official Donation Receipt* 🌟\n\nDear *${receipt.donorName}*,\nThank you for your generous contribution of *PKR ${receipt.amount.toLocaleString()}* towards *${formatPurpose(receipt.purpose)}*.\n\n*Receipt details:*\n- *Receipt No:* ${receipt.id}\n- *Transaction ID:* ${receipt.transactionId}\n- *Date:* ${receipt.donationDate} (${receipt.donationTime || ''})\n- *Status:* ${receipt.status.toUpperCase()}\n\n*Verify authenticity online:*\n${verifyUrl}\n\nMay Allah reward you abundantly. Ameen.\nOfficial Email: hasnainfoundation225@gmail.com`;
+    const catText = formatCategory(receipt.category, receipt.purpose);
+    const purText = formatPurpose(receipt.purpose);
+    const textMsg = `*Hasnain Foundation - Official Donation Receipt* 🌟\n\nDear *${receipt.donorName}*,\nThank you for your generous contribution of *PKR ${receipt.amount.toLocaleString()}* towards *${catText} (${purText})*.\n\n*Receipt details:*\n- *Receipt No:* ${receipt.id}\n- *Sharia Account:* ${catText}\n- *Purpose / Cause:* ${purText}\n- *Transaction ID:* ${receipt.transactionId}\n- *Date:* ${receipt.donationDate} (${receipt.donationTime || ''})\n- *Status:* ${receipt.status.toUpperCase()}\n\n*Verify authenticity online:*\n${verifyUrl}\n\nMay Allah reward you abundantly. Ameen.\nOfficial Email: hasnainfoundation225@gmail.com`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textMsg)}`, '_blank');
   };
 
   const triggerEmailShare = () => {
     if (!receipt) return;
     const verifyUrl = getHasnainFoundationLink(receipt.id, 'receipt');
+    const catText = formatCategory(receipt.category, receipt.purpose);
+    const purText = formatPurpose(receipt.purpose);
     const subject = `Official Donation Receipt - Hasnain Foundation (${receipt.id})`;
-    const bodyText = `Dear ${receipt.donorName},\n\nAssalam-o-Alaikum,\n\nThank you for your generous donation to the Hasnain Foundation.\n\nReceipt Details:\n-------------------------------\nReceipt ID: ${receipt.id}\nAmount: PKR ${receipt.amount.toLocaleString()}\nCause: ${formatPurpose(receipt.purpose)}\nDate: ${receipt.donationDate}\nTransaction Ref: ${receipt.transactionId}\n-------------------------------\n\nVerify this receipt online here:\n${verifyUrl}\n\nOfficial Email: hasnainfoundation225@gmail.com\nHasnain Foundation Trust\nKarachi, Pakistan`;
+    const bodyText = `Dear ${receipt.donorName},\n\nAssalam-o-Alaikum,\n\nThank you for your generous donation to the Hasnain Foundation.\n\nReceipt Details:\n-------------------------------\nReceipt ID: ${receipt.id}\nAmount: PKR ${receipt.amount.toLocaleString()}\nSharia Fund Account: ${catText}\nDonation Purpose: ${purText}\nDate: ${receipt.donationDate}\nTransaction Ref: ${receipt.transactionId}\n-------------------------------\n\nVerify this receipt online here:\n${verifyUrl}\n\nOfficial Email: hasnainfoundation225@gmail.com\nHasnain Foundation Trust\nKarachi, Pakistan`;
     window.open(`mailto:${receipt.email || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`, '_blank');
   };
 
@@ -249,6 +273,34 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
           >
             {DICTIONARY.donate.appealText[lang]}
           </motion.p>
+
+          {/* Monthly Reminder Action Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-6 inline-flex flex-wrap items-center justify-center gap-3 p-2 bg-gradient-to-r from-emerald-900 to-slate-900 text-white rounded-2xl border border-emerald-700/50 shadow-md"
+          >
+            <div className="flex items-center gap-2 px-3 py-1 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-sm">
+              <Bell className="w-4 h-4 text-emerald-950" />
+              <span>{isUrdu ? 'ماہانہ باقاعدگی سروس' : 'Monthly Recurring Sadaqah'}</span>
+            </div>
+
+            <p className={`text-xs text-emerald-100 px-2 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+              {isUrdu 
+                ? 'عطیہ کرنے کے ۱ ماہ بعد یاد دہانی حاصل کریں تاکہ نیکی کا سلسلہ جاری رہے۔' 
+                : 'Get a polite reminder 1 month after donating so your Sadaqah stays continuous.'}
+            </p>
+
+            <button
+              onClick={() => setIsReminderModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md cursor-pointer transition-transform hover:scale-105"
+            >
+              <Calendar className="w-4 h-4 text-emerald-950" />
+              <span>{isUrdu ? 'ماہانہ عطیہ کی یاد دہانی سیٹ کریں' : 'Set Monthly Donation Reminder'}</span>
+            </button>
+          </motion.div>
         </div>
 
         {/* Dynamic Donation Goal Tracker */}
@@ -465,55 +517,36 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
           <div className="lg:col-span-5 space-y-6">
             
             {/* Direct QR Visual Box */}
-            <div className="bg-emerald-950 rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center text-center text-emerald-100 border border-emerald-900 shadow-none">
-              <div className="relative w-44 h-44 bg-white rounded-lg border border-emerald-800 p-2.5 flex items-center justify-center">
-                {/* Authentic QR pattern using SVG grids */}
-                <svg className="w-full h-full text-slate-950" viewBox="0 0 100 100" fill="currentColor">
-                  {/* Top Left Finder pattern */}
-                  <rect x="0" y="0" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="6" />
-                  <rect x="8" y="8" width="14" height="14" fill="currentColor" />
-                  
-                  {/* Top Right Finder pattern */}
-                  <rect x="70" y="0" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="6" />
-                  <rect x="78" y="8" width="14" height="14" fill="currentColor" />
-                  
-                  {/* Bottom Left Finder pattern */}
-                  <rect x="0" y="70" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="6" />
-                  <rect x="8" y="78" width="14" height="14" fill="currentColor" />
+            <div className="bg-emerald-950 rounded-xl p-5 sm:p-7 flex flex-col items-center justify-center text-center text-emerald-100 border border-emerald-900 shadow-none">
+              <div className="flex items-center gap-2 mb-3.5 bg-emerald-900/80 border border-emerald-700/80 px-3.5 py-1 rounded-full text-xs font-extrabold text-emerald-200">
+                <QrCode className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isUrdu ? 'آفیشل کیو آر کوڈ (ایزی پیسہ)' : 'Official EasyPaisa Payment QR'}</span>
+              </div>
 
-                  {/* Dynamic tiny dots matching a real QR code */}
-                  <rect x="40" y="5" width="6" height="6" />
-                  <rect x="52" y="12" width="6" height="6" />
-                  <rect x="45" y="24" width="6" height="12" />
-                  
-                  <rect x="5" y="45" width="12" height="6" />
-                  <rect x="22" y="40" width="6" height="6" />
-                  <rect x="15" y="55" width="6" height="10" />
-
-                  <rect x="45" y="45" width="10" height="10" fill="#047857" /> {/* Emerald Center Anchor */}
-                  
-                  <rect x="75" y="45" width="12" height="6" />
-                  <rect x="85" y="55" width="8" height="8" />
-                  <rect x="70" y="65" width="10" height="6" />
-                  
-                  <rect x="40" y="75" width="12" height="12" />
-                  <rect x="58" y="85" width="15" height="6" />
-                  <rect x="85" y="85" width="10" height="10" />
-                </svg>
-                {/* Overlay Hasnain Foundation Emblem inside QR */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-9 h-9 bg-white rounded-lg border border-amber-500 flex items-center justify-center shadow-sm">
-                    <Heart className="w-4 h-4 text-emerald-700 fill-current" />
+              <div className="bg-white rounded-2xl border-2 border-emerald-500/60 p-3 shadow-xl max-w-[260px] w-full flex flex-col items-center overflow-hidden">
+                <img 
+                  src={easypaisaQrImg} 
+                  alt="SALMAN ALI Easypaisa QR Code" 
+                  referrerPolicy="no-referrer"
+                  className="w-full h-auto rounded-xl object-contain bg-white"
+                />
+                <div className="mt-2.5 pt-2 border-t border-slate-100 w-full text-center">
+                  <div className="text-xs font-black text-slate-900 tracking-tight font-mono">
+                    SALMAN ALI
+                  </div>
+                  <div className="text-[10px] font-bold text-emerald-800 font-mono mt-0.5">
+                    MSISDN: *******4134
                   </div>
                 </div>
               </div>
+
               <h4 className={`text-base font-bold text-white mt-4 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
-                {DICTIONARY.donate.qrPlaceholder[lang]}
+                {isUrdu ? 'عطیہ کی فوری منتقلی کے لیے اسکین کریں' : 'Scan EasyPaisa QR Code to Donate'}
               </h4>
-              <p className="text-xs text-emerald-300 max-w-xs mt-2 font-medium leading-relaxed">
+              <p className="text-xs text-emerald-300 max-w-xs mt-1.5 font-medium leading-relaxed">
                 {isUrdu 
-                  ? "آسان پیسہ / جیز کیش / نیا پے / بینک ایپ کا اسکینر کھولیں اور براہِ راست فنڈز منتقل کرنے کے لیے اسکین کریں۔" 
-                  : "Open your Easypaisa / JazzCash / SadaPay / NayaPay / Mobile Banking QR scanner and scan to transfer funds directly."}
+                  ? "کسی بھی بینک، ایزی پیسہ، یا جیز کیش ایپ کا کیو آر اسکینر کھولیں اور براہِ راست سلمان علی کے ایزی پیسہ اکاؤنٹ میں فنڈز منتقل کریں۔" 
+                  : "Open your Easypaisa, JazzCash, or Banking App QR scanner to transfer funds directly to SALMAN ALI's EasyPaisa Account."}
               </p>
             </div>
 
@@ -640,6 +673,138 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
                       </div>
                     </div>
 
+                    {/* Fund Category Selection (Zakat / Fitrat / Sadaqat / General) */}
+                    <div className="space-y-1.5">
+                      <label className={`block text-xs font-black text-slate-800 uppercase tracking-wider flex items-center justify-between ${isUrdu ? 'font-urdu flex-row-reverse' : ''}`}>
+                        <span>{isUrdu ? 'عطیہ کی شرعی قسم / اکاؤنٹ منتخب کریں *' : 'Select Sharia Fund Account *'}</span>
+                        <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                          {isUrdu ? 'علیحدہ مالیاتی کھاتہ' : 'Separately Audited Ledger'}
+                        </span>
+                      </label>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {/* Zakat */}
+                        <button
+                          type="button"
+                          onClick={() => setCategory('zakat')}
+                          className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                            category === 'zakat'
+                              ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/30 text-amber-950 font-black'
+                              : 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-1">
+                            <span className="text-base">🕋</span>
+                            {category === 'zakat' && <span className="w-2 h-2 rounded-full bg-amber-500"></span>}
+                          </div>
+                          <span className={`text-xs font-black block ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                            {isUrdu ? 'زکوۃ (فرض)' : 'Zakat Fund'}
+                          </span>
+                          <span className={`text-[10px] text-slate-500 mt-0.5 block ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                            {isUrdu ? 'مستحقین کیلئے' : 'Mustahiq Families'}
+                          </span>
+                        </button>
+
+                        {/* Fitrat */}
+                        <button
+                          type="button"
+                          onClick={() => setCategory('fitrat')}
+                          className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                            category === 'fitrat'
+                              ? 'bg-emerald-50 border-emerald-600 ring-2 ring-emerald-500/30 text-emerald-950 font-black'
+                              : 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-1">
+                            <span className="text-base">🌙</span>
+                            {category === 'fitrat' && <span className="w-2 h-2 rounded-full bg-emerald-600"></span>}
+                          </div>
+                          <span className={`text-xs font-black block ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                            {isUrdu ? 'فطرانہ (واجب)' : 'Fitra / Fitrat'}
+                          </span>
+                          <span className={`text-[10px] text-slate-500 mt-0.5 block ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                            {isUrdu ? 'عید فطرانہ راحت' : 'Eid Relief Support'}
+                          </span>
+                        </button>
+
+                        {/* Sadaqat */}
+                        <button
+                          type="button"
+                          onClick={() => setCategory('sadaqat')}
+                          className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                            category === 'sadaqat'
+                              ? 'bg-sky-50 border-sky-600 ring-2 ring-sky-500/30 text-sky-950 font-black'
+                              : 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-1">
+                            <span className="text-base">📿</span>
+                            {category === 'sadaqat' && <span className="w-2 h-2 rounded-full bg-sky-600"></span>}
+                          </div>
+                          <span className={`text-xs font-black block ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                            {isUrdu ? 'صدقات (نفل)' : 'Sadaqat / Sadaqah'}
+                          </span>
+                          <span className={`text-[10px] text-slate-500 mt-0.5 block ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                            {isUrdu ? 'دفع بلا و بیمار فنڈ' : 'General Welfare'}
+                          </span>
+                        </button>
+
+                        {/* General / Project Fund */}
+                        <button
+                          type="button"
+                          onClick={() => setCategory('general')}
+                          className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                            category === 'general'
+                              ? 'bg-slate-200 border-slate-700 ring-2 ring-slate-400/30 text-slate-950 font-black'
+                              : 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-1">
+                            <span className="text-base">🏛️</span>
+                            {category === 'general' && <span className="w-2 h-2 rounded-full bg-slate-800"></span>}
+                          </div>
+                          <span className={`text-xs font-black block ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                            {isUrdu ? 'عمومی فنڈ' : 'General Fund'}
+                          </span>
+                          <span className={`text-[10px] text-slate-500 mt-0.5 block ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                            {isUrdu ? 'مسجد و آر او پلانٹ' : 'Mosque & Operations'}
+                          </span>
+                        </button>
+                      </div>
+
+                      {/* Account Explanation Note */}
+                      <div className="p-2.5 bg-slate-100/80 rounded-xl border border-slate-200 text-[11px] text-slate-600">
+                        {category === 'zakat' && (
+                          <p className={isUrdu ? 'font-urdu text-right' : ''}>
+                            {isUrdu 
+                              ? 'حسنیہ فاؤنڈیشن زکوۃ فنڈ کو ۱۰۰٪ شرعی اصولوں کے مطابق صرف مستحقینِ زکوۃ (یتامیٰ، بیوگان، مساکین) پر صرف کرتی ہے۔' 
+                              : '100% Zakat funds are strictly deposited into a dedicated Sharia-compliant Zakat account disbursed to deserving Mustahiq families, widows, and orphans.'}
+                          </p>
+                        )}
+                        {category === 'fitrat' && (
+                          <p className={isUrdu ? 'font-urdu text-right' : ''}>
+                            {isUrdu 
+                              ? 'فطرانہ کی رقم علیحدہ فطرانہ کھاتے میں جمع کی جاتی ہے اور عید سے قبل نادار خاندانوں میں راشن اور کپڑوں کی صورت میں تقسیم کی جاتی ہے۔' 
+                              : 'Fitrat contributions are logged in a separate Fitra Ledger and distributed directly to poverty-stricken households before Eid prayers.'}
+                          </p>
+                        )}
+                        {category === 'sadaqat' && (
+                          <p className={isUrdu ? 'font-urdu text-right' : ''}>
+                            {isUrdu 
+                              ? 'نفلی صدقات کی رقم ہسپتال کے مریضوں کی مدد، راشن کی فراہمی اور ہنگامی فلاحی کاموں پر خرچ ہوتی ہے۔' 
+                              : 'Nafli Sadaqah funds are allocated to patient healthcare support, emergency food drives, and general public welfare.'}
+                          </p>
+                        )}
+                        {category === 'general' && (
+                          <p className={isUrdu ? 'font-urdu text-right' : ''}>
+                            {isUrdu 
+                              ? 'عمومی فنڈز جامع مسجد کی تعمیر و مرمت، صاف پانی کے آر او پلانٹس کے چلانے اور فاؤنڈیشن کے انتظامی امور میں استعمال ہوتے ہیں۔' 
+                              : 'General funds support mosque construction, clean drinking water RO plant maintenance, and foundation operational running expenses.'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
                     {/* Purpose */}
                     <div className="space-y-1">
                       <label className={`block text-xs font-bold text-slate-500 uppercase tracking-wider ${isUrdu ? 'font-urdu text-right' : ''}`}>
@@ -675,6 +840,28 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
                           isUrdu ? 'text-right' : ''
                         }`}
                       />
+                    </div>
+
+                    {/* Monthly Donation Reminder Toggle */}
+                    <div className="p-3 bg-emerald-50/80 border border-emerald-200/80 rounded-xl flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="monthlyReminderToggle"
+                        checked={monthlyReminderOptIn}
+                        onChange={(e) => setMonthlyReminderOptIn(e.target.checked)}
+                        className="mt-1 w-4 h-4 text-emerald-700 focus:ring-emerald-500 border-slate-300 rounded cursor-pointer"
+                      />
+                      <label htmlFor="monthlyReminderToggle" className="cursor-pointer text-xs text-slate-800">
+                        <span className={`font-black flex items-center gap-1.5 ${isUrdu ? 'font-urdu flex-row-reverse text-right' : ''}`}>
+                          <Bell className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>{isUrdu ? '۱ ماہ بعد عطیہ کی یاد دہانی حاصل کریں' : 'Enable 1-Month Donation Reminder'}</span>
+                        </span>
+                        <span className={`block text-[11px] text-slate-500 mt-0.5 ${isUrdu ? 'font-urdu text-right' : ''}`}>
+                          {isUrdu 
+                            ? 'اس عطیہ کے ٹھیک ایک ماہ بعد آپ کو یاد دہانی بھیجی جائے گی تاکہ عطیہ کی توثیق باقاعدگی سے رہے اور ہم بھی آپ کو دعاؤں میں یاد رکھیں۔' 
+                            : 'Receive a polite reminder 1 month after this donation so you can renew your support, and we remember you in our prayers.'}
+                        </span>
+                      </label>
                     </div>
 
                     {/* Submit Button */}
@@ -755,8 +942,11 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
                           <span className="font-black text-emerald-800 text-sm font-mono">PKR {receipt?.amount.toLocaleString()}/-</span>
                         </div>
                         <div>
-                          <span className="block text-slate-400 text-[9px] uppercase font-bold">{isUrdu ? 'مخصوص فنڈ' : 'Cause'}</span>
-                          <span className={`font-black text-slate-900 truncate block ${isUrdu ? 'font-urdu text-[11px]' : ''}`}>
+                          <span className="block text-slate-400 text-[9px] uppercase font-bold">{isUrdu ? 'شرعی کھاتہ و مقصد' : 'Sharia Account & Cause'}</span>
+                          <span className={`font-black text-slate-900 block ${isUrdu ? 'font-urdu text-[11px]' : ''}`}>
+                            {formatCategory(receipt?.category, receipt?.purpose)}
+                          </span>
+                          <span className={`text-[10px] text-slate-500 font-bold block ${isUrdu ? 'font-urdu' : ''}`}>
                             {formatPurpose(receipt?.purpose)}
                           </span>
                         </div>
@@ -837,6 +1027,15 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
                           <span>{isUrdu ? 'ای میل پر بھیجیں' : 'Email to Donor'}</span>
                         </button>
                       )}
+
+                      {/* Set Monthly Donation Reminder Button */}
+                      <button
+                        onClick={() => setIsReminderModalOpen(true)}
+                        className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition-all cursor-pointer col-span-2 mt-1 shadow-md"
+                      >
+                        <Bell className="w-4 h-4 text-emerald-950" />
+                        <span>{isUrdu ? '🗓️ ۱ ماہ بعد کیلئے یاد دہانی فعال کریں' : '🗓️ Set Monthly Reminder (1 Month After)'}</span>
+                      </button>
                     </div>
 
                     <div className="pt-2">
@@ -857,6 +1056,18 @@ export default function Donate({ lang, selectedProjectId }: DonateProps) {
         </div>
 
       </div>
+
+      {/* Monthly Donation Reminder Modal */}
+      <MonthlyDonationReminderModal
+        lang={lang}
+        isOpen={isReminderModalOpen}
+        onClose={() => setIsReminderModalOpen(false)}
+        defaultDonorName={receipt?.donorName || donorName}
+        defaultMobile={receipt?.mobile || mobile}
+        defaultEmail={receipt?.email || email}
+        defaultAmount={receipt?.amount ? String(receipt.amount) : amount}
+        defaultPurpose={receipt?.purpose || purpose}
+      />
     </section>
   );
 }

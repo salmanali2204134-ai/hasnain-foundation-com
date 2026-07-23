@@ -22,6 +22,7 @@ import {
   Sparkles, Trash2, Trophy, User, Users 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import DuroodHadithsModal from './DuroodHadithsModal';
 
 // Durood types with English and Urdu labels
 const DUROOD_OPTIONS = [
@@ -64,8 +65,26 @@ const CAMPAIGN_TARGETS = [
 // Certificate Milestones
 const CERTIFICATE_MILESTONES = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000];
 
+// Historical campaign batch record to ensure 1.7 Million baseline collection is never lost
+const HISTORICAL_BATCH_RECORD: DuroodSubmission = { 
+  id: 's0_historical_17m', 
+  full_name: 'Hasnain Foundation Historical Collection (1.7M Initial Campaign Batch)', 
+  mobile: '03180202424', 
+  whatsapp: '03180202424', 
+  email: 'info@hasnain.org', 
+  city: 'Karachi', 
+  country: 'Pakistan', 
+  durood_type: 'درود ابراہیمی', 
+  quantity: 1700000, 
+  intention: 'امت مسلمہ و حسنین فاؤنڈیشن', 
+  date: '01/01/2026',
+  time: '12:00:00 AM',
+  created_at: '2026-01-01T00:00:00.000Z' 
+};
+
 // Local backup seed data just in case Supabase is empty
 const SEED_DATA: DuroodSubmission[] = [
+  HISTORICAL_BATCH_RECORD,
   { id: 's1', full_name: 'Muhammad Salman Ali Qadri', mobile: '03152204134', whatsapp: '03152204134', email: 'salman@hasnain.org', city: 'Karachi', country: 'Pakistan', durood_type: 'درود ابراہیمی', quantity: 125000, intention: 'حسنین فاؤنڈیشن', created_at: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString() },
   { id: 's2', full_name: 'Allama Shayan Ali Qadri', mobile: '03133830370', whatsapp: '03133830370', email: 'shayan@hasnain.org', city: 'Karachi', country: 'Pakistan', durood_type: 'درود تاج', quantity: 75000, intention: 'امت مسلمہ', created_at: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString() },
   { id: 's3', full_name: 'Zahid Hussain', mobile: '03332145678', whatsapp: '03332145678', email: 'zahid@gmail.com', city: 'Lahore', country: 'Pakistan', durood_type: 'درود ناریہ', quantity: 5000, intention: 'بیماروں کی شفا', created_at: new Date().toISOString() },
@@ -80,7 +99,21 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
   const [submissions, setSubmissions] = useState<DuroodSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'local' | 'syncing'>('syncing');
-  const [activeTab, setActiveTab] = useState<'submit' | 'counters' | 'campaigns' | 'leaderboard' | 'certificates' | 'profile' | 'admin'>('submit');
+  const [activeTab, setActiveTab] = useState<'submit' | 'counters' | 'campaigns' | 'leaderboard' | 'certificates' | 'virtues' | 'profile' | 'admin'>('submit');
+  const [isHadithModalOpen, setIsHadithModalOpen] = useState(false);
+
+  // Quick prefill submit handler from Hadith / Durood modal
+  const handleQuickSubmitDuroodFromModal = (duroodType: string, count: number) => {
+    setFormData(prev => ({
+      ...prev,
+      duroodType: duroodType || 'درود ابراہیمی',
+      quantity: count
+    }));
+    setActiveTab('submit');
+    alert(isUrdu 
+      ? `سبحان اللہ! آپ نے ${count.toLocaleString()} مرتبہ (${duroodType}) کا انتخاب کیا ہے۔ براہ کرم ذیل میں اپنا نام و موبائل نمبر درج کر کے درود جمع فرمائیں۔` 
+      : `SubhanAllah! Selected ${count.toLocaleString()} recitations of (${duroodType}). Please enter your name & phone number to submit.`);
+  };
 
   useEffect(() => {
     if (forceAdmin) {
@@ -163,16 +196,20 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
       }
 
       if (data && data.length > 0) {
-        // We got data from Supabase!
-        setSubmissions(sortSubmissionsNewestFirst(data));
+        // Guarantee historical batch of 1.7M Durood is preserved alongside live entries
+        const hasHistoricalRecord = data.some(item => Number(item.quantity) >= 1700000 || item.id === 's0_historical_17m');
+        const finalData = hasHistoricalRecord ? data : [HISTORICAL_BATCH_RECORD, ...data];
+        setSubmissions(sortSubmissionsNewestFirst(finalData));
         setSyncStatus('synced');
         
         // Synchronize local storage to match Supabase
-        localStorage.setItem('local_durood_submissions', JSON.stringify(data));
+        localStorage.setItem('local_durood_submissions', JSON.stringify(finalData));
       } else {
         // Fallback to local storage or seed data if empty
         if (parsedLocal.length > 0) {
-          setSubmissions(sortSubmissionsNewestFirst(parsedLocal));
+          const hasHistorical = parsedLocal.some(item => Number(item.quantity) >= 1700000 || item.id === 's0_historical_17m');
+          const finalLocal = hasHistorical ? parsedLocal : [HISTORICAL_BATCH_RECORD, ...parsedLocal];
+          setSubmissions(sortSubmissionsNewestFirst(finalLocal));
         } else {
           setSubmissions(sortSubmissionsNewestFirst(SEED_DATA));
           localStorage.setItem('local_durood_submissions', JSON.stringify(SEED_DATA));
@@ -986,7 +1023,7 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
               </AnimatePresence>
             </div>
             <span className="block text-[11px] text-emerald-300 font-urdu mt-1.5">
-              {isUrdu ? 'سبحان اللہ! اللہ تعالیٰ اس نذرانے کو قبول فرمائے۔' : 'SubhanAllah! May Allah accept this recitation.'}
+              {isUrdu ? 'سبحان اللہ! 17 لاکھ (1.7M) سابقہ جمع شدہ درود شریف شاملِ کاؤنٹر ہیں۔' : 'SubhanAllah! Includes 1.7M historical collection batch.'}
             </span>
           </div>
         </div>
@@ -1000,6 +1037,7 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
           { id: 'campaigns', labelEn: 'Campaigns', labelUr: 'دعوت و ہدف مہم', icon: Trophy },
           { id: 'leaderboard', labelEn: 'Leaderboard', labelUr: 'مایہ ناز پڑھنے والے', icon: Award },
           { id: 'certificates', labelEn: 'Certificates', labelUr: 'اعزازی اسناد', icon: FileText },
+          { id: 'virtues', labelEn: 'Virtues & Hadiths', labelUr: 'فضائل و احادیثِ درود', icon: Sparkles },
           { id: 'profile', labelEn: 'User Profile', labelUr: 'پروفائل اور اعزازات', icon: User },
           { id: 'admin', labelEn: 'Admin Portal', labelUr: 'انتظامی امور', icon: Lock }
         ].map(tab => {
@@ -1030,9 +1068,20 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Form Column */}
             <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-              <h2 className="text-2xl font-black text-slate-800 border-b border-slate-100 pb-3 mb-6 font-urdu">
-                {isUrdu ? 'درود پاک جمع کروانے کا فارم' : 'Submit Recited Durood'}
-              </h2>
+              <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 mb-6 gap-3">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-800 font-urdu">
+                  {isUrdu ? 'درود پاک جمع کروانے کا فارم' : 'Submit Recited Durood'}
+                </h2>
+
+                <button
+                  type="button"
+                  onClick={() => setIsHadithModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-xs hover:scale-105 font-urdu"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-600 animate-spin" />
+                  <span>{isUrdu ? '📖 فضائل درود و ۲۵ احادیث (درودِ محبت، کرم، ناریہ پڑھیں)' : '📖 Read Virtues & 25 Hadiths'}</span>
+                </button>
+              </div>
 
               {submitSuccess ? (
                 <motion.div 
@@ -1546,12 +1595,25 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
         {/* CERTIFICATES TAB */}
         {activeTab === 'certificates' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            <h2 className="text-2xl font-black text-slate-800 mb-2 font-urdu">
-              {isUrdu ? 'درود پاک کی لائیو اعزازی اسناد' : 'Islamic Durood Certificates'}
-            </h2>
-            <p className="text-sm text-slate-500 font-urdu border-b border-slate-100 pb-4 mb-6">
-              سنگِ میل عبور کرنے والے پڑھنے والوں کو حسنین فاؤنڈیشن کی جانب سے خوبصورت سندِ خدمت لائیو تفویض کی جاتی ہے۔
-            </p>
+            <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800 mb-1 font-urdu">
+                  {isUrdu ? 'درود پاک کی لائیو اعزازی اسناد' : 'Islamic Durood Certificates'}
+                </h2>
+                <p className="text-sm text-slate-500 font-urdu">
+                  {isUrdu ? 'سنگِ میل عبور کرنے والے پڑھنے والوں کو حسنین فاؤنڈیشن کی جانب سے خوبصورت سندِ خدمت لائیو تفویض کی جاتی ہے۔' : 'Live service certificates awarded for milestone achievements.'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsHadithModalOpen(true)}
+                className="px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-2 shadow-md cursor-pointer transition-all hover:scale-105 font-urdu"
+              >
+                <BookOpen className="w-4.5 h-4.5 text-emerald-950" />
+                <span>{isUrdu ? '📖 فضائل درود و ۲۵ احادیثِ مبارکہ' : '📖 Virtues of Durood & 25 Hadiths'}</span>
+              </button>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
               {/* Lookup Card */}
@@ -1717,6 +1779,54 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIRTUES & HADITHS TAB */}
+        {activeTab === 'virtues' && (
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800 mb-1 font-urdu">
+                  {isUrdu ? 'فضائلِ درود شریف و ۲۵ احادیثِ مبارکہ' : 'Virtues of Durood & 25 Authentic Hadiths'}
+                </h2>
+                <p className="text-sm text-slate-500 font-urdu">
+                  {isUrdu ? 'عربی متن، اردو و انگریزی ترجمہ اور درودِ محبت، درودِ کرم، درودِ ناریہ کی آن لائن تلاوت' : 'Arabic, Urdu & English text with live Durood recitation counters'}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsHadithModalOpen(true)}
+                className="px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-2 shadow-md cursor-pointer transition-all hover:scale-105 font-urdu"
+              >
+                <BookOpen className="w-4.5 h-4.5 text-emerald-950" />
+                <span>{isUrdu ? 'فول اسکرین پاپ اپ ریڈر کھولیں' : 'Open Fullscreen Reader'}</span>
+              </button>
+            </div>
+
+            {/* Quick banner card */}
+            <div className="p-6 bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900 text-white rounded-2xl mb-6 shadow-md flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  <Sparkles className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black font-urdu">
+                    {isUrdu ? 'درود پاک پڑھیں اور ثواب کا تحفہ درود بینک میں جمع کریں' : 'Recite Durood & Gift Your Recitations'}
+                  </h3>
+                  <p className="text-xs text-emerald-200 font-urdu mt-0.5">
+                    درودِ محبت، درودِ کرم، اور درودِ ناریہ (صلوۃ التافریجیۃ) سمیت تمام مبارک درود یہاں موجود ہیں
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsHadithModalOpen(true)}
+                className="px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm cursor-pointer transition-all shadow-lg font-urdu shrink-0"
+              >
+                {isUrdu ? '📿 ۲۵ احادیث و درود شریف ریڈر کھل گیا ہے' : 'Open Hadith & Durood Reader'}
+              </button>
             </div>
           </div>
         )}
@@ -2233,6 +2343,14 @@ export default function DuroodBank({ lang, forceAdmin = false }: { lang: Languag
             )}
           </div>
         )}
+
+      {/* HADITH & DUROOD READER MODAL */}
+      <DuroodHadithsModal
+        lang={lang}
+        isOpen={isHadithModalOpen}
+        onClose={() => setIsHadithModalOpen(false)}
+        onQuickSubmitDurood={handleQuickSubmitDuroodFromModal}
+      />
 
       </div>
     </div>

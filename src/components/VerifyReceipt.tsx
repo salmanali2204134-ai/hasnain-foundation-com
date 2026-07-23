@@ -70,9 +70,22 @@ export default function VerifyReceipt({ lang, onBackToHome }: VerifyReceiptProps
     }
   }, [isUrdu]);
 
+  const formatCategory = (cat?: string, pur?: string) => {
+    const finalCat = cat || (pur === 'zakat' ? 'zakat' : pur === 'fitrat' ? 'fitrat' : pur === 'sadaqat' ? 'sadaqat' : 'general');
+    switch (finalCat) {
+      case 'zakat': return isUrdu ? '🕋 زکوۃ (فرض شرعی)' : '🕋 Zakat Fund';
+      case 'fitrat': return isUrdu ? '🌙 فطرانہ (واجب عید)' : '🌙 Fitra / Fitrat';
+      case 'sadaqat': return isUrdu ? '📿 صدقات (نفلی رفاہ)' : '📿 Sadaqat / Sadaqah';
+      default: return isUrdu ? '🏛️ عمومی عطیہ (جنرل فنڈ)' : '🏛️ General Charity';
+    }
+  };
+
   const formatPurpose = (pur: string) => {
     switch (pur) {
-      case 'general': return isUrdu ? 'عمومی عطیہ' : 'General Sadaqah / Zakat';
+      case 'zakat': return isUrdu ? 'زکوۃ فنڈ (مستحقین)' : 'Zakat (Mustahiq Support)';
+      case 'fitrat': return isUrdu ? 'فطرانہ فنڈ (عید الراحت)' : 'Fitra / Fitrat (Eid Relief)';
+      case 'sadaqat': return isUrdu ? 'نفلی صدقہ و خیرات' : 'Sadaqah (General Welfare)';
+      case 'general': return isUrdu ? 'عمومی فنڈ (مسجد و عمومی)' : 'General Charity / Operations';
       case 'masjid': return isUrdu ? 'جامع مسجد تعمیراتی فنڈ' : 'Jamia Masjid Construction';
       case 'food': return isUrdu ? 'راشن اور کھانا فنڈ' : 'Food Security Drive';
       case 'education': return isUrdu ? 'یتیم بچوں کا تعلیمی فنڈ' : 'Orphan Education Support';
@@ -176,6 +189,12 @@ export default function VerifyReceipt({ lang, onBackToHome }: VerifyReceiptProps
                 <div className="flex justify-between items-start py-2.5 border-b border-slate-100">
                   <span className="text-slate-400 font-bold uppercase">{isUrdu ? 'عطیہ کی رقم' : 'Amount'}</span>
                   <span className="font-black text-emerald-800 font-mono text-base">PKR {donation.amount.toLocaleString()}/-</span>
+                </div>
+
+                {/* Category Account */}
+                <div className="flex justify-between items-start py-2.5 border-b border-slate-100">
+                  <span className="text-slate-400 font-bold uppercase">{isUrdu ? 'شرعی اکائونٹ' : 'Sharia Account'}</span>
+                  <span className="font-extrabold text-emerald-800 text-right">{formatCategory(donation.category, donation.purpose)}</span>
                 </div>
 
                 {/* Purpose */}

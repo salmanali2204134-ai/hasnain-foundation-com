@@ -168,26 +168,24 @@ export default function Header({ lang, setLang, activeSection, setActiveSection,
             : 'bg-white/90 backdrop-blur-md py-4 border-b border-slate-200'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 flex items-center justify-between gap-2 w-full">
           
           {/* Logo Brand */}
-          <button onClick={() => handleNavClick('home')} className="cursor-pointer focus:outline-none">
+          <button onClick={() => handleNavClick('home')} className="cursor-pointer focus:outline-none shrink text-left">
             <Logo lang={lang} variant="header" />
           </button>
 
-          {/* Navigation links removed from Header (moved to Right Sidebar) */}
-
-          {/* Action Area (Lang Toggle + Donate Button + Mobile Toggle) */}
-          <div className={`flex items-center gap-3 ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
+          {/* Action Area (Lang Toggle + Admin CRM + Donate + Mobile Toggle) */}
+          <div className={`flex items-center gap-1.5 sm:gap-3 shrink-0 ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
             
             {/* Language Switcher Button */}
             <button
               id="lang-toggle"
               onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:border-emerald-600 hover:text-emerald-700 transition-all duration-200 text-xs sm:text-xs font-bold cursor-pointer bg-white"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:border-emerald-600 hover:text-emerald-700 transition-all duration-200 text-[11px] sm:text-xs font-bold cursor-pointer bg-white shrink-0"
             >
-              <Globe className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{lang === 'en' ? 'اردو' : 'English'}</span>
+              <Globe className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>{lang === 'en' ? 'اردو' : 'EN'}</span>
             </button>
 
             {/* Admin Portal Button */}
@@ -195,11 +193,11 @@ export default function Header({ lang, setLang, activeSection, setActiveSection,
               <button
                 id="header-admin-btn"
                 onClick={onOpenAdmin}
-                className="flex items-center gap-1 px-2 py-1.5 rounded-xl border border-amber-200 text-amber-700 hover:border-amber-500 hover:text-amber-800 transition-all duration-200 text-xs font-bold cursor-pointer bg-amber-50"
+                className="flex items-center gap-1 px-2 py-1.5 rounded-xl border border-amber-200 text-amber-700 hover:border-amber-500 hover:text-amber-800 transition-all duration-200 text-[11px] sm:text-xs font-bold cursor-pointer bg-amber-50 shrink-0"
                 title={isUrdu ? 'ایڈمن پورٹل' : 'Admin CRM Portal'}
               >
-                <Lock className="w-3.5 h-3.5 text-amber-600" />
-                <span className="hidden sm:inline">{isUrdu ? 'ایڈمن CRM' : 'Admin CRM'}</span>
+                <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span className="hidden sm:inline">{isUrdu ? 'ایڈمن CRM' : 'Admin'}</span>
               </button>
             )}
 
@@ -217,14 +215,15 @@ export default function Header({ lang, setLang, activeSection, setActiveSection,
               <span>{DICTIONARY.nav.donate[lang]}</span>
             </button>
 
-            {/* Mobile Menu Hamburger Button */}
+            {/* Mobile Menu Hamburger / Three Dots Button */}
             <button
               id="mobile-menu-toggle"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-slate-50 focus:outline-none cursor-pointer"
-              aria-label="Toggle Menu"
+              className="lg:hidden p-2 rounded-xl text-slate-800 hover:text-emerald-800 bg-slate-100 hover:bg-emerald-50 border border-slate-200 focus:outline-none cursor-pointer shrink-0 shadow-sm"
+              aria-label="Toggle Navigation Menu"
+              title={isUrdu ? 'مینویو کھولیں' : 'Open Navigation Menu'}
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? <X className="w-5 h-5 text-slate-900" /> : <Menu className="w-5 h-5 text-slate-900" />}
             </button>
           </div>
         </div>

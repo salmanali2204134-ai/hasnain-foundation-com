@@ -275,11 +275,15 @@ You MUST return a JSON object with the following fields:
     amount: number;
     paymentMethod: string;
     purpose: string;
+    category?: 'zakat' | 'fitrat' | 'sadaqat' | 'general';
     transactionId: string;
     receiptUrl?: string;
     donationDate: string;
     donationTime: string;
     status: 'pending' | 'verified' | 'rejected';
+    monthlyReminder?: boolean;
+    nextReminderDate?: string;
+    reminderSentDate?: string;
   }
 
   let appointments: PatientRecord[] = [
@@ -380,9 +384,9 @@ You MUST return a JSON object with the following fields:
   ];
 
   let donations: DonationReceipt[] = [
-    { id: "HF-2026-000001", donorName: "Aftab Ahmed", email: "aftab@gmail.com", mobile: "03009998877", whatsapp: "03009998877", amount: 25000, paymentMethod: "United Bank Limited (UBL)", purpose: "masjid", transactionId: "TXN98231221", donationDate: "2026-07-15", donationTime: "02:15:30 PM", status: "verified" },
-    { id: "HF-2026-000002", donorName: "Farhan Qadri", email: "farhan.q@gmail.com", mobile: "03203456789", whatsapp: "03203456789", amount: 150000, paymentMethod: "EasyPaisa", purpose: "general", transactionId: "EP-4421590", donationDate: "2026-07-16", donationTime: "11:45:00 AM", status: "verified" },
-    { id: "HF-2026-000003", donorName: "Siddique Shah", email: "siddique@live.com", mobile: "03152204134", whatsapp: "03152204134", amount: 50000, paymentMethod: "SadaPay", purpose: "water", transactionId: "SP-8832910", donationDate: "2026-07-17", donationTime: "05:20:12 PM", status: "pending" }
+    { id: "HF-2026-000001", donorName: "Aftab Ahmed", email: "aftab@gmail.com", mobile: "03009998877", whatsapp: "03009998877", amount: 25000, paymentMethod: "United Bank Limited (UBL)", purpose: "masjid", category: "zakat", transactionId: "TXN98231221", donationDate: "2026-07-15", donationTime: "02:15:30 PM", status: "verified" },
+    { id: "HF-2026-000002", donorName: "Farhan Qadri", email: "farhan.q@gmail.com", mobile: "03203456789", whatsapp: "03203456789", amount: 150000, paymentMethod: "EasyPaisa", purpose: "general", category: "sadaqat", transactionId: "EP-4421590", donationDate: "2026-07-16", donationTime: "11:45:00 AM", status: "verified" },
+    { id: "HF-2026-000003", donorName: "Siddique Shah", email: "siddique@live.com", mobile: "03152204134", whatsapp: "03152204134", amount: 50000, paymentMethod: "SadaPay", purpose: "water", category: "fitrat", transactionId: "SP-8832910", donationDate: "2026-07-17", donationTime: "05:20:12 PM", status: "pending" }
   ];
 
   interface ComplaintRecord {
@@ -696,6 +700,17 @@ You MUST return a JSON object with the following fields:
       });
       const nextId = `HF-2026-${String(maxNum + 1).padStart(6, '0')}`;
 
+      // Calculate next reminder date (1 month / 30 days after donation date)
+      const nextReminder = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      const remDateStr = nextReminder.toLocaleDateString('en-US', { timeZone: 'Asia/Karachi', year: 'numeric', month: '2-digit', day: '2-digit' });
+      const [rm, rd, ry] = remDateStr.split('/');
+      const calculatedNextReminderDate = `${ry}-${rm.padStart(2, '0')}-${rd.padStart(2, '0')}`;
+
+      const { monthlyReminder, category } = req.body;
+      const validCategory = ['zakat', 'fitrat', 'sadaqat', 'general'].includes(category) 
+        ? category 
+        : (purpose === 'zakat' ? 'zakat' : purpose === 'fitrat' ? 'fitrat' : purpose === 'sadaqat' ? 'sadaqat' : 'general');
+
       const newDonation: DonationReceipt = {
         id: nextId,
         donorName,
@@ -705,11 +720,14 @@ You MUST return a JSON object with the following fields:
         amount: Number(amount),
         paymentMethod,
         purpose,
+        category: validCategory,
         transactionId,
         receiptUrl: receiptUrl || "",
         donationDate: karachiDate,
         donationTime: timeStr,
-        status: 'pending' // verified by admin inside CRM
+        status: 'pending', // verified by admin inside CRM
+        monthlyReminder: Boolean(monthlyReminder),
+        nextReminderDate: calculatedNextReminderDate
       };
 
       // Generate Receipt PDF buffer & Save locally
@@ -770,6 +788,82 @@ You MUST return a JSON object with the following fields:
       }
 
       res.json({ success: true, donation: donations[idx] });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Toggle or register monthly donation reminder
+  app.post("/api/donations/reminders", async (req, res) => {
+    try {
+      const { donationId, donorName, mobile, email, amount, purpose, monthlyReminder } = req.body;
+      
+      let match = donations.find(d => d.id === donationId || (d.mobile === mobile && d.donorName.toLowerCase() === donorName?.toLowerCase()));
+      
+      const now = new Date();
+      const nextReminder = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      const remDateStr = nextReminder.toLocaleDateString('en-US', { timeZone: 'Asia/Karachi', year: 'numeric', month: '2-digit', day: '2-digit' });
+      const [rm, rd, ry] = remDateStr.split('/');
+      const calculatedNextReminderDate = `${ry}-${rm.padStart(2, '0')}-${rd.padStart(2, '0')}`;
+
+      if (match) {
+        match.monthlyReminder = monthlyReminder !== undefined ? Boolean(monthlyReminder) : true;
+        match.nextReminderDate = calculatedNextReminderDate;
+        return res.json({ success: true, donation: match, message: "Monthly reminder preference updated!" });
+      }
+
+      // If no matching donation exists, create a light subscriber record in donations list
+      const dateStr = now.toLocaleDateString('en-US', { timeZone: 'Asia/Karachi', year: 'numeric', month: '2-digit', day: '2-digit' });
+      const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Karachi', hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const [m, d, y] = dateStr.split('/');
+      const karachiDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+
+      const subscriberRecord: DonationReceipt = {
+        id: `HF-REM-${Date.now()}`,
+        donorName: donorName || "Monthly Subscriber",
+        email: email || "",
+        mobile: mobile || "",
+        amount: Number(amount) || 1000,
+        paymentMethod: "Monthly Pledge",
+        purpose: purpose || "general",
+        transactionId: `SUB-${Date.now()}`,
+        donationDate: karachiDate,
+        donationTime: timeStr,
+        status: 'verified',
+        monthlyReminder: true,
+        nextReminderDate: calculatedNextReminderDate
+      };
+
+      donations.unshift(subscriberRecord);
+      res.json({ success: true, donation: subscriberRecord, message: "Monthly donation reminder registered successfully!" });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Mark monthly reminder sent (Secure Admin Only)
+  app.post("/api/donations/:id/send-reminder", verifyAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const match = donations.find(d => d.id === id);
+      if (!match) {
+        return res.status(404).json({ success: false, error: "Donation record not found." });
+      }
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { timeZone: 'Asia/Karachi', year: 'numeric', month: '2-digit', day: '2-digit' });
+      const [m, d, y] = dateStr.split('/');
+      const karachiDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+
+      // Update next reminder date to 30 days from now
+      const nextRem = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      const nextRemStr = nextRem.toLocaleDateString('en-US', { timeZone: 'Asia/Karachi', year: 'numeric', month: '2-digit', day: '2-digit' });
+      const [nRm, nRd, nRy] = nextRemStr.split('/');
+
+      match.reminderSentDate = karachiDate;
+      match.nextReminderDate = `${nRy}-${nRm.padStart(2, '0')}-${nRd.padStart(2, '0')}`;
+
+      res.json({ success: true, donation: match, message: "Monthly reminder marked as sent and rescheduled for next month." });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
     }
