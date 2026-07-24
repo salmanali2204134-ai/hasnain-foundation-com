@@ -21,6 +21,7 @@ import SocialFeed from './components/SocialFeed';
 import Transparency from './components/Transparency';
 import Donate from './components/Donate';
 import Volunteer from './components/Volunteer';
+import VolunteerModal from './components/VolunteerModal';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import DonationTracker from './components/DonationTracker';
@@ -32,6 +33,7 @@ import VerifyReceipt from './components/VerifyReceipt';
 import PortalSystem from './components/PortalSystem';
 import SocialFollowers from './components/SocialFollowers';
 import FacebookReels from './components/FacebookReels';
+import ReelsModal from './components/ReelsModal';
 import PrayerTimes from './components/PrayerTimes';
 import useMetaTags from './hooks/useMetaTags';
 import RightSidebar from './components/RightSidebar';
@@ -55,6 +57,8 @@ export default function App() {
   const [isComplaintOpen, setIsComplaintOpen] = useState(false);
   const [isSpiritualOpen, setIsSpiritualOpen] = useState(false);
   const [spiritualTab, setSpiritualTab] = useState<'appointment' | 'library'>('appointment');
+  const [isReelsOpen, setIsReelsOpen] = useState(false);
+  const [isVolunteerOpen, setIsVolunteerOpen] = useState(false);
 
   const isUrdu = lang === 'ur';
 
@@ -167,6 +171,7 @@ export default function App() {
         activeSection={activeSection}
         setActiveSection={setActiveSection}
         onOpenAdmin={() => setIsAdminOpen(true)}
+        onReelsClick={() => setIsReelsOpen(true)}
       />
 
       {/* Right-Side Fixed Navigation Sidebar for Desktop */}
@@ -174,6 +179,7 @@ export default function App() {
         lang={lang}
         activeSection={activeSection}
         setActiveSection={setActiveSection}
+        onReelsClick={() => setIsReelsOpen(true)}
       />
 
       {/* Main Core Body */}
@@ -281,6 +287,7 @@ export default function App() {
                 lang={lang} 
                 onDonateClick={() => handleProjectDonate()} 
                 onDuroodClick={() => setActiveSection('durood-bank')}
+                onReelsClick={() => setIsReelsOpen(true)}
               />
 
               {/* Mobile Quick Navigation (3 buttons on each side) */}
@@ -292,6 +299,7 @@ export default function App() {
                   setSpiritualTab('appointment');
                   setIsSpiritualOpen(true);
                 }}
+                onReelsClick={() => setIsReelsOpen(true)}
               />
 
               {/* Prayer Timings & Hanafi Fiqh Salah Schedule */}
@@ -332,11 +340,8 @@ export default function App() {
               {/* 7.3 Real-time Social Media Feed Section */}
               <SocialFeed lang={lang} />
 
-              {/* 7.4 Facebook Reels & Video Highlights (Direct account link) */}
-              <FacebookReels lang={lang} />
-
               {/* 7.5 Volunteer Section */}
-              <Volunteer lang={lang} />
+              <Volunteer lang={lang} onOpenForm={() => setIsVolunteerOpen(true)} />
 
               {/* 2. About Section (Core Values) */}
               <About lang={lang} />
@@ -441,6 +446,20 @@ export default function App() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Multi-Platform Reels & Shorts Viewer Modal */}
+      <ReelsModal
+        lang={lang}
+        isOpen={isReelsOpen}
+        onClose={() => setIsReelsOpen(false)}
+      />
+
+      {/* Online Volunteer Registration Form Modal */}
+      <VolunteerModal
+        lang={lang}
+        isOpen={isVolunteerOpen}
+        onClose={() => setIsVolunteerOpen(false)}
+      />
 
     </div>
   );

@@ -320,28 +320,39 @@ export default function Logo({ lang, variant = 'header', className = '' }: LogoP
     : 'text-white';
 
   const subtitleTextStyle = variant === 'header'
-    ? 'text-emerald-700'
-    : 'text-slate-400';
+    ? 'text-emerald-800 font-extrabold'
+    : 'text-amber-300 font-bold';
 
   return (
-    <div className={`flex items-center gap-2 sm:gap-3.5 select-none ${className} ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
-      {renderOfficialEmblemSVG(variant === 'header' ? "w-9 h-9 sm:w-11 sm:h-11 shrink-0" : "w-11 h-11 sm:w-14 sm:h-14 shrink-0")}
+    <div className={`flex items-center gap-1.5 sm:gap-3 select-none min-w-0 ${className} ${isUrdu ? 'flex-row-reverse' : 'flex-row'}`}>
+      {renderOfficialEmblemSVG(
+        variant === 'header' 
+          ? "w-8 h-8 sm:w-11 sm:h-11 shrink-0 drop-shadow" 
+          : "w-12 h-12 sm:w-16 sm:h-16 shrink-0 drop-shadow-md"
+      )}
       
-      <div className={`flex flex-col min-w-0 ${isUrdu ? 'items-end text-right' : 'items-start text-left'}`}>
-        <h1 className={`font-black tracking-tight leading-none text-xs sm:text-base md:text-lg font-sans ${headerTextStyle}`}>
+      <div className={`flex flex-col min-w-0 justify-center overflow-hidden ${isUrdu ? 'items-end text-right' : 'items-start text-left'}`}>
+        <h1 className={`font-black tracking-tight leading-tight font-sans ${headerTextStyle}`}>
           {isUrdu ? (
-            <span className="font-urdu text-base sm:text-xl tracking-normal leading-tight font-semibold text-emerald-800 truncate block">حسنین فاؤنڈیشن</span>
+            <span className="font-urdu text-base sm:text-2xl tracking-normal leading-tight font-extrabold text-slate-900 truncate block">
+              حسنین فاؤنڈیشن
+            </span>
           ) : (
-            <span className="flex items-center gap-1 font-sans font-black tracking-wider text-xs sm:text-base whitespace-nowrap">
-              <span className="text-[#0284c7]">HASNAIN</span> <span className="text-[#ca8a04]">FOUNDATION</span>
+            <span className="flex items-center gap-0.5 sm:gap-1 font-sans font-black tracking-tight text-xs sm:text-lg md:text-xl whitespace-nowrap leading-none">
+              <span className="text-sky-700 font-black drop-shadow-sm">HASNAIN</span> 
+              <span className="text-amber-600 font-black drop-shadow-sm">FOUNDATION</span>
             </span>
           )}
         </h1>
-        <p className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-widest mt-0.5 truncate block ${subtitleTextStyle}`}>
+        <p className={`text-[9px] sm:text-xs font-black uppercase tracking-wider mt-0.5 whitespace-nowrap truncate block ${subtitleTextStyle}`}>
           {isUrdu ? (
-            <span className="font-urdu text-[10px] sm:text-xs tracking-normal leading-none text-emerald-600">انسانیت کی خدمت، ہمارا عزم</span>
+            <span className="font-urdu text-[11px] sm:text-sm tracking-normal leading-none text-emerald-700 font-extrabold">
+              انسانیت کی خدمت اور پاسبانی
+            </span>
           ) : (
-            "Serving Humanity, Spreading Hope"
+            <span className="text-emerald-700 sm:text-emerald-800 font-black text-[9px] sm:text-xs tracking-wider">
+              SURVIVING HUMANITY
+            </span>
           )}
         </p>
       </div>

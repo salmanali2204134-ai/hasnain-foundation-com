@@ -65,6 +65,27 @@ export default function PrayerTimes({ lang, onOpenDonate }: PrayerTimesProps) {
   const [isPlayingAzan, setIsPlayingAzan] = useState<boolean>(false);
   const azanAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  // State to hide/show full prayer schedule section on demand (hidden by default per user request)
+  const [isSectionHidden, setIsSectionHidden] = useState<boolean>(true);
+
+  // Listen for custom show-prayer-times event triggered from header buttons
+  useEffect(() => {
+    const handleShowPrayerTimes = () => {
+      setIsSectionHidden(false);
+      setTimeout(() => {
+        const el = document.getElementById('prayer-times-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 50);
+    };
+
+    window.addEventListener('show-prayer-times', handleShowPrayerTimes);
+    return () => {
+      window.removeEventListener('show-prayer-times', handleShowPrayerTimes);
+    };
+  }, []);
+
   // Space-saving toggle for general Quranic Verses & Hadith Warnings block
   const [showGeneralVerses, setShowGeneralVerses] = useState<boolean>(false);
 
@@ -310,12 +331,30 @@ export default function PrayerTimes({ lang, onOpenDonate }: PrayerTimesProps) {
               <span>{isUrdu ? (isNotificationEnabled ? 'نوٹیفکیشن فعال ✓' : 'الرٹ آن کریں') : (isNotificationEnabled ? 'Alerts Active ✓' : 'Enable Alerts')}</span>
             </button>
 
+            {/* Collapse/Hide Prayer Section Toggle */}
+            <button
+              onClick={() => setIsSectionHidden(!isSectionHidden)}
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-extrabold transition-all duration-200 flex items-center gap-1.5 cursor-pointer active:scale-95"
+              title={isUrdu ? 'اوقاتِ نماز کا مینو چھپائیں / دکھائیں' : 'Hide / Show Prayer Times Schedule'}
+            >
+              {isSectionHidden ? <ChevronDown className="w-4 h-4 text-amber-400" /> : <ChevronUp className="w-4 h-4 text-amber-400" />}
+              <span>{isUrdu ? (isSectionHidden ? 'شیڈول دکھائیں' : 'شیڈول چھپائیں') : (isSectionHidden ? 'Show Schedule' : 'Hide Schedule')}</span>
+            </button>
+
           </div>
 
         </div>
 
-        {/* LIVE ACTIVE PRAYER NOTIFICATION BANNER */}
-        <div className="mt-6 mb-8">
+        {/* LIVE ACTIVE PRAYER NOTIFICATION BANNER & SCHEDULE BODY */}
+        {!isSectionHidden ? (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* LIVE ACTIVE PRAYER NOTIFICATION BANNER */}
+            <div className="mt-6 mb-8">
           <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950 via-slate-900 to-amber-950 border border-emerald-500/40 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4">
             
             <div className={`flex items-center gap-3.5 ${isUrdu ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}>
@@ -848,6 +887,21 @@ export default function PrayerTimes({ lang, onOpenDonate }: PrayerTimesProps) {
             </motion.div>
           )}
         </AnimatePresence>
+          </motion.div>
+        ) : (
+          <div className="mt-6 p-4 rounded-2xl bg-slate-800/80 border border-slate-700 text-center flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs text-slate-300">
+              <Clock className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <span>{isUrdu ? `اوقاتِ نماز کا شیڈول مخفی ہے۔ دکھانے کے لیے بٹن دبائیں۔` : `Prayer times schedule is hidden. Click "Show Schedule" to view.`}</span>
+            </div>
+            <button
+              onClick={() => setIsSectionHidden(false)}
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs cursor-pointer transition-all active:scale-95"
+            >
+              {isUrdu ? 'اوقاتِ نماز کھولیں' : 'Show Prayer Times'}
+            </button>
+          </div>
+        )}
 
         {/* BOTTOM MOSQUE COMMUNITY SUPPORT BAR */}
         <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">

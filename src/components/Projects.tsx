@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { Language, Project } from '../types';
 import { DICTIONARY, PROJECTS_DATA } from '../data';
-import { Heart, ChevronDown, ChevronUp, Construction, ShieldAlert, Sparkles, Building2 } from 'lucide-react';
+import { Heart, ChevronDown, ChevronUp, Construction, ShieldAlert, Sparkles, Building2, Youtube, Play, Video, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ProjectsProps {
@@ -16,6 +16,7 @@ interface ProjectsProps {
 
 export default function Projects({ lang, onDonateClick }: ProjectsProps) {
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+  const [activeMediaMap, setActiveMediaMap] = useState<Record<string, 'image' | 'video'>>({});
   const isUrdu = lang === 'ur';
 
   const toggleExpand = (id: string) => {
@@ -24,6 +25,10 @@ export default function Projects({ lang, onDonateClick }: ProjectsProps) {
     } else {
       setExpandedProjectId(id);
     }
+  };
+
+  const setMediaMode = (projectId: string, mode: 'image' | 'video') => {
+    setActiveMediaMap(prev => ({ ...prev, [projectId]: mode }));
   };
 
   return (
@@ -75,6 +80,8 @@ export default function Projects({ lang, onDonateClick }: ProjectsProps) {
           {PROJECTS_DATA.map((project, index) => {
             const isExpanded = expandedProjectId === project.id;
             const progress = project.progress || 0;
+            const currentMedia = activeMediaMap[project.id] || (project.youtubeId ? 'video' : 'image');
+
             return (
               <motion.div
                 key={project.id}
@@ -85,23 +92,67 @@ export default function Projects({ lang, onDonateClick }: ProjectsProps) {
                 className="bg-white rounded-xl border border-slate-200 overflow-hidden flex flex-col justify-between transition-all duration-200 shadow-none hover:border-slate-300"
               >
                 <div>
-                  {/* Image Container with tag */}
-                  <div className="relative h-64 sm:h-72 w-full overflow-hidden">
-                    <img
-                      src={project.image}
-                      alt={project.title[lang]}
-                      className="w-full h-full object-cover object-center transition-transform duration-500"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
+                  {/* Media Container (Photo / Embedded YouTube Video Box) */}
+                  <div className="relative w-full overflow-hidden bg-slate-950">
+                    {project.youtubeId && currentMedia === 'video' ? (
+                      <div className="relative w-full aspect-video">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${project.youtubeId}?rel=0&modestbranding=1`}
+                          title={project.title[lang]}
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : (
+                      <div className="relative h-64 sm:h-72 w-full overflow-hidden">
+                        <img
+                          src={project.image}
+                          alt={project.title[lang]}
+                          className="w-full h-full object-cover object-center transition-transform duration-500"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
+                      </div>
+                    )}
                     
                     {/* Category Floating Badge */}
                     <span className={`absolute top-4 ${
                       isUrdu ? 'right-4 font-urdu' : 'left-4 font-sans'
-                    } px-2.5 py-1 rounded-lg bg-emerald-700 text-white text-xs font-bold tracking-wider shadow-sm flex items-center gap-1`}>
+                    } px-2.5 py-1 rounded-lg bg-emerald-700 text-white text-xs font-bold tracking-wider shadow-sm flex items-center gap-1 z-10`}>
                       {project.id === 'masjid-abdul-qadir' && <Building2 className="w-3.5 h-3.5" />}
                       {project.category[lang]}
                     </span>
+
+                    {/* Media Switcher Buttons if project has youtubeId */}
+                    {project.youtubeId && (
+                      <div className={`absolute bottom-3 ${isUrdu ? 'left-3' : 'right-3'} z-10 flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md p-1 rounded-lg border border-slate-700/60`}>
+                        <button
+                          type="button"
+                          onClick={() => setMediaMode(project.id, 'video')}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                            currentMedia === 'video' 
+                              ? 'bg-red-600 text-white shadow' 
+                              : 'text-slate-300 hover:text-white'
+                          }`}
+                        >
+                          <Youtube className="w-3.5 h-3.5" />
+                          <span>{isUrdu ? 'ویڈیو' : 'Video Box'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMediaMode(project.id, 'image')}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                            currentMedia === 'image' 
+                              ? 'bg-emerald-600 text-white shadow' 
+                              : 'text-slate-300 hover:text-white'
+                          }`}
+                        >
+                          <Video className="w-3.5 h-3.5" />
+                          <span>{isUrdu ? 'تصویر' : 'Photo'}</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Body Details */}
@@ -181,6 +232,33 @@ export default function Projects({ lang, onDonateClick }: ProjectsProps) {
                               </li>
                             ))}
                           </ul>
+
+                          {project.youtubeId && (
+                            <div className={`mt-5 p-3.5 bg-red-50/80 border border-red-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs ${
+                              isUrdu ? 'sm:flex-row-reverse text-right' : 'text-left'
+                            }`}>
+                              <div className="flex items-center gap-2.5">
+                                <div className="p-1.5 bg-red-600 text-white rounded-lg shadow-sm">
+                                  <Youtube className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <span className={`font-bold text-slate-900 block ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                                    {isUrdu ? 'اسکول کی باضابطہ رپورٹ ویڈیو دیکھیں' : 'Official Al-Hasnain School Video Report'}
+                                  </span>
+                                  <span className="text-[11px] text-slate-500 font-mono">https://youtu.be/{project.youtubeId}</span>
+                                </div>
+                              </div>
+                              <a
+                                href={`https://youtu.be/${project.youtubeId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 font-extrabold text-red-700 hover:text-red-800 bg-white hover:bg-slate-50 px-3.5 py-1.5 rounded-lg border border-red-200 shadow-xs transition-colors cursor-pointer"
+                              >
+                                <span>{isUrdu ? 'یوٹیوب پر دیکھیں' : 'Watch on YouTube'}</span>
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            </div>
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>

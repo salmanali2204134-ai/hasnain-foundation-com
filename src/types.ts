@@ -34,6 +34,8 @@ export interface Project {
     ur: string;
   };
   image: string;
+  youtubeId?: string;
+  videoUrl?: string;
   completed: boolean;
   progress?: number;
   raised?: string;

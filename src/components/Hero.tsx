@@ -6,16 +6,17 @@
 import React from 'react';
 import { Language } from '../types';
 import { DICTIONARY, IMAGES } from '../data';
-import { Heart, Send, Users, ShieldCheck, Star, Sparkles } from 'lucide-react';
+import { Heart, Send, Users, ShieldCheck, Star, Sparkles, Video } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface HeroProps {
   lang: Language;
   onDonateClick: () => void;
   onDuroodClick?: () => void;
+  onReelsClick?: () => void;
 }
 
-export default function Hero({ lang, onDonateClick, onDuroodClick }: HeroProps) {
+export default function Hero({ lang, onDonateClick, onDuroodClick, onReelsClick }: HeroProps) {
   const isUrdu = lang === 'ur';
 
   // Statistics items
@@ -128,33 +129,7 @@ export default function Hero({ lang, onDonateClick, onDuroodClick }: HeroProps) 
               isUrdu ? 'sm:flex-row-reverse' : ''
             }`}
           >
-            {/* Primary Donate Button */}
-            <button
-              id="hero-donate-btn"
-              onClick={onDonateClick}
-              className={`w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-base border border-emerald-700 hover:border-emerald-800 transition-colors cursor-pointer ${
-                isUrdu ? 'font-urdu' : 'font-sans'
-              }`}
-            >
-              <Heart className="w-4 h-4 fill-current text-white/90" />
-              <span>{DICTIONARY.general.donateNow[lang]}</span>
-            </button>
-
-            {/* Secondary WhatsApp Button */}
-            <a
-              id="hero-whatsapp-btn"
-              href={`https://wa.me/923180202424?text=${encodeURIComponent(DICTIONARY.general.whatsappDonationAlert[lang])}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-extrabold text-base border border-white/20 transition-colors cursor-pointer backdrop-blur-sm ${
-                isUrdu ? 'font-urdu' : 'font-sans'
-              }`}
-            >
-              <Send className="w-4 h-4 text-emerald-400 rotate-45 sm:rotate-0" />
-              <span>{DICTIONARY.general.whatsappContact[lang]}</span>
-            </a>
-
-            {/* Durood Bank Premium Button */}
+            {/* 1. Durood Bank Premium Button (Top / First) */}
             {onDuroodClick && (
               <button
                 id="hero-durood-btn"
@@ -167,6 +142,32 @@ export default function Hero({ lang, onDonateClick, onDuroodClick }: HeroProps) 
                 <span>{isUrdu ? '📿 درود بینک' : 'Durood Bank'}</span>
               </button>
             )}
+
+            {/* 2. Primary Donate Button (Second) */}
+            <button
+              id="hero-donate-btn"
+              onClick={onDonateClick}
+              className={`w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-base border border-emerald-700 hover:border-emerald-800 transition-colors cursor-pointer ${
+                isUrdu ? 'font-urdu' : 'font-sans'
+              }`}
+            >
+              <Heart className="w-4 h-4 fill-current text-white/90" />
+              <span>{DICTIONARY.general.donateNow[lang]}</span>
+            </button>
+
+            {/* 3. Secondary WhatsApp Button (Third) */}
+            <a
+              id="hero-whatsapp-btn"
+              href={`https://wa.me/923180202424?text=${encodeURIComponent(DICTIONARY.general.whatsappDonationAlert[lang])}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-extrabold text-base border border-white/20 transition-colors cursor-pointer backdrop-blur-sm ${
+                isUrdu ? 'font-urdu' : 'font-sans'
+              }`}
+            >
+              <Send className="w-4 h-4 text-emerald-400 rotate-45 sm:rotate-0" />
+              <span>{DICTIONARY.general.whatsappContact[lang]}</span>
+            </a>
           </motion.div>
         </div>
 

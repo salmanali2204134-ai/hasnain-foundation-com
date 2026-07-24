@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Language } from '../types';
 import { DICTIONARY, IMAGES } from '../data';
-import { Heart, Landmark, Target, Award, CheckCircle2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Heart, Landmark, Target, Award, CheckCircle2, ChevronDown, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface AboutProps {
   lang: Language;
@@ -15,6 +15,7 @@ interface AboutProps {
 
 export default function About({ lang }: AboutProps) {
   const isUrdu = lang === 'ur';
+  const [showValues, setShowValues] = useState(false);
 
   const valuesIcons = [Heart, Landmark, Target, Award, CheckCircle2];
 
@@ -180,40 +181,78 @@ export default function About({ lang }: AboutProps) {
           </div>
         </div>
 
-        {/* Core Values Section */}
-        <div className="mt-24 pt-16 border-t border-slate-200">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <h3 className={`text-xl sm:text-2xl font-black text-slate-900 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
-              {DICTIONARY.about.coreValues[lang]}
-            </h3>
-            <div className="w-8 h-[2px] bg-amber-500 mx-auto mt-3 rounded-full" />
+        {/* Core Values Section (Hidden until clicked) */}
+        <div className="mt-20 pt-14 border-t border-slate-200">
+          <div className="text-center max-w-2xl mx-auto">
+            
+            {/* Interactive Toggle Button for Core Values */}
+            <button
+              id="our-core-values-btn"
+              onClick={() => setShowValues(!showValues)}
+              className={`inline-flex items-center gap-3 px-6 py-3.5 sm:px-8 sm:py-4 rounded-2xl bg-white hover:bg-emerald-50/80 border-2 ${
+                showValues ? 'border-emerald-600 bg-emerald-50/50 shadow-md' : 'border-slate-200 shadow-sm'
+              } text-slate-900 transition-all cursor-pointer group active:scale-98`}
+            >
+              <div className="p-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-100 group-hover:scale-110 transition-transform">
+                <Sparkles className="w-5 h-5 text-amber-600 animate-pulse" />
+              </div>
+
+              <div className={isUrdu ? 'text-right' : 'text-left'}>
+                <h3 className={`text-lg sm:text-xl font-black ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                  {DICTIONARY.about.coreValues[lang]}
+                </h3>
+                <span className={`block text-xs font-semibold text-emerald-800 mt-0.5 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                  {showValues 
+                    ? (isUrdu ? 'بنیادی اقدار چھپانے کے لیے کلک کریں' : 'Click to collapse values') 
+                    : (isUrdu ? 'بنیادی اقدار دیکھنے کے لیے کلک کریں' : 'Click to display our core values')}
+                </span>
+              </div>
+
+              <div className={`p-2 rounded-xl bg-slate-100 text-slate-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors ${
+                isUrdu ? 'mr-2' : 'ml-2'
+              }`}>
+                <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${showValues ? 'rotate-180' : ''}`} />
+              </div>
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {DICTIONARY.about.valuesList.map((val, idx) => {
-              const ValIcon = valuesIcons[idx] || CheckCircle2;
-              return (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: idx * 0.05 }}
-                  className="p-6 rounded-xl bg-white border border-slate-200 hover:border-emerald-600 hover:shadow-sm transition-all duration-200 flex flex-col items-center text-center"
-                >
-                  <div className="p-2.5 bg-slate-50 text-emerald-700 rounded-lg mb-4 border border-slate-100">
-                    <ValIcon className="w-5 h-5" />
-                  </div>
-                  <h4 className={`text-base sm:text-base font-bold text-slate-900 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
-                    {val.title[lang]}
-                  </h4>
-                  <p className={`text-slate-400 text-xs mt-2 leading-relaxed ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
-                    {val.desc[lang]}
-                  </p>
-                </motion.div>
-              );
-            })}
-          </div>
+          {/* Collapsible Values Grid */}
+          <AnimatePresence>
+            {showValues && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginTop: 32 }}
+                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                transition={{ duration: 0.35 }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 pt-2">
+                  {DICTIONARY.about.valuesList.map((val, idx) => {
+                    const ValIcon = valuesIcons[idx] || CheckCircle2;
+                    return (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: idx * 0.06 }}
+                        className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-emerald-600 hover:shadow-md transition-all duration-200 flex flex-col items-center text-center"
+                      >
+                        <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl mb-4 border border-emerald-100 shadow-none">
+                          <ValIcon className="w-5 h-5 text-emerald-700" />
+                        </div>
+                        <h4 className={`text-base font-bold text-slate-900 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                          {val.title[lang]}
+                        </h4>
+                        <p className={`text-slate-500 text-xs mt-2 leading-relaxed ${isUrdu ? 'font-urdu leading-loose' : 'font-sans'}`}>
+                          {val.desc[lang]}
+                        </p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
       </div>

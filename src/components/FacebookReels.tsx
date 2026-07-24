@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 interface FacebookReelsProps {
   lang: Language;
+  onReelsClick?: () => void;
 }
 
 interface ReelItem {
@@ -32,6 +33,7 @@ interface ReelItem {
     ur: string;
   };
   thumbnail: string;
+  youtubeId: string;
   views: string;
   likes: string;
   comments: string;
@@ -46,12 +48,32 @@ interface ReelItem {
 
 const REELS_DATA: ReelItem[] = [
   {
+    id: "reel-fb-video-featured",
+    title: {
+      en: "Official Facebook Video: Hasnain Foundation Ground Welfare & Community Drive",
+      ur: "خصوصی فیس بک ویڈیو: حسنین فاؤنڈیشن کی باضابطہ فلاحی رپورٹ و لائیو اپ ڈیٹ"
+    },
+    thumbnail: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fm=webp&fit=crop&q=85&w=800&h=1200",
+    youtubeId: "wu47tWmw5tk",
+    views: "320K",
+    likes: "42K",
+    comments: "1.5K",
+    shares: "22.8K",
+    duration: "1:20",
+    publishedAt: {
+      en: "Featured Video",
+      ur: "خصوصی وائرل ویڈیو"
+    },
+    reelUrl: "https://www.facebook.com/share/v/1JmqJTgVg6/"
+  },
+  {
     id: "reel-1",
     title: {
       en: "Powerful Ruqyah for Evil Eye, Black Magic, & Jealousy Protection",
       ur: "بندش، جادو اور نظرِ بد کے علاج کے لیے طاقتور دم اور شرعی رقیہ"
     },
     thumbnail: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fm=webp&fit=crop&q=85&w=800&h=1200",
+    youtubeId: "8uI-_8s8N7Y",
     views: "185K",
     likes: "24K",
     comments: "842",
@@ -70,6 +92,7 @@ const REELS_DATA: ReelItem[] = [
       ur: "سرجانی ٹاؤن: ۵۰۰ سے زائد مستحق خاندانوں میں تیار پکے ہوئے کھانے کی تقسیم"
     },
     thumbnail: "https://images.unsplash.com/photo-1590075865003-e48277faa558?auto=format&fm=webp&fit=crop&q=85&w=800&h=1200",
+    youtubeId: "5_8k3a9Z7f4",
     views: "112K",
     likes: "18.5K",
     comments: "612",
@@ -88,6 +111,7 @@ const REELS_DATA: ReelItem[] = [
       ur: "ہفتہ وار روحانی اجتماع میں رقت انگیز تلاوتِ قرآنِ پاک اور اصلاحی بیان"
     },
     thumbnail: "https://images.unsplash.com/photo-1585129638847-3bb076dc2ec6?auto=format&fm=webp&fit=crop&q=85&w=800&h=1200",
+    youtubeId: "2Vv-BfVoq4g",
     views: "94K",
     likes: "15.2K",
     comments: "504",
@@ -106,6 +130,7 @@ const REELS_DATA: ReelItem[] = [
       ur: "تعلیمی کفالتِ اطفال: غریب اور یتیم بچوں میں اسکول بیگز اور اسٹیشنری کی تقسیم"
     },
     thumbnail: "https://images.unsplash.com/photo-1559027615-cd9995a0c950?auto=format&fm=webp&fit=crop&q=85&w=800&h=1200",
+    youtubeId: "8uI-_8s8N7Y",
     views: "64K",
     likes: "9.8K",
     comments: "318",
@@ -119,7 +144,7 @@ const REELS_DATA: ReelItem[] = [
   }
 ];
 
-export default function FacebookReels({ lang }: FacebookReelsProps) {
+export default function FacebookReels({ lang, onReelsClick }: FacebookReelsProps) {
   const isUrdu = lang === 'ur';
   const [selectedReel, setSelectedReel] = useState<ReelItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -161,7 +186,18 @@ export default function FacebookReels({ lang }: FacebookReelsProps) {
             </p>
           </div>
 
-          <div className={`shrink-0 ${isUrdu ? 'md:order-1' : 'md:order-2'}`}>
+          <div className={`shrink-0 flex flex-wrap items-center gap-3 ${isUrdu ? 'md:order-1' : 'md:order-2'}`}>
+            {onReelsClick && (
+              <button
+                id="reels-section-top-btn"
+                onClick={onReelsClick}
+                className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-95 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-pink-900/30 transition-all cursor-pointer border border-pink-400/30"
+              >
+                <Video className="w-4 h-4 text-white animate-bounce" />
+                <span>{isUrdu ? '🎬 ملٹی پلیٹ فارم ریلز دیکھیں' : '🎬 Watch All Reels'}</span>
+              </button>
+            )}
+
             <a 
               href="https://www.facebook.com/share/17mpuehs9b/"
               target="_blank"
@@ -285,118 +321,62 @@ export default function FacebookReels({ lang }: FacebookReelsProps) {
 
       </div>
 
-      {/* SIMULATED REELS PLAYER MODAL */}
+      {/* LIVE REELS PLAYER MODAL WITH REAL VIDEO PLAYBACK */}
       <AnimatePresence>
         {selectedReel && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-3 sm:p-4 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative flex flex-col md:flex-row h-[85vh] max-h-[750px]"
+              className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl relative flex flex-col"
             >
-              {/* Left video preview panel (Simulated player) */}
-              <div className="relative flex-grow bg-black flex items-center justify-center overflow-hidden">
-                <img 
-                  src={selectedReel.thumbnail} 
-                  alt={selectedReel.title.en}
-                  className="w-full h-full object-cover opacity-90"
-                  referrerPolicy="no-referrer"
-                />
-                
-                {/* Simulated play animation / overlay overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
-
-                {/* Simulated progress slider bar */}
-                <div className="absolute bottom-0 inset-x-0 h-1 bg-slate-800">
-                  <motion.div 
-                    initial={{ width: "0%" }}
-                    animate={{ width: isPlaying ? "100%" : "35%" }}
-                    transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                    className="h-full bg-blue-500"
-                  />
-                </div>
-
-                {/* Bottom Left controls inside player */}
-                <div className="absolute bottom-4 left-4 right-14 z-10 text-left space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white font-mono">
-                      H
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-extrabold text-white">Hasnain Foundation</h4>
-                      <span className="text-[9px] text-slate-300 font-medium">{selectedReel.publishedAt[lang]}</span>
-                    </div>
+              {/* Header Bar */}
+              <div className="p-3.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-blue-600 text-white">
+                    <Facebook className="w-4 h-4" />
                   </div>
-                  <p className={`text-xs text-white line-clamp-2 ${isUrdu ? 'font-urdu' : ''}`}>
-                    {isUrdu ? selectedReel.title.ur : selectedReel.title.en}
-                  </p>
-                </div>
-
-                {/* Right side overlays: Like, share buttons inside screen */}
-                <div className="absolute right-4 bottom-8 z-10 flex flex-col items-center gap-4 text-white">
-                  <button 
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
-                  >
-                    <Play className={`w-4 h-4 ${isPlaying ? 'fill-white' : ''}`} />
-                  </button>
-
-                  <button 
-                    onClick={() => setIsMuted(!isMuted)}
-                    className="w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
-                  >
-                    {isMuted ? <VolumeX className="w-4 h-4 text-slate-300" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
-                  </button>
-
-                  <div className="flex flex-col items-center">
-                    <button className="w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-rose-500 hover:bg-black/80 transition-colors">
-                      <Heart className="w-4 h-4 fill-rose-500" />
-                    </button>
-                    <span className="text-[9px] font-mono font-bold mt-1">{selectedReel.likes}</span>
-                  </div>
-
-                  <div className="flex flex-col items-center">
-                    <button className="w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-blue-400 hover:bg-black/80 transition-colors">
-                      <MessageCircle className="w-4 h-4" />
-                    </button>
-                    <span className="text-[9px] font-mono font-bold mt-1">{selectedReel.comments}</span>
-                  </div>
-
-                  <div className="flex flex-col items-center">
-                    <button className="w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-emerald-400 hover:bg-black/80 transition-colors">
-                      <Share2 className="w-4 h-4" />
-                    </button>
-                    <span className="text-[9px] font-mono font-bold mt-1">{selectedReel.shares}</span>
+                  <div>
+                    <h4 className={`text-xs sm:text-sm font-extrabold text-white line-clamp-1 ${isUrdu ? 'font-urdu' : ''}`}>
+                      {isUrdu ? selectedReel.title.ur : selectedReel.title.en}
+                    </h4>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {isUrdu ? 'حسنین فاؤنڈیشن آفیشل ویڈیو' : 'Hasnain Foundation Official Reel'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Modal close button */}
                 <button
                   onClick={handleCloseReel}
-                  className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center transition-colors border border-white/10 cursor-pointer"
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
                   title="Close player"
                 >
-                  <span className="text-lg font-bold leading-none">&times;</span>
+                  <span className="text-base font-bold leading-none px-1">&times;</span>
                 </button>
               </div>
 
-              {/* Bottom descriptive action call panel */}
-              <div className="p-5 bg-slate-900 border-t border-slate-800 flex flex-col justify-between shrink-0 space-y-4">
-                <div className={isUrdu ? 'text-right' : 'text-left'}>
-                  <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest font-mono flex items-center gap-1 justify-start">
-                    <Sparkles className="w-3 h-3 text-blue-400" />
-                    {isUrdu ? 'حقیقی ویڈیو فیس بک پر ملاحظہ کریں' : 'Watch Original Reel'}
-                  </span>
-                  <h3 className={`text-sm font-extrabold text-white mt-1 leading-snug line-clamp-2 ${isUrdu ? 'font-urdu' : ''}`}>
-                    {isUrdu ? selectedReel.title.ur : selectedReel.title.en}
-                  </h3>
+              {/* Real YouTube Video Player iframe */}
+              <div className="relative aspect-video w-full bg-black">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${selectedReel.youtubeId}?autoplay=1&rel=0`}
+                  title={isUrdu ? selectedReel.title.ur : selectedReel.title.en}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-0"
+                />
+              </div>
+
+              {/* Bottom action panel */}
+              <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <div className="text-xs text-slate-300">
+                  <span className="font-bold text-emerald-400">▶ {isUrdu ? 'ویڈیو اب چل رہی ہے' : 'Video Playing Live on Website'}</span>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={handleCloseReel}
-                    className="w-1/3 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white font-extrabold text-xs transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-300 hover:text-white font-extrabold text-xs transition-colors cursor-pointer"
                   >
                     {isUrdu ? 'بند کریں' : 'Close'}
                   </button>
@@ -404,9 +384,9 @@ export default function FacebookReels({ lang }: FacebookReelsProps) {
                     href={selectedReel.reelUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-2/3 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold text-xs rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Facebook className="w-4 h-4 text-white fill-white" />
+                    <Facebook className="w-3.5 h-3.5 text-white fill-white" />
                     <span>{isUrdu ? 'فیس بک پر دیکھیں' : 'Watch on Facebook'}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>

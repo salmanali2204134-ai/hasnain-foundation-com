@@ -435,6 +435,8 @@ export const PROJECTS_DATA: Project[] = [
       ur: "ہمارے ماڈل اسکولوں اور یتیم خانوں کے غریب و یتیم بچوں کے تمام اخراجات بشمول فیس، یونیفارم، بستے، گرم کپڑے اور کتب کی فراہمی۔ ہمارا مقصد بچوں کے لیے روشن تعلیمی مستقبل قائم کرنا ہے۔"
     },
     image: IMAGES.educationProject,
+    youtubeId: "wu47tWmw5tk",
+    videoUrl: "https://www.youtube.com/embed/wu47tWmw5tk",
     completed: false,
     progress: 72,
     raised: "PKR 2,160,000",
@@ -573,56 +575,56 @@ export const GALLERY_DATA: GalleryItem[] = [
     title: { en: "Jamia Masjid Exterior Work", ur: "مسجد کا بیرونی منظر" },
     type: "photo",
     category: "mosque",
-    url: IMAGES.masjidProject,
-    thumbnail: IMAGES.masjidProject
+    url: "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g2",
     title: { en: "Ration Pack Storage & Verification", ur: "راشن بیگ کی تیاری" },
     type: "photo",
     category: "food",
-    url: IMAGES.foodProject,
-    thumbnail: IMAGES.foodProject
+    url: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g3",
     title: { en: "Children in Quran Learning Class", ur: "بچے قرآن مجید پڑھتے ہوئے" },
     type: "photo",
     category: "education",
-    url: IMAGES.educationProject,
-    thumbnail: IMAGES.educationProject
+    url: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g4",
     title: { en: "Community Clean Water Plant", ur: "پانی کا فلٹریشن پلانٹ" },
     type: "photo",
     category: "welfare",
-    url: IMAGES.waterProject,
-    thumbnail: IMAGES.waterProject
+    url: "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g5",
     title: { en: "Spiritual Conference Gathering", ur: "روحانی اجتماع میں عاشقانِ رسول کا ہجوم" },
     type: "photo",
     category: "events",
-    url: IMAGES.karbalaEvent,
-    thumbnail: IMAGES.karbalaEvent
+    url: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g7",
     title: { en: "Weekly Dars Assembly", ur: "ہفتہ وار درس کی تقریب" },
     type: "photo",
     category: "events",
-    url: IMAGES.gatheringEvent,
-    thumbnail: IMAGES.gatheringEvent
+    url: "https://images.unsplash.com/photo-1564769625905-50e93615e769?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1564769625905-50e93615e769?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g8",
     title: { en: "Emergency Medical Relief Kit Distribution", ur: "طبی سامان کی تقسیم" },
     type: "photo",
     category: "welfare",
-    url: IMAGES.welfareEvent,
-    thumbnail: IMAGES.welfareEvent
+    url: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g9",
@@ -701,24 +703,24 @@ export const GALLERY_DATA: GalleryItem[] = [
     title: { en: "Orphanage Children Activities & Support", ur: "یتیم اور مستحق بچوں کی کفالت اور تفریحی سرگرمیاں" },
     type: "photo",
     category: "welfare",
-    url: IMAGES.communityProject,
-    thumbnail: IMAGES.communityProject
+    url: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g19",
     title: { en: "Children Healthcare & General Checkups", ur: "بچوں کی صحت اور فلاحی طبی معائنہ" },
     type: "photo",
     category: "welfare",
-    url: IMAGES.futureProject,
-    thumbnail: IMAGES.futureProject
+    url: "https://images.unsplash.com/photo-1631815588090-d4bfec5b1cdb?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1631815588090-d4bfec5b1cdb?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g20",
     title: { en: "Foundation Volunteers Orientation Meeting", ur: "رضاکاروں کا فلاحی اور تنظیمی معلوماتی سیشن" },
     type: "photo",
     category: "welfare",
-    url: IMAGES.aboutVolunteers,
-    thumbnail: IMAGES.aboutVolunteers
+    url: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=1200"
   },
   {
     id: "g21",
@@ -733,8 +735,24 @@ export const GALLERY_DATA: GalleryItem[] = [
     title: { en: "Masjid Abdul Qadir Jilani Main Hall", ur: "جامع مسجد عبدالقادر جیلانی کا مرکزی ہال" },
     type: "photo",
     category: "mosque",
-    url: IMAGES.heroBg,
-    thumbnail: IMAGES.heroBg
+    url: "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&q=80&w=1200",
+    thumbnail: "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&q=80&w=1200"
+  },
+  {
+    id: "g23-school-yt",
+    title: { en: "Al-Hasnain Model School & Orphanage Video Tour", ur: "الاحسنین ماڈل اسکول اور یتیم خانہ سرپرستی کی باضابطہ ویڈیو" },
+    type: "video",
+    category: "education",
+    url: "https://www.youtube.com/embed/wu47tWmw5tk?autoplay=1",
+    thumbnail: "https://img.youtube.com/vi/wu47tWmw5tk/hqdefault.jpg"
+  },
+  {
+    id: "g24-fb-video",
+    title: { en: "Hasnain Foundation Ground Welfare Official Facebook Video", ur: "حسنین فاؤنڈیشن گراؤنڈ ویلفیئر کی باضابطہ فیس بک ویڈیو" },
+    type: "video",
+    category: "welfare",
+    url: "https://www.facebook.com/share/v/1JmqJTgVg6/",
+    thumbnail: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=1200"
   }
 ];
 
@@ -895,6 +913,21 @@ export const SUCCESS_STORIES: SuccessStory[] = [
 ];
 
 export const SOCIAL_POSTS: SocialPost[] = [
+  {
+    id: "post-fb-video-featured",
+    platform: "facebook",
+    author: "Hasnain Foundation Official Page",
+    date: "July 24, 2026",
+    content: {
+      en: "🎥 Watch Our Official Facebook Video Report: Ground relief work, community support, and welfare activities live on location. Share with your friends & family to support the cause!",
+      ur: "🎥 ہماری آفیشل فیس بک ویڈیو دیکھیں: میدانِ عمل میں مستحقین کی امداد، عوامی سرپرستی اور فلاحی سرگرمیوں کا آن گراؤنڈ احوال۔ ثوابِ جاریہ کی نیت سے ویڈیو کو شیئر کریں!"
+    },
+    likes: 840,
+    shares: 195,
+    comments: 64,
+    mediaUrl: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=1200",
+    videoDuration: "1:20"
+  },
   {
     id: "post-1",
     platform: "facebook",

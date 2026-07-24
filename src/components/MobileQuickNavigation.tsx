@@ -13,7 +13,8 @@ import {
   CreditCard, 
   Target, 
   PhoneCall,
-  Clock 
+  Clock,
+  Video 
 } from 'lucide-react';
 
 interface MobileQuickNavigationProps {
@@ -21,26 +22,28 @@ interface MobileQuickNavigationProps {
   activeSection: string;
   setActiveSection: (section: string) => void;
   onOpenSpiritual: () => void;
+  onReelsClick?: () => void;
 }
 
 export default function MobileQuickNavigation({ 
   lang, 
   activeSection, 
   setActiveSection, 
-  onOpenSpiritual 
+  onOpenSpiritual,
+  onReelsClick 
 }: MobileQuickNavigationProps) {
   const isUrdu = lang === 'ur';
 
   // Navigation Items with 3 buttons on the left side and 3 buttons on the right side
   const leftSideItems = [
     {
-      id: 'prayer-times',
-      labelEn: 'Prayer Times',
-      labelUr: 'اوقاتِ نماز',
-      icon: Clock,
-      color: 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-200',
-      iconColor: 'text-emerald-600',
-      action: () => setActiveSection('prayer-times')
+      id: 'durood-bank',
+      labelEn: 'Durood Bank',
+      labelUr: 'درود بینک',
+      icon: Sparkles,
+      color: 'bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200',
+      iconColor: 'text-amber-600',
+      action: () => setActiveSection('durood-bank')
     },
     {
       id: 'donate',
@@ -52,13 +55,13 @@ export default function MobileQuickNavigation({
       action: () => setActiveSection('donate')
     },
     {
-      id: 'durood-bank',
-      labelEn: 'Durood Bank',
-      labelUr: 'درود بینک',
-      icon: Sparkles,
-      color: 'bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200',
-      iconColor: 'text-amber-600',
-      action: () => setActiveSection('durood-bank')
+      id: 'prayer-times',
+      labelEn: 'Prayer Times',
+      labelUr: 'اوقاتِ نماز',
+      icon: Clock,
+      color: 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-200',
+      iconColor: 'text-emerald-600',
+      action: () => setActiveSection('prayer-times')
     }
   ];
 

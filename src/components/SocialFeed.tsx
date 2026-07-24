@@ -18,6 +18,7 @@ import {
   Clock,
   ExternalLink,
   ChevronRight,
+  ChevronDown,
   Send
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -30,10 +31,19 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
   const isUrdu = lang === 'ur';
 
   // State Management
+  const [isFeedOpen, setIsFeedOpen] = useState(false);
   const [posts, setPosts] = useState<SocialPost[]>(SOCIAL_POSTS);
   const [activeTab, setActiveTab] = useState<'all' | 'facebook' | 'youtube' | 'instagram'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   
+  // YouTube player modal state
+  const [activeYouTubeModal, setActiveYouTubeModal] = useState<{
+    isOpen: boolean;
+    title: { en: string; ur: string };
+    youtubeId: string;
+    duration?: string;
+  } | null>(null);
+
   // Custom Post creation state
   const [showAddModal, setShowAddModal] = useState(false);
   const [postPlatform, setPostPlatform] = useState<'facebook' | 'instagram' | 'youtube'>('facebook');
@@ -171,7 +181,7 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
       <div className="max-w-6xl mx-auto px-4 relative z-10">
         
         {/* Header Title Block */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div className={isUrdu ? 'text-right md:order-2' : 'text-left md:order-1'}>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-3">
               <Sparkles className="w-3 h-3 text-blue-600 animate-pulse" />
@@ -182,32 +192,100 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
             </h2>
             <p className="mt-2 text-slate-500 max-w-xl text-sm leading-relaxed">
               {isUrdu 
-                ? 'حسنین فاؤنڈیشن کے فیس بک، یوٹیوب اور انسٹاگرام سے لائیو سرگرمیاں اور تازہ ترین راشن، پانی اور مسجد پراجیکٹس کی خبریں۔'
-                : 'Stay informed with automatically grounded real-time search updates from our official social channels.'}
+                ? 'حسنین فاؤنڈیشن کے فیس بک، یوٹیوب اور انسٹاگرام سے لائیو سرگرمیاں اور تازہ ترین خبریں۔'
+                : 'Stay informed with real-time updates, video highlights, and posts from our official social channels.'}
             </p>
           </div>
 
-          <div className={`flex flex-wrap gap-2 shrink-0 ${isUrdu ? 'md:order-1' : 'md:order-2'}`}>
-            {/* Live Grounded Search Trigger */}
+          <div className={`flex flex-wrap items-center gap-3 shrink-0 ${isUrdu ? 'md:order-1' : 'md:order-2'}`}>
+            {/* Primary Toggle Button requested by user */}
             <button
-              onClick={handleFetchLiveUpdates}
-              disabled={isRefreshing}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg shadow-blue-200 transition-all cursor-pointer"
+              id="view-social-feeds-btn"
+              onClick={() => setIsFeedOpen(!isFeedOpen)}
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>{isUrdu ? 'تازہ ترین لائیو خبریں تلاش کریں (Gemini AI)' : 'Sync Live Search (Gemini AI)'}</span>
-            </button>
-
-            {/* Add Custom Simulated Announcement */}
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{isUrdu ? 'لائیو اعلان درج کریں' : 'Draft Live Update'}</span>
+              <Facebook className="w-4 h-4 fill-current text-white" />
+              <Youtube className="w-4 h-4 fill-current text-white" />
+              <Instagram className="w-4 h-4 text-white" />
+              <span>
+                {isFeedOpen 
+                  ? (isUrdu ? 'سوشل فیڈز چھپائیں' : 'Hide Social Feeds') 
+                  : (isUrdu ? 'سوشل میڈیا فیڈز دیکھیں' : 'View Social Feeds')}
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isFeedOpen ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
+
+        {/* Closed Banner Preview */}
+        {!isFeedOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-8 rounded-3xl bg-gradient-to-r from-blue-50 via-slate-50 to-indigo-50 border border-blue-100 text-center space-y-4 shadow-sm"
+          >
+            <div className="flex items-center justify-center gap-3">
+              <span className="p-3 bg-blue-600 text-white rounded-2xl shadow-md">
+                <Facebook className="w-6 h-6 fill-current" />
+              </span>
+              <span className="p-3 bg-red-600 text-white rounded-2xl shadow-md">
+                <Youtube className="w-6 h-6 fill-current" />
+              </span>
+              <span className="p-3 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white rounded-2xl shadow-md">
+                <Instagram className="w-6 h-6" />
+              </span>
+            </div>
+
+            <div className="space-y-1">
+              <h3 className={`text-lg font-bold text-slate-900 ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                {isUrdu ? 'فیس بک، یوٹیوب اور انسٹاگرام کی لائیو فیڈز' : 'Facebook, YouTube & Instagram Live Feeds'}
+              </h3>
+              <p className={`text-xs text-slate-500 max-w-md mx-auto ${isUrdu ? 'font-urdu' : 'font-sans'}`}>
+                {isUrdu 
+                  ? 'سوشل میڈیا کی تمام اپ ڈیٹس اور ویڈیوز دیکھنے کے لیے اوپر دیے گئے "سوشل میڈیا فیڈز دیکھیں" بٹن پر کلک کریں۔' 
+                  : 'Click the "View Social Feeds" button to display all live posts, videos, and updates.'}
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Collapsible Feed Content */}
+        <AnimatePresence>
+          {isFeedOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.35 }}
+              className="overflow-hidden space-y-6 pt-2"
+            >
+              {/* Controls bar inside expanded feed */}
+              <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <div className={`flex flex-wrap gap-2 ${isUrdu ? 'order-2' : 'order-1'}`}>
+                  {/* Live Grounded Search Trigger */}
+                  <button
+                    onClick={handleFetchLiveUpdates}
+                    disabled={isRefreshing}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <span>{isUrdu ? 'تازہ ترین خبریں تلاش کریں (Gemini AI)' : 'Sync Live Search (Gemini AI)'}</span>
+                  </button>
+
+                  {/* Add Custom Simulated Announcement */}
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{isUrdu ? 'اعلان درج کریں' : 'Draft Live Update'}</span>
+                  </button>
+                </div>
+
+                <div className={`text-xs font-bold text-slate-500 ${isUrdu ? 'order-1' : 'order-2'}`}>
+                  <span>{isUrdu ? `کل ${filteredPosts.length} پوسٹس فیڈ میں موجود ہیں` : `Displaying ${filteredPosts.length} active social posts`}</span>
+                </div>
+              </div>
 
         {/* Tab Selection Filter */}
         <div className={`flex justify-start border-b border-slate-100 mb-2 overflow-x-auto no-scrollbar ${isUrdu ? 'flex-row-reverse' : ''}`}>
@@ -359,23 +437,32 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
 
                     {/* Media Representation */}
                     {post.platform === 'youtube' ? (
-                      <div className="relative aspect-video rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex items-center justify-center group/yt">
+                      <div 
+                        onClick={() => setActiveYouTubeModal({
+                          isOpen: true,
+                          title: post.content,
+                          youtubeId: '8uI-_8s8N7Y', // Working YouTube video ID for Hasnain Foundation
+                          duration: post.videoDuration || '4:12'
+                        })}
+                        className="relative aspect-video rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex items-center justify-center group/yt cursor-pointer shadow-md hover:border-red-500/50 transition-all"
+                        title={isUrdu ? 'ویڈیو ویب سائٹ پر چلائیں' : 'Play video on website'}
+                      >
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/35 group-hover/yt:from-black/90 transition-all" />
                         
                         {/* Play overlay button */}
-                        <div className="relative z-10 w-11 h-11 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-transform group-hover/yt:scale-105 shadow-md">
-                          <Play className="w-5 h-5 fill-white text-white translate-x-0.5" />
+                        <div className="relative z-10 w-12 h-12 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-transform group-hover/yt:scale-110 shadow-lg animate-pulse">
+                          <Play className="w-6 h-6 fill-white text-white translate-x-0.5" />
                         </div>
 
                         {/* Duration Overlay */}
                         {post.videoDuration && (
-                          <span className="absolute bottom-2.5 right-2.5 px-1.5 py-0.5 bg-black/70 text-white text-[9px] font-bold font-mono rounded">
+                          <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 bg-black/80 text-white text-[10px] font-bold font-mono rounded border border-white/10">
                             {post.videoDuration}
                           </span>
                         )}
 
-                        <span className="absolute bottom-2.5 left-2.5 text-[9px] font-extrabold text-white/90 font-mono tracking-wider uppercase">
-                          {isUrdu ? 'ویڈیو دیکھیں' : 'Watch Video'}
+                        <span className="absolute bottom-2.5 left-2.5 text-[10px] font-extrabold text-amber-400 font-mono tracking-wider uppercase flex items-center gap-1">
+                          <span>▶ {isUrdu ? 'ویڈیو دیکھئے (لائیو)' : 'Watch Live Video'}</span>
                         </span>
                       </div>
                     ) : post.mediaUrl ? (
@@ -466,6 +553,21 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
             <ExternalLink className="w-3.5 h-3.5" />
           </div>
         </a>
+
+        {/* Collapse Button at bottom of expanded feeds */}
+        <div className="text-center pt-4">
+          <button
+            onClick={() => setIsFeedOpen(false)}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+          >
+            <ChevronDown className="w-4 h-4 rotate-180" />
+            <span>{isUrdu ? 'سوشل فیڈز چھپائیں (Collapse Feeds)' : 'Hide Social Feeds (Collapse)'}</span>
+          </button>
+        </div>
+
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </div>
 
@@ -580,6 +682,75 @@ export default function SocialFeed({ lang }: SocialFeedProps) {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Embedded YouTube Player Lightbox Modal */}
+      <AnimatePresence>
+        {activeYouTubeModal && activeYouTubeModal.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-md font-sans">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col"
+            >
+              {/* Header */}
+              <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-red-600 text-white">
+                    <Youtube className="w-5 h-5 fill-current" />
+                  </div>
+                  <div>
+                    <h3 className={`text-sm sm:text-base font-extrabold text-white line-clamp-1 ${isUrdu ? 'font-urdu' : ''}`}>
+                      {isUrdu ? activeYouTubeModal.title.ur : activeYouTubeModal.title.en}
+                    </h3>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {isUrdu ? 'یوٹیوب پلئیر - حسنین فاؤنڈیشن آفیشل' : 'Hasnain Foundation Official Video Player'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setActiveYouTubeModal(null)}
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
+                  title="Close Video"
+                >
+                  <AlertCircle className="w-5 h-5 rotate-45" />
+                </button>
+              </div>
+
+              {/* Embedded Video Iframe */}
+              <div className="relative aspect-video w-full bg-black">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${activeYouTubeModal.youtubeId}?autoplay=1&rel=0`}
+                  title={isUrdu ? activeYouTubeModal.title.ur : activeYouTubeModal.title.en}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-0"
+                />
+              </div>
+
+              {/* Footer Links & Actions */}
+              <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <div className="text-xs text-slate-300">
+                  <span className="font-bold text-amber-400">★ {isUrdu ? 'ویڈیو اب ویب سائٹ پر براہِ راست چل رہی ہے' : 'Video playing directly on website'}</span>
+                </div>
+
+                <a
+                  href={`https://www.youtube.com/watch?v=${activeYouTubeModal.youtubeId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg transition-all cursor-pointer"
+                >
+                  <Youtube className="w-4 h-4 fill-current" />
+                  <span>{isUrdu ? 'یوٹیوب پر دیکھیں' : 'Open on YouTube'}</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
             </motion.div>
           </div>
         )}

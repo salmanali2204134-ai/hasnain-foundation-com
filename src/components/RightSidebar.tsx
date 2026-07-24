@@ -28,16 +28,18 @@ import {
   Facebook,
   Youtube,
   Instagram,
-  MessageCircle
+  MessageCircle,
+  Video
 } from 'lucide-react';
 
 interface RightSidebarProps {
   lang: Language;
   activeSection: string;
   setActiveSection: (section: string) => void;
+  onReelsClick?: () => void;
 }
 
-export default function RightSidebar({ lang, activeSection, setActiveSection }: RightSidebarProps) {
+export default function RightSidebar({ lang, activeSection, setActiveSection, onReelsClick }: RightSidebarProps) {
   const isUrdu = lang === 'ur';
 
   const navItems = [
